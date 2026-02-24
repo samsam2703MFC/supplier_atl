@@ -1,0 +1,63 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.clients }}{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <h3>{{ translations.clients }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.clients_subtitle }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/alerts.twig" %}
+
+    <div class="row">
+        <div class="col-12">
+
+            {# TOOLBAR #}
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <h4 class="card-title mb-0">{{ translations.clients_table }}</h4>
+                        <div class="text-muted small">{{ translations.clients_table_hint }}</div>
+                    </div>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="productsTable">
+                            <thead>
+                            <tr>
+                                <th style="width:56px;">#</th>
+                                <th>{{ translations.name }}</th>
+                                <th class="text-end" style="width:64px;">{{ translations.actions }}</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                {% for client in clients %}
+
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>{{ client.getRepresentativeName() }}</td>
+                                        <td class="text-end">
+                                            <a href="{{ ROOT }}/clients/{{ client.getId() }}/price-list" class="btn btn-sm
+                                            btn-primary">{{ translations.price_list }}</a>
+                                        </td>
+                                    </tr>
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">{{ translations.no_clients }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

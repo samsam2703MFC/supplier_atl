@@ -1,0 +1,743 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.client_price_list }}{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <h3>{{ translations.client_price_list }}: {{ client.getName()|default('') }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.client_price_list_subtitle }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/alerts.twig" %}
+
+    <div class="row">
+        <div class="col-12">
+
+            <div class="alert alert-light-primary d-flex align-items-start gap-2">
+                <i class="bi bi-info-circle mt-1"></i>
+                <div>
+                    <div class="fw-bold">{{ translations.price_schedule_help_title }}</div>
+                    <div class="small">{{ translations.price_schedule_help_body }}</div>
+                </div>
+            </div>
+
+            <div class="alert alert-light-warning d-flex align-items-start gap-2" id="missingPricesAlert" style="display:none;">
+                <i class="bi bi-exclamation-triangle mt-1"></i>
+                <div>
+                    <div class="fw-bold">{{ translations.missing_prices_title }}</div>
+                    <div class="small">{{ translations.missing_prices_body }}</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <h4 class="card-title mb-0">{{ translations.price_schedule_table }}</h4>
+                        <div class="text-muted small">{{ translations.price_schedule_table_hint }}</div>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{{ ROOT }}/clients" class="btn btn-light">
+                            <i class="bi bi-arrow-left me-1"></i>{{ translations.back_to_clients }}
+                        </a>
+                        <button class="btn btn-primary" id="btnAddPrice">
+                            <i class="bi bi-plus-lg me-1"></i>{{ translations.add_price }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-2 align-items-end mb-3">
+                        <div class="col-12">
+                            <label class="form-label">{{ translations.filter_and_search }}</label>
+
+                            <div class="d-flex flex-column flex-md-row gap-2">
+                                <input id="filterSearch" type="text" class="form-control" placeholder="{{ translations.search_placeholder }}">
+
+                                <button class="btn btn-light" id="btnClearFilters" type="button" style="white-space: nowrap;">
+                                    <i class="bi bi-x-circle me-1"></i>{{ translations.clear_filters }}
+                                </button>
+                            </div>
+
+                            <div class="form-text">
+                                {{ translations.search_hint }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {# TABLE HEAD: mniej kolumn (opakowanie+VAT pod nazwą) #}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="priceListTable">
+                            <thead>
+                            <tr>
+                                <th style="width:56px;">#</th>
+                                <th>{{ translations.product }}</th>
+                                <th style="width:260px;">{{ translations.current_price }}</th>
+                                <th style="width:340px;">{{ translations.schedule }}</th>
+                            </tr>
+                            </thead>
+                            <tbody id="priceListTbody">
+                            <tr>
+                                <td colspan="7" class="text-muted">{{ translations.loading|default('Ładowanie...') }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="small text-muted" id="tableMeta">{{ translations.price_list_meta_default }}</div>
+                        <div class="small text-muted">{{ translations.ajax_hint }}</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    {# MODAL: ADD PRICE #}
+    <div class="modal fade" id="priceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0">{{ translations.add_price }}</h5>
+                        <div class="small text-muted" id="priceModalSubtitle">{{ translations.price_modal_hint }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Zamknij') }}"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="row g-3">
+                        <input type="hidden" id="priceProductId" value="">
+
+                        <div class="col-12">
+                            <label class="form-label">{{ translations.product }}</label>
+                            <input id="priceProductSearch" class="form-control" placeholder="{{ translations.select_product }}" list="productsDatalist">
+                            <datalist id="productsDatalist"></datalist>
+                            <div class="form-text">{{ translations.product_select_hint }}</div>
+                            <div class="invalid-feedback" id="errProduct"></div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.vat_rate }}</label>
+                            <input id="priceVatRate" class="form-control" disabled>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.valid_from }}</label>
+                            <input id="priceValidFrom" type="date" class="form-control" min="{{ "tomorrow"|date("Y-m-d") }}" value="{{ "tomorrow"|date("Y-m-d") }}" >
+                            <div class="invalid-feedback" id="errValidFrom"></div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.net }}</label>
+                            <input id="priceNet" type="number" step="0.01" min="0" class="form-control" placeholder="{{ translations.price_placeholder }}">
+                            <div class="invalid-feedback" id="errPrice"></div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.gross }}</label>
+                            <input id="priceGross" type="number" step="0.01" min="0" class="form-control" placeholder="{{ translations.price_placeholder }}">
+                        </div>
+
+                        <div class="col-12">
+                            <div class="alert alert-light-secondary small mb-0">
+                                <i class="bi bi-lightning-charge me-1"></i>
+                                {{ translations.price_modal_hint }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
+                        <div class="small text-muted" id="modalMeta"></div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel|default('Anuluj') }}</button>
+                            <button class="btn btn-primary" id="btnSavePrice">
+                                <i class="bi bi-check-lg me-1"></i>{{ translations.save|default('Zapisz') }}
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const el = (id) => document.getElementById(id);
+
+            function escapeHtml(s) {
+                return String(s ?? "").replace(/[&<>"']/g, m => ({
+                    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+                }[m]));
+            }
+
+            function money(x) {
+                const n = Number(x);
+                if (!Number.isFinite(n)) return "0.00";
+                return n.toFixed(2);
+            }
+
+            function isoToday() {
+                const d = new Date();
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                const dd = String(d.getDate()).padStart(2,'0');
+                return `${d.getFullYear()}-${mm}-${dd}`;
+            }
+
+            function isoTomorrow() {
+                const d = new Date();
+                d.setDate(d.getDate() + 1);
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                const dd = String(d.getDate()).padStart(2,'0');
+                return `${d.getFullYear()}-${mm}-${dd}`;
+            }
+
+            function groupByProduct(items) {
+                const map = new Map();
+                (items || []).forEach(it => {
+                    const pid = it.product_id ?? it.productId ?? it.id;
+                    if (!map.has(String(pid))) map.set(String(pid), []);
+                    map.get(String(pid)).push(it);
+                });
+                map.forEach(list => list.sort((a,b) => String(a.valid_from||"").localeCompare(String(b.valid_from||""))));
+                return map;
+            }
+
+            const clientId = {{ client.getId()|default(0)|json_encode|raw }};
+            const RAW_ITEMS = {{ products|default([])|json_encode|raw }};
+
+            const state = {
+                items: Array.isArray(RAW_ITEMS) ? RAW_ITEMS : [],
+                grouped: new Map(),
+                productsIndex: new Map(),
+                q: "",
+                saving: false
+            };
+
+            const priceModal = new bootstrap.Modal(el("priceModal"));
+
+            function buildProductsIndex() {
+                const idx = new Map();
+                state.items.forEach(it => {
+                    const pid = String(it.product_id);
+                    if (!idx.has(pid)) {
+                        idx.set(pid, {
+                            product_id: it.product_id,
+                            name: it.name,
+                            sku: it.sku,
+                            package_size: it.package_size,
+                            package_unit: it.package_unit,
+                            vat_rate: it.vat_rate
+                        });
+                    }
+                });
+                state.productsIndex = idx;
+            }
+
+            function isFuturePrice(it) {
+                const vf = String(it.valid_from || "");
+                if (!vf) return false;
+                return isoToday() < vf;
+            }
+
+            function getCurrentItem(list) {
+                const today = isoToday();
+                // valid_from <= today (najpóźniejsza)
+                const past = (list || []).filter(x => x.valid_from && String(x.valid_from) <= today);
+                if (!past.length) return null;
+                past.sort((a,b) => String(a.valid_from).localeCompare(String(b.valid_from)));
+                return past[past.length - 1];
+            }
+
+            function getFutureItems(list) {
+                const today = isoToday();
+                return (list || []).filter(x => x.valid_from && String(x.valid_from) > today)
+                    .sort((a,b) => String(a.valid_from).localeCompare(String(b.valid_from)));
+            }
+
+            function renderMissingAlert() {
+                let missing = 0;
+                state.grouped.forEach(list => {
+                    const cur = getCurrentItem(list);
+                    const net = Number(cur?.price_net ?? 0);
+                    if (!cur || !Number.isFinite(net) || net <= 0) missing++;
+                });
+
+                el("missingPricesAlert").style.display = missing > 0 ? "" : "none";
+            }
+
+            function productLabel(p) {
+                return `${p.name || ''} (SKU: ${p.sku || '—'})`;
+            }
+
+            function getProductById(pid) {
+                return state.productsIndex.get(String(pid)) || null;
+            }
+
+            function renderDatalist() {
+                const dl = el("productsDatalist");
+                dl.innerHTML = "";
+                Array.from(state.productsIndex.values())
+                    .sort((a,b) => String(a.name||"").localeCompare(String(b.name||"")))
+                    .forEach(p => {
+                        const opt = document.createElement("option");
+                        opt.value = productLabel(p);
+                        opt.setAttribute("data-product-id", p.product_id);
+                        dl.appendChild(opt);
+                    });
+            }
+
+            function findProductIdFromSearch() {
+                const val = (el("priceProductSearch").value || "").trim();
+                for (const p of state.productsIndex.values()) {
+                    const label = productLabel(p);
+                    if (label === val) return String(p.product_id);
+                }
+                return "";
+            }
+
+            function clearModalErrors() {
+                ["errProduct","errValidFrom","errPrice"].forEach(id => el(id).textContent = "");
+                ["priceProductSearch","priceValidFrom","priceNet"].forEach(id => el(id).classList.remove("is-invalid"));
+            }
+
+            function openAddPriceModal(prefillProductId = "") {
+                clearModalErrors();
+
+                const pid = String(prefillProductId || "");
+                el("priceProductId").value = pid;
+
+                if (pid) {
+                    const p = getProductById(pid);
+                    el("priceProductSearch").value = p ? productLabel(p) : "";
+                    el("modalMeta").textContent = p ? `${p.name || ''} (SKU: ${p.sku || '—'})` : ("#" + pid);
+                } else {
+                    el("priceProductSearch").value = "";
+                    el("modalMeta").textContent = "";
+                }
+
+                el("priceVatRate").value = "";
+                el("priceValidFrom").value = isoTomorrow();
+                el("priceNet").value = "";
+                el("priceGross").value = "";
+
+                syncVatDisplay();
+                priceModal.show();
+            }
+
+            function getVatRateSelected() {
+                const pid = el("priceProductId").value || findProductIdFromSearch();
+                const p = pid ? state.productsIndex.get(String(pid)) : null;
+                const r = Number(p?.vat_rate ?? 0);
+                return Number.isFinite(r) ? r : 0;
+            }
+
+            function syncVatDisplay() {
+                const pid = el("priceProductId").value || findProductIdFromSearch();
+                if (!pid) {
+                    el("priceVatRate").value = "";
+                    return;
+                }
+
+                el("priceProductId").value = String(pid);
+                const p = state.productsIndex.get(String(pid));
+                el("priceVatRate").value = `${money(p?.vat_rate ?? 0)}%`;
+            }
+
+            function netToGross(net, vatRatePercent) {
+                const n = Number(net);
+                const v = Number(vatRatePercent);
+                if (!Number.isFinite(n)) return "";
+                const g = n * (1 + v / 100);
+                return money(g);
+            }
+
+            function grossToNet(gross, vatRatePercent) {
+                const g = Number(gross);
+                const v = Number(vatRatePercent);
+                if (!Number.isFinite(g)) return "";
+                const n = g / (1 + v / 100);
+                return money(n);
+            }
+
+            function renderTable() {
+                const tbody = el("priceListTbody");
+
+                const rows = [];
+                const q = (state.q || "").trim().toLowerCase();
+
+                const products = Array.from(state.productsIndex.values())
+                    .filter(p => {
+                        if (!q) return true;
+                        const name = String(p.name||"").toLowerCase();
+                        const sku = String(p.sku||"").toLowerCase();
+                        return name.includes(q) || sku.includes(q);
+                    })
+                    .sort((a,b) => String(a.name||"").localeCompare(String(b.name||"")));
+
+                if (!products.length) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-muted">{{ translations.no_products }}</td></tr>`;
+                    el("tableMeta").textContent = `0`;
+                    return;
+                }
+
+                products.forEach((p, idx) => {
+                    const list = state.grouped.get(String(p.product_id)) || [];
+                    const cur = getCurrentItem(list);
+                    const fut = getFutureItems(list);
+
+                    const vatTxt = `${money(p.vat_rate)}%`;
+                    const packTxt = `${String(p.package_size || '')} ${String(p.package_unit || '')}`.trim();
+
+                    let currentHtml = "";
+                    if (!cur || Number(cur.price_net) <= 0) {
+                        currentHtml = `
+                            <div class="alert alert-light-danger py-2 px-2 mb-0">
+                                <div class="small fw-bold">{{ translations.missing_price_short }}</div>
+                                <div class="small text-muted">{{ translations.price_required }}</div>
+                            </div>
+                        `;
+                    } else {
+                        const gross = netToGross(cur.price_net, p.vat_rate);
+                        currentHtml = `
+                            <div class="small">
+                                <div><span class="text-muted">{{ translations.net }}:</span> <span class="fw-semibold">${money(cur.price_net)}</span></div>
+                                <div><span class="text-muted">{{ translations.gross }}:</span> <span class="fw-semibold">${gross}</span></div>
+                                <div class="text-muted">{{ translations.valid_from }}: ${escapeHtml(cur.valid_from || "")}</div>
+                            </div>
+                        `;
+                    }
+
+                    let scheduleHtml = "";
+                    if (!fut.length) {
+                        scheduleHtml = `<span class="text-muted small">—</span>`;
+                    } else {
+                        scheduleHtml = fut.map(it => {
+                            const gross = netToGross(it.price_net, p.vat_rate);
+                            const canDelete = isFuturePrice(it);
+
+                            const btn = canDelete
+                                ? `<button class="btn btn-sm btn-outline-danger btn-delete-price" type="button" data-product-id="${escapeHtml(p.product_id)}" data-price-id="${escapeHtml(it.price_id)}">
+                                        <i class="bi bi-trash"></i>
+                                   </button>`
+                                : `<button class="btn btn-sm btn-outline-secondary" type="button" disabled title="{{ translations.delete_only_future }}">
+                                        <i class="bi bi-lock"></i>
+                                   </button>`;
+
+                            return `
+                                <div class="d-flex align-items-center justify-content-between gap-2 border rounded px-2 py-1 mb-1">
+                                    <div class="small">
+                                        <div><span class="text-muted">{{ translations.net }}:</span> <span class="fw-semibold">${money(it.price_net)}</span></div>
+                                        <div><span class="text-muted">{{ translations.gross }}:</span> <span class="fw-semibold">${gross}</span></div>
+                                        <div class="text-muted">{{ translations.valid_from }}: ${escapeHtml(it.valid_from || "")}</div>
+                                    </div>
+                                    <div>${btn}</div>
+                                </div>
+                            `;
+                        }).join("");
+                    }
+
+                    rows.push(`
+                        <tr data-product-id="${escapeHtml(p.product_id)}">
+                            <td class="text-muted">${idx + 1}</td>
+                            <td>
+                                <div class="fw-semibold">${escapeHtml(p.name || "")}</div>
+                                <div class="small text-muted">
+                                    <span class="me-2">SKU: ${escapeHtml(p.sku || "—")}</span>
+                                    <span class="me-2">{{ translations.package }}: ${escapeHtml(packTxt || "—")}</span>
+                                    <span>{{ translations.vat_rate }}: ${escapeHtml(vatTxt)}</span>
+                                </div>
+                            </td>
+                            <td>${currentHtml}</td>
+                            <td>
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                    <div class="small fw-semibold">{{ translations.schedule }}</div>
+                                    <button class="btn btn-sm btn-outline-primary btn-add-price-inline" type="button" data-product-id="${escapeHtml(p.product_id)}">
+                                        <i class="bi bi-plus-lg me-1"></i>{{ translations.add_price }}
+                                    </button>
+                                </div>
+                                ${scheduleHtml}
+                            </td>
+                        </tr>
+                    `);
+                });
+
+                tbody.innerHTML = rows.join("");
+                el("tableMeta").textContent = `${products.length}`;
+
+                renderMissingAlert();
+            }
+
+            function upsertLocalPrice(productId, validFrom, priceNet, priceId = null) {
+                const pid = Number(productId);
+                if (!Number.isFinite(pid)) return;
+
+                // Wrzucamy do state.items jako nowy rekord (backend może nie zwrócić listy w MVP)
+                const p = getProductById(pid);
+                state.items.push({
+                    product_id: pid,
+                    price_id: priceId || null,
+                    name: p?.name,
+                    sku: p?.sku,
+                    package_size: p?.package_size,
+                    package_unit: p?.package_unit,
+                    vat_rate: p?.vat_rate,
+                    price_net: Number(priceNet),
+                    valid_from: validFrom
+                });
+
+                // rebuild indeksów
+                state.grouped = groupByProduct(state.items);
+                buildProductsIndex();
+                renderTable();
+            }
+
+            async function addPrice() {
+                clearModalErrors();
+                syncVatDisplay();
+
+                const pid = el("priceProductId").value || findProductIdFromSearch();
+                const validFrom = el("priceValidFrom").value || "";
+                const vat = getVatRateSelected();
+
+                const netVal = (el("priceNet").value || "").trim();
+                const grossVal = (el("priceGross").value || "").trim();
+
+                let priceNet = netVal ? Number(netVal) : null;
+                if (!priceNet && grossVal) priceNet = Number(grossToNet(grossVal, vat));
+
+                const errors = {};
+                if (!pid) errors.product_id = `{{ translations.select_product_required }}`;
+                if (!validFrom) errors.valid_from = `{{ translations.valid_from_required }}`;
+
+                // ZABEZPIECZENIE: valid_from musi być w przyszłości (strictly > today)
+                const today = isoToday();
+                if (validFrom && String(validFrom) <= String(today)) {
+                    errors.valid_from = `{{ translations.valid_from_must_be_future }}`;
+                }
+
+                if (!priceNet || !Number.isFinite(priceNet) || priceNet <= 0) errors.price_net = `{{ translations.price_required }}`;
+
+                if (Object.keys(errors).length) {
+                    if (errors.product_id) { el("priceProductSearch").classList.add("is-invalid"); el("errProduct").textContent = errors.product_id; }
+                    if (errors.valid_from) {
+                        el("priceValidFrom").classList.add("is-invalid");
+                        el("errValidFrom").textContent = errors.valid_from;
+
+                        // dodatkowo: czytelny komunikat popup, jeśli problem dotyczy daty
+                        if (validFrom && String(validFrom) <= String(today)) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: `{{ translations.attention|default('Uwaga') }}`,
+                                text: `{{ translations.valid_from_must_be_future }}`
+                            });
+                        }
+                    }
+                    if (errors.price_net) { el("priceNet").classList.add("is-invalid"); el("errPrice").textContent = errors.price_net; }
+                    return;
+                }
+
+                el("btnSavePrice").disabled = true;
+                try {
+                    const resp = await api(`/ajax/clients/${clientId}/products/${pid}/prices`, {
+                        method: "POST",
+                        data: { valid_from: validFrom, price_net: priceNet }
+                    });
+
+                    if (resp.success || resp.ok) {
+                        // 1) Jeśli backend zwróci listę, korzystamy z niej.
+                        if (Array.isArray(resp?.data)) {
+                            state.items = resp.data;
+                            state.grouped = groupByProduct(state.items);
+                            buildProductsIndex();
+                            renderTable();
+                        } else {
+                            // 2) MVP: dopisz lokalnie i pokaż od razu
+                            const insertedId = resp?.data?.inserted_id ?? resp?.data?.price_id ?? resp?.inserted_id ?? null;
+                            upsertLocalPrice(pid, validFrom, priceNet, insertedId);
+                        }
+
+                        priceModal.hide();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: `{{ translations.success|default('Sukces') }}`,
+                            text: `{{ translations.operation_successful|default('Operacja zakończona powodzeniem') }}`,
+                            timer: 900,
+                            showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: `{{ translations.error|default('Błąd') }}`,
+                            text: resp.message || `{{ translations.undefined_error_occurred|default('Wystąpił nieoczekiwany błąd') }}`
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: `{{ translations.error|default('Błąd') }}`,
+                        text: `{{ translations.no_api_connection|default('Brak połączenia z API') }}`
+                    });
+                } finally {
+                    el("btnSavePrice").disabled = false;
+                }
+            }
+
+            // MVP: po insert/delete najpewniej backend zwróci tylko ok. Jeśli zwróci pełny harmonogram - podmienimy.
+            async function reloadFromServerHint(resp) {
+                // Jeśli backend zwraca odświeżoną listę w resp.data, wykorzystajmy.
+                if (Array.isArray(resp?.data)) {
+                    state.items = resp.data;
+                } else {
+                    // fallback: twardy reload strony jest najprostszy, ale staramy się bez.
+                    // Zakładam MVP: backend w resp.data zwraca nową listę; jeśli nie, zostawiamy UX bez reloadu.
+                }
+
+                state.grouped = groupByProduct(state.items);
+                buildProductsIndex();
+                renderDatalist();
+                renderTable();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: `{{ translations.success|default('Sukces') }}`,
+                    text: `{{ translations.operation_successful|default('Operacja zakończona powodzeniem') }}`,
+                    timer: 900,
+                    showConfirmButton: false
+                });
+            }
+
+            async function deletePrice(productId, priceId, validFrom) {
+                const today = isoToday();
+                if (!(today < String(validFrom||""))) return;
+
+                const result = await Swal.fire({
+                    title: `{{ translations.delete_future_price_confirm }}`,
+                    text: `#${priceId} (${validFrom})`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: `{{ translations.yes_delete_it|default('Tak, usuń') }}`,
+                    cancelButtonText: `{{ translations.cancel|default('Anuluj') }}`
+                });
+
+                if (!result.isConfirmed) return;
+
+                try {
+                    const resp = await api(`/ajax/clients/${clientId}/products/${productId}/prices/${priceId}`, {
+                        method: "DELETE",
+                        data: {}
+                    });
+
+                    if (resp.success || resp.ok) {
+                        await reloadFromServerHint(resp);
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: `{{ translations.error|default('Błąd') }}`,
+                            text: resp.message || `{{ translations.undefined_error_occurred|default('Wystąpił nieoczekiwany błąd') }}`
+                        });
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: `{{ translations.error|default('Błąd') }}`,
+                        text: `{{ translations.no_api_connection|default('Brak połączenia z API') }}`
+                    });
+                }
+            }
+
+            // =========================
+            // Init + events
+            // =========================
+            function init() {
+                state.grouped = groupByProduct(state.items);
+                buildProductsIndex();
+                renderDatalist();
+
+                el("priceListTbody").innerHTML = "";
+                renderTable();
+                syncVatDisplay();
+
+                // sygnał o brakach
+                renderMissingAlert();
+            }
+
+            el("btnAddPrice")?.addEventListener("click", () => openAddPriceModal(""));
+            el("btnClearFilters")?.addEventListener("click", () => {
+                state.q = "";
+                el("filterSearch").value = "";
+                renderTable();
+            });
+            el("filterSearch")?.addEventListener("input", () => {
+                state.q = el("filterSearch").value || "";
+                renderTable();
+            });
+
+            el("priceProductSearch")?.addEventListener("input", () => {
+                el("priceProductId").value = ""; // wymuszamy ponowne dopasowanie
+                syncVatDisplay();
+            });
+
+            // przeliczniki: wpisujesz netto -> przelicza brutto i odwrotnie
+            let lock = null;
+            el("priceNet")?.addEventListener("input", () => {
+                if (lock === 'gross') return;
+                lock = 'net';
+                const vat = getVatRateSelected();
+                const v = el("priceNet").value;
+                el("priceGross").value = v ? netToGross(v, vat) : "";
+                lock = null;
+            });
+            el("priceGross")?.addEventListener("input", () => {
+                if (lock === 'net') return;
+                lock = 'gross';
+                const vat = getVatRateSelected();
+                const v = el("priceGross").value;
+                el("priceNet").value = v ? grossToNet(v, vat) : "";
+                lock = null;
+            });
+
+            el("btnSavePrice")?.addEventListener("click", addPrice);
+
+            el("priceListTbody")?.addEventListener("click", (ev) => {
+                const addBtn = ev.target.closest(".btn-add-price-inline");
+                if (addBtn) {
+                    const pid = addBtn.dataset.productId;
+                    return openAddPriceModal(pid);
+                }
+
+                const del = ev.target.closest(".btn-delete-price");
+                if (del) {
+                    const pid = del.dataset.productId;
+                    const priceId = del.dataset.priceId;
+
+                    // znajdź valid_from dla bezpieczeństwa po stronie UI
+                    const list = state.grouped.get(String(pid)) || [];
+                    const it = list.find(x => String(x.price_id) === String(priceId));
+                    const vf = it?.valid_from;
+
+                    return deletePrice(pid, priceId, vf);
+                }
+            });
+
+            init();
+        });
+    </script>
+{% endblock %}
+

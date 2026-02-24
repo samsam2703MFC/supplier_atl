@@ -1,0 +1,66 @@
+<div class="modal fade" id="allergensModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title mb-0">{{ translations.manage_allergens }}</h5>
+                    <div class="small text-muted" id="allergensModalSubtitle">{{ translations.manage_allergens_subtitle }}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close }}"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="allergensProductId" value="">
+
+                <div class="alert alert-light-primary small mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ translations.allergens_modal_hint }}
+                </div>
+
+                {# Toolbar: search + counters #}
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-12 col-lg-8">
+                        <label class="form-label mb-1">{{ translations.search }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input
+                                    type="text"
+                                    id="allergensSearch"
+                                    class="form-control"
+                                    placeholder="{{ translations.search_placeholder }}"
+                            >
+                            <button class="btn btn-light" type="button" id="btnClearAllergensSearch" title="{{ translations.clear_filters }}">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            {{ translations.search_hint }}
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-4">
+                        <div class="d-flex flex-column align-items-lg-end gap-2 mt-2 mt-lg-4">
+                            <div class="small text-muted" id="allergensMeta"></div>
+                            <div class="d-flex gap-2 flex-wrap justify-content-lg-end" id="allergensCounters"></div>
+                        </div>
+                    </div>
+                </div>
+
+                {# List: responsive tiles #}
+                <div class="border rounded p-2 bg-light" style="min-height: 240px;">
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-2" id="allergensList"></div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="me-auto small text-muted">
+                    <i class="bi bi-lightning-charge me-1"></i>
+                    {{ translations.ajax_hint }}
+                </div>
+                <button class="btn btn-light" data-bs-dismiss="modal">{{ translations.close }}</button>
+            </div>
+
+        </div>
+    </div>
+</div>

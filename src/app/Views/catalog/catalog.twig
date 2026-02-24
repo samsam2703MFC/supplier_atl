@@ -1,0 +1,1136 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.catalog_products }}{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <h3>{{ translations.catalog_products }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.catalog_products_subtitle }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/alerts.twig" %}
+
+    <div class="row">
+        <div class="col-12">
+
+            {# QUICK HELP #}
+            <div class="alert alert-light-primary d-flex align-items-start gap-2">
+                <i class="bi bi-info-circle mt-1"></i>
+                <div>
+                    <div class="fw-bold">{{ translations.catalog_help_title }}</div>
+                    <div class="small">
+                        {{ translations.catalog_help_body }}
+                    </div>
+                </div>
+            </div>
+
+            {# TOOLBAR #}
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <h4 class="card-title mb-0">{{ translations.products_table }}</h4>
+                        <div class="text-muted small">{{ translations.products_table_hint }}</div>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" id="btnAddProduct">
+                            <i class="bi bi-plus-lg me-1"></i>{{ translations.add_product }}
+                        </button>
+                        <button class="btn btn-outline-success" id="btnImportProducts">
+                            <i class="bi bi-upload me-1"></i>{{ translations.import_products }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-2 align-items-end mb-3">
+                        <div class="col-12">
+                            <label class="form-label">{{ translations.filter_and_search }}</label>
+
+                            <div class="d-flex flex-column flex-md-row gap-2">
+                                <input id="filterSearch"
+                                       type="text"
+                                       class="form-control"
+                                       placeholder="{{ translations.search_placeholder }}">
+
+                                <button class="btn btn-light" id="btnClearFilters" type="button" style="white-space: nowrap;">
+                                    <i class="bi bi-x-circle me-1"></i>{{ translations.clear_filters }}
+                                </button>
+                            </div>
+
+                            <div class="form-text">
+                                {{ translations.search_hint }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <table class="table table-hover align-middle" id="productsTable">
+                            <thead>
+                            <tr>
+                                <th style="width:56px;">#</th>
+                                <th>{{ translations.product }}</th>
+                                <th style="width:260px;">{{ translations.allergens }}</th>
+                                <th class="text-end" style="width:64px;">{{ translations.actions }}</th>
+                            </tr>
+                            </thead>
+                            <tbody id="productsTbody">
+                            <tr>
+                                <td colspan="7" class="text-muted">{{ translations.loading }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="small text-muted" id="tableMeta">{{ translations.table_meta_default }}</div>
+                        <div class="small text-muted">
+                            {{ translations.ajax_hint }}
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {# MODAL: ADD/EDIT PRODUCT #}
+    {% include "catalog/modals/product_manage.twig" %}
+
+    {# MODAL: ALLERGENS #}
+    {% include "catalog/modals/allergen.twig" %}
+
+    {# MODAL: PRODUCT SPECIFICATION (multilingual) #}
+    {% include "catalog/modals/product_specification.twig" %}
+
+    {# MODAL: IMPORT PRODUCTS #}
+    {% include "catalog/modals/product_import.twig" %}
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const el = (id) => document.getElementById(id);
+
+            function escapeHtml(s) {
+                return String(s ?? "").replace(/[&<>"']/g, m => ({
+                    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+                }[m]));
+            }
+
+            function badge(text, cls = "bg-light-secondary text-dark") {
+                if (!text) return "";
+                return `<span class="badge ${cls} me-1 mb-1">${escapeHtml(text)}</span>`;
+            }
+
+            function allergensToText(allergens) {
+                if (!Array.isArray(allergens)) return "";
+                return allergens
+                    .map(a => (a?.name || a?.code || ""))
+                    .filter(Boolean)
+                    .join(" ");
+            }
+
+            function renderAllergensBadges(allergens) {
+                const list = Array.isArray(allergens) ? allergens : [];
+                if (!list.length) return `<span class="text-muted small">—</span>`;
+
+                const max = 3;
+                const shown = list.slice(0, max);
+                const rest = list.length - shown.length;
+
+                const badges = shown
+                    .map(a => badge(a.name || a.code, "bg-light-warning text-dark"))
+                    .join("");
+
+                const more = rest > 0 ? badge(`+${rest}`, "bg-light text-muted") : "";
+
+                // tooltip z pełną listą (ładniej, bo nie trzeba wszystkiego wyświetlać)
+                const full = escapeHtml(list.map(a => a.name || a.code).join(", "));
+                return `<span title="${full}">${badges}${more}</span>`;
+            }
+
+
+            // Lista alergenów z backendu (przekazana do widoku)
+            window.ALLERGENS = {{ allergens|json_encode|raw }};
+            // =========================
+            // State + modale
+            // =========================
+            const state = {
+                products: [],
+                loading: false,
+                modalMode: 'add', // add | edit
+                editId: null
+            };
+
+            const productModal   = new bootstrap.Modal(el("productModal"));
+            const allergensModal = new bootstrap.Modal(el("allergensModal"));
+
+            function setLoading(isLoading) {
+                state.loading = isLoading;
+                el("btnAddProduct").disabled = isLoading;
+            }
+
+            // =========================
+            // Walidacja UI
+            // =========================
+            function clearErrors() {
+                const ids = ["errSku","errName","errPackageQty","errPackageUnit","errWeightGrams","errShelfLifeDays","errVatRate"];
+                ids.forEach(i => { el(i).textContent = ""; });
+
+                ["productSku","productName","productPackageSize","productPackageUnit","productWeightGrams","productShelfLifeDays","productVatRate"].forEach(i => {
+                    el(i).classList.remove("is-invalid");
+                });
+            }
+
+            function applyErrors(errors) {
+                const map = {
+                    sku: ["productSku","errSku"],
+                    name: ["productName","errName"],
+                    package_size: ["productPackageSize","errPackageQty"],
+                    package_unit: ["productPackageUnit","errPackageUnit"],
+                    weight_grams: ["productWeightGrams","errWeightGrams"],
+                    shelf_life_days: ["productShelfLifeDays","errShelfLifeDays"],
+                    vat_rate: ["productVatRate","errVatRate"]
+                };
+
+                Object.keys(errors || {}).forEach(k => {
+                    if (!map[k]) return;
+                    const [inputId, errId] = map[k];
+                    el(inputId).classList.add("is-invalid");
+                    el(errId).textContent = errors[k];
+                });
+            }
+
+            // =========================
+            // Render tabeli
+            // =========================
+            function getFilteredProducts() {
+                const q = (el("filterSearch").value || "").trim().toLowerCase();
+
+                return state.products.filter(p => {
+
+                    const pkg = `${p.package_size ?? ""} ${p.package_unit ?? ""}`.trim();
+                    const allergensText = allergensToText(p.allergens);
+
+                    const hay = `${p.sku||""} ${p.name||""} ${allergensText} ${pkg}`.toLowerCase();
+
+                    const matchQ = !q || hay.includes(q);
+                    return matchQ;
+                });
+            }
+
+            function renderTable() {
+                const tbody = el("productsTbody");
+                const rows = getFilteredProducts();
+
+                if (state.loading) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-muted">${escapeHtml({{ translations.loading|json_encode|raw }})}</td></tr>`;
+                    return;
+                }
+
+                if (!rows.length) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="text-muted">${escapeHtml({{ translations.no_results|json_encode|raw }})}</td></tr>`;
+                    el("tableMeta").textContent = {{ translations.table_meta_empty|json_encode|raw }};
+                    return;
+                }
+
+                tbody.innerHTML = rows.map((p, idx) => {
+                    const pkgQty = (p.package_size ?? "");
+                    const pkgUnit = (p.package_unit ?? "");
+
+                    const sku = (p.sku || "").trim();
+                    const name = (p.name || "").trim();
+
+                    const pkgText = (pkgQty || pkgUnit) ? `${pkgQty} ${pkgUnit}`.trim() : "";
+                    const pkgBadge = pkgText ? badge(pkgText, "bg-light-info text-dark") : "";
+
+                    const skuBadge = sku ? badge(sku, "bg-light-secondary text-dark") : "";
+                    const idBadge  = badge(`#${p.id}`, "bg-light text-muted");
+
+                    // NOWE: Status badge (aktywny/nieaktywny)
+                    const statusBadge = (p.active === false)
+                        ? badge("{{ translations.inactive }}", "bg-secondary text-white")
+                        : badge("{{ translations.active }}", "bg-success text-white");
+
+                    // NOWE: Waga badge
+                    const weightBadge = (p.weight_grams && p.weight_grams > 0)
+                        ? badge(`${p.weight_grams}${p.weight_unit || 'g'}`, "bg-light-warning text-dark")
+                        : "";
+
+                    // NOWE: Termin przydatności badge
+                    const shelfLifeBadge = (p.shelf_life_days && p.shelf_life_days > 0)
+                        ? badge(`${p.shelf_life_days}d`, "bg-light-primary text-dark")
+                        : "";
+
+                    // Actions dropdown (bootstrap)
+                    const ddId = `act_${p.id}_${idx}`;
+
+                    return `
+    <tr data-id="${escapeHtml(p.id)}">
+      <td class="text-muted">${idx + 1}</td>
+
+      <td>
+        <div class="d-flex flex-column">
+          <div class="fw-bold text-truncate" style="max-width: 560px;">
+            ${escapeHtml(name)}
+          </div>
+
+          <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
+            ${statusBadge}
+            ${skuBadge}
+            ${idBadge}
+            ${pkgBadge}
+            ${weightBadge}
+            ${shelfLifeBadge}
+          </div>
+        </div>
+      </td>
+
+
+      <td>
+        <div class="d-flex flex-wrap">
+          ${renderAllergensBadges(p.allergens)}
+        </div>
+      </td>
+
+      <td class="text-end">
+        <div class="dropdown">
+          <button class="btn btn-sm btn-light" type="button" id="${ddId}" data-bs-toggle="dropdown" aria-expanded="false" title="${escapeHtml({{ translations.actions|json_encode|raw }})}">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="${ddId}">
+            <li>
+              <button class="dropdown-item btn-edit" type="button">
+                <i class="bi bi-pencil me-2"></i>${escapeHtml({{ translations.edit|json_encode|raw }})}
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item btn-allergens" type="button">
+                <i class="bi bi-shield-check me-2"></i>${escapeHtml({{ translations.allergens|json_encode|raw }})}
+              </button>
+            </li>
+            <li>
+              <button class="dropdown-item btn-specification" type="button">
+                <i class="bi bi-list-check me-2"></i>${escapeHtml({{ translations.specification|default('Specification')|json_encode|raw }})}
+              </button>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <button class="dropdown-item text-danger btn-delete" type="button">
+                <i class="bi bi-trash me-2"></i>${escapeHtml({{ translations.delete|json_encode|raw }})}
+              </button>
+            </li>
+          </ul>
+        </div>
+      </td>
+    </tr>
+  `;
+                }).join("");
+
+
+                const singular = {{ translations.item_singular|json_encode|raw }};
+                const plural   = {{ translations.item_plural|json_encode|raw }};
+                el("tableMeta").textContent = `${rows.length} ${rows.length === 1 ? singular : plural}`;
+            }
+
+
+            function getProductByRow(tr) {
+                const id = tr?.getAttribute("data-id");
+                return state.products.find(p => String(p.id) === String(id));
+            }
+
+            // =========================
+            // Data loading (GET)
+            // =========================
+            async function loadProducts() {
+                setLoading(true);
+                renderTable();
+
+                try {
+                    const params = new URLSearchParams("include=allergens,specification_multilingual,preparation_info");
+
+                    const url = "/ajax/catalog/products" + (params.toString() ? ("?" + params.toString()) : "");
+                    const resp = await api(url, { method: "GET" });
+
+                    if (resp.success || resp.ok) {
+                        state.products = resp.data || [];
+                    } else {
+                        state.products = [];
+                        Swal.fire({
+                            icon: 'error',
+                            title: {{ translations.error|json_encode|raw }},
+                            text: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }}
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: {{ translations.error|json_encode|raw }},
+                        text: {{ translations.no_api_connection|json_encode|raw }}
+                    });
+                } finally {
+                    setLoading(false);
+                    renderTable();
+                }
+            }
+
+            // =========================
+            // Modal open / fill
+            // =========================
+            function openCreateModal() {
+                state.modalMode = 'add';
+                state.editId = null;
+
+                clearErrors();
+                el("productId").value = "";
+                el("productModalTitle").textContent = {{ translations.add_product|json_encode|raw }};
+                el("modalMeta").textContent = {{ translations.modal_meta_new|json_encode|raw }};
+
+
+                // Podstawowe pola (STARE)
+                el("productSku").value = "";
+                el("productName").value = "";
+                el("productPackageSize").value = "";
+                el("productPackageUnit").value = "pcs";
+                el("productVatRate").value = "0";
+
+                // NOWE pola - podstawowe
+                el("productActive").checked = true;
+                el("productWeightGrams").value = "";
+                el("productWeightUnit").value = "g";
+                el("productShelfLifeDays").value = "";
+
+                productModal.show();
+            }
+
+            function openEditModal(product) {
+                state.modalMode = 'edit';
+                state.editId = product.id;
+
+                clearErrors();
+                el("productId").value = product.id;
+                el("productModalTitle").textContent = {{ translations.edit_product|json_encode|raw }};
+                el("modalMeta").textContent = {{ translations.modal_meta_edit|json_encode|raw }} + ": #" + product.id;
+
+
+                // Podstawowe pola (STARE)
+                el("productSku").value = product.sku ?? "";
+                el("productName").value = product.name ?? "";
+                el("productPackageSize").value = product.package_size ?? "";
+                el("productPackageUnit").value = product.package_unit ?? "pcs";
+                el("productVatRate").value = product.vat_rate ?? "0";
+
+                // NOWE pola - podstawowe
+                el("productActive").checked = product.active ?? true;
+                el("productWeightGrams").value = product.weight_grams ?? "";
+                el("productWeightUnit").value = product.weight_unit ?? "g";
+                el("productShelfLifeDays").value = product.shelf_life_days ?? "";
+
+                productModal.show();
+            }
+
+            // =========================
+            // Save (POST/PUT)
+            // =========================
+            async function saveProduct() {
+                clearErrors();
+
+                const payload = {
+                    // STARE pola
+                    sku: (el("productSku").value || "").trim(),
+                    name: (el("productName").value || "").trim(),
+                    package_size: el("productPackageSize").value ? Number(el("productPackageSize").value) : null,
+                    package_unit: el("productPackageUnit").value || "pcs",
+                    vat_rate: el("productVatRate").value || "0",
+
+                    // NOWE pola
+                    is_active: el("productActive").checked,
+                    weight_grams: el("productWeightGrams").value ? Number(el("productWeightGrams").value) : null,
+                    weight_unit: el("productWeightUnit").value || "g",
+                    shelf_life_days: el("productShelfLifeDays").value ? Number(el("productShelfLifeDays").value) : null
+                };
+
+                // Walidacja podstawowa
+                const errors = {};
+                if (!payload.sku) errors.sku = {{ translations.field_required|json_encode|raw }};
+                if (!payload.name) errors.name = {{ translations.field_required|json_encode|raw }};
+                if (!payload.package_size) errors.package_size = {{ translations.field_required|json_encode|raw }};
+                if (!payload.package_unit) errors.package_unit = {{ translations.field_required|json_encode|raw }};
+
+                // Walidacja nowych pól
+                if (payload.weight_grams !== null && payload.weight_grams <= 0) {
+                    errors.weight_grams = "Waga musi być większa od 0";
+                }
+                if (payload.shelf_life_days !== null && payload.shelf_life_days <= 0) {
+                    errors.shelf_life_days = "Termin przydatności musi być większy od 0";
+                }
+
+                if (Object.keys(errors).length) {
+                    applyErrors(errors);
+                    return;
+                }
+
+                el("btnSaveProduct").disabled = true;
+
+                try {
+                    let url = "/ajax/catalog/products";
+                    let method = "POST";
+
+                    if (state.modalMode === "edit") {
+                        url = `/ajax/catalog/products/${state.editId}`;
+                        method = "PUT";
+                    }
+
+                    const resp = await api(url, { method, data: payload });
+
+                    if (resp.success || resp.ok) {
+                        productModal.hide();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: {{ translations.success|json_encode|raw }},
+                            text: {{ translations.operation_successful|json_encode|raw }},
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+
+                        await loadProducts();
+                    } else {
+                        if (resp.errors) {
+                            applyErrors(resp.errors);
+                            Swal.fire({
+                                icon: 'error',
+                                title: {{ translations.error|json_encode|raw }},
+                                text: {{ translations.fix_form_errors|json_encode|raw }}
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: {{ translations.error|json_encode|raw }},
+                                text: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }}
+                            });
+                        }
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: {{ translations.error|json_encode|raw }},
+                        text: {{ translations.no_api_connection|json_encode|raw }}
+                    });
+                } finally {
+                    el("btnSaveProduct").disabled = false;
+                }
+            }
+
+            // =========================
+            // Delete
+            // =========================
+            async function confirmDelete(product) {
+                const result = await Swal.fire({
+                    title: {{ translations.are_you_sure|json_encode|raw }},
+                    text: {{ translations.delete_confirmation|json_encode|raw }} + ': "' + (product.name || '') + '"',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: {{ translations.yes_delete_it|json_encode|raw }},
+                    cancelButtonText: {{ translations.cancel|json_encode|raw }}
+                });
+
+                if (!result.isConfirmed) return;
+
+                try {
+                    const resp = await api(`/ajax/catalog/products/${product.id}`, { method: "DELETE" });
+
+                    if (resp.success || resp.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: {{ translations.success|json_encode|raw }},
+                            text: {{ translations.deleted_successfully|json_encode|raw }},
+                            timer: 1200,
+                            showConfirmButton: false
+                        });
+
+                        await loadProducts();
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: {{ translations.error|json_encode|raw }},
+                            text: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }}
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: {{ translations.error|json_encode|raw }},
+                        text: {{ translations.no_api_connection|json_encode|raw }}
+                    });
+                }
+            }
+
+            // =========================
+            // ALLERGENS modal logic
+            // =========================
+            function getAssignedAllergenIds(product) {
+                const list = Array.isArray(product?.allergens) ? product.allergens : [];
+                return list.map(a => String(a.id)).filter(Boolean);
+            }
+
+            function updateAllergensCounters(itemsCount, selectedCount) {
+                const wrap = el("allergensCounters");
+                if (!wrap) return;
+
+                wrap.innerHTML = `
+    <span class="badge bg-light-secondary text-dark">
+      <i class="bi bi-list-ul me-1"></i>${itemsCount}
+    </span>
+    <span class="badge bg-light-success text-dark">
+      <i class="bi bi-check2-circle me-1"></i>${selectedCount}
+    </span>
+  `;
+            }
+
+            function renderAllergensList(product) {
+                const listEl = el("allergensList");
+                const q = (el("allergensSearch").value || "").trim().toLowerCase();
+
+                const assigned = new Set(getAssignedAllergenIds(product));
+
+                const items = (window.ALLERGENS || [])
+                    .filter(a => {
+                        if (!q) return true;
+                        const name = String(a.name || "").toLowerCase();
+                        const code = String(a.code || "").toLowerCase();
+                        return name.includes(q) || code.includes(q);
+                    })
+                    .sort((a, b) => String(a.name||a.code||"").localeCompare(String(b.name||b.code||"")));
+
+                const selectedCount = assigned.size;
+
+                el("allergensMeta").textContent =
+                    `${items.length} {{ translations.items|json_encode|raw }} · ` +
+                    `${selectedCount} {{ translations.selected|default('selected')|json_encode|raw }}`;
+
+                updateAllergensCounters(items.length, selectedCount);
+
+                if (!items.length) {
+                    listEl.innerHTML = `
+      <div class="col-12">
+        <div class="text-muted small p-3 text-center">
+          ${escapeHtml({{ translations.no_results|json_encode|raw }})}
+        </div>
+      </div>
+    `;
+                    return;
+                }
+
+                listEl.innerHTML = items.map(a => {
+                    const id = String(a.id);
+                    const checked = assigned.has(id) ? "checked" : "";
+                    const safeName = escapeHtml(a.name || "");
+
+                    return `
+      <div class="col">
+        <div class="card shadow-sm h-100">
+          <div class="card-body py-2 px-3">
+            <div class="d-flex align-items-start gap-2">
+              <input
+                class="form-check-input allergen-toggle mt-1"
+                type="checkbox"
+                id="allergen_${escapeHtml(id)}"
+                data-allergen-id="${escapeHtml(id)}"
+                ${checked}
+              >
+              <label class="form-check-label w-100" for="allergen_${escapeHtml(id)}">
+                <div class="fw-semibold">${safeName}</div>
+                <div class="small text-muted">#${escapeHtml(id)}</div>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+                }).join("");
+            }
+
+
+            function openAllergensModal(product) {
+                el("allergensProductId").value = product.id;
+                el("allergensModalSubtitle").textContent =
+                        {{ translations.manage_allergens_for_product|json_encode|raw }} + ': ' + (product.name || '') + ' (SKU: ' + (product.sku || '') + ')';
+
+                el("allergensSearch").value = "";
+                renderAllergensList(product);
+                allergensModal.show();
+            }
+
+            // =========================
+            // SPECIFICATION modal logic
+            // =========================
+            const specificationModal = new bootstrap.Modal(el("specificationModal"));
+            let currentSpecLang = 'pl';
+
+            const SPEC_LANGUAGES = ['pl', 'en', 'fr', 'nl', 'it'];
+
+            function clearSpecificationErrors() {
+                SPEC_LANGUAGES.forEach(lang => {
+                    const langCode = lang.toUpperCase();
+                    ['StorageInfo', 'PreparationInfo', 'Composition'].forEach(field => {
+                        const inputId = `spec${field}${langCode}`;
+                        const errId = `errSpec${field}${langCode}`;
+                        const inputEl = el(inputId);
+                        const errEl = el(errId);
+                        if (inputEl) inputEl.classList.remove('is-invalid');
+                        if (errEl) errEl.textContent = '';
+                    });
+                });
+            }
+
+            function switchSpecificationLanguage(lang) {
+                currentSpecLang = lang;
+
+                // Ukryj wszystkie formy
+                document.querySelectorAll('.spec-lang-form').forEach(form => {
+                    form.style.display = 'none';
+                });
+
+                // Pokaż wybrany język
+                const selectedForm = document.querySelector(`.spec-lang-form[data-lang="${lang}"]`);
+                if (selectedForm) {
+                    selectedForm.style.display = 'block';
+                }
+
+                // Aktualizuj informację o aktualnym języku w stopce
+                const langNames = {
+                    'pl': 'Polski (PL)',
+                    'en': 'English (EN)',
+                    'fr': 'Français (FR)',
+                    'nl': 'Nederlands (NL)',
+                    'it': 'Italiano (IT)'
+                };
+                const currentLangInfoEl = el("currentLangInfo");
+                if (currentLangInfoEl) {
+                    currentLangInfoEl.innerHTML = `{{ translations.current_language|default('Current language')|raw }}: <strong>${langNames[lang] || lang.toUpperCase()}</strong>`;
+                }
+            }
+
+            function loadSpecificationData(product) {
+                // Wyczyść wszystkie pola
+                SPEC_LANGUAGES.forEach(lang => {
+                    const langCode = lang.toUpperCase();
+                    const storageEl = el(`specStorageInfo${langCode}`);
+                    const prepEl = el(`specPreparationInfo${langCode}`);
+                    const compEl = el(`specComposition${langCode}`);
+
+                    if (storageEl) storageEl.value = '';
+                    if (prepEl) prepEl.value = '';
+                    if (compEl) compEl.value = '';
+                });
+
+                // Załaduj dane ze specyfikacji produktu
+                if (Array.isArray(product.specification)) {
+                    product.specification.forEach(spec => {
+                        const langCode = (spec.lang_code || '').toUpperCase();
+
+                        const storageEl = el(`specStorageInfo${langCode}`);
+                        const prepEl = el(`specPreparationInfo${langCode}`);
+                        const compEl = el(`specComposition${langCode}`);
+
+                        if (storageEl) storageEl.value = spec.storage_info || '';
+                        if (prepEl) prepEl.value = spec.preparation_info || '';
+                        if (compEl) compEl.value = spec.composition || '';
+                    });
+                }
+            }
+
+            function openSpecificationModal(product) {
+                if (!product) return;
+
+                clearSpecificationErrors();
+
+                el("specificationProductId").value = product.id;
+                el("specificationModalSubtitle").textContent =
+                    `${product.name || ''} (SKU: ${product.sku || ''}) - ID: #${product.id}`;
+
+                // Resetuj do PL
+                currentSpecLang = 'pl';
+                el("specLangPL").checked = true;
+
+                // Załaduj dane
+                loadSpecificationData(product);
+
+                // Pokaż formularz PL
+                switchSpecificationLanguage('pl');
+
+                specificationModal.show();
+            }
+
+            async function saveSpecification() {
+                clearSpecificationErrors();
+
+                const productId = el("specificationProductId").value;
+                if (!productId) return;
+
+                // Zbierz dane TYLKO dla aktualnie wybranego języka
+                const langCode = currentSpecLang.toUpperCase();
+                const storageInfo = (el(`specStorageInfo${langCode}`).value || '').trim();
+                const preparationInfo = (el(`specPreparationInfo${langCode}`).value || '').trim();
+                const composition = (el(`specComposition${langCode}`).value || '').trim();
+
+                // Walidacja - przynajmniej jedno pole musi być wypełnione
+                if (!storageInfo && !preparationInfo && !composition) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: {{ translations.warning|default('Warning')|json_encode|raw }},
+                        text: {{ translations.at_least_one_field_required|default('At least one field must be filled')|json_encode|raw }}
+                    });
+                    return;
+                }
+
+                // Przygotuj pojedynczy obiekt specyfikacji
+                const specification = {
+                    lang_code: currentSpecLang,
+                    storage_info: storageInfo || null,
+                    preparation_info: preparationInfo || null,
+                    composition: composition || null
+                };
+
+                el("btnSaveSpecification").disabled = true;
+
+                try {
+                    const resp = await api(`/ajax/catalog/products/${productId}/specification`, {
+                        method: 'POST',
+                        data: specification
+                    });
+
+                    if (resp.success || resp.ok) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: {{ translations.success|json_encode|raw }},
+                            text: {{ translations.specification_saved_for_language|default('Specification saved for selected language')|json_encode|raw }},
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                        // Odśwież dane produktu w tle
+                        await loadProducts();
+
+                        // Zaktualizuj dane w modalu (załaduj świeże dane)
+                        const updatedProduct = state.products.find(p => String(p.id) === String(productId));
+                        if (updatedProduct) {
+                            loadSpecificationData(updatedProduct);
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: {{ translations.error|json_encode|raw }},
+                            text: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }}
+                        });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: {{ translations.error|json_encode|raw }},
+                        text: {{ translations.no_api_connection|json_encode|raw }}
+                    });
+                } finally {
+                    el("btnSaveSpecification").disabled = false;
+                }
+            }
+
+            // =========================
+            // IMPORT modal logic
+            // =========================
+            const importModal = new bootstrap.Modal(el("importModal"));
+            let selectedImportFile = null;
+
+            function openImportModal() {
+                // Reset form
+                el("importFileInput").value = "";
+                selectedImportFile = null;
+                el("btnStartImport").disabled = true;
+                el("importFileInfo").classList.add("d-none");
+                el("importProgress").classList.add("d-none");
+
+                // Clear errors
+                el("importFileInput").classList.remove("is-invalid");
+                el("errImportFile").textContent = "";
+
+                importModal.show();
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+            }
+
+            function handleFileSelect(event) {
+                const file = event.target.files[0];
+
+                // Clear previous errors
+                el("importFileInput").classList.remove("is-invalid");
+                el("errImportFile").textContent = "";
+                el("importFileInfo").classList.add("d-none");
+
+                if (!file) {
+                    selectedImportFile = null;
+                    el("btnStartImport").disabled = true;
+                    return;
+                }
+
+                // Validate file type
+                if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+                    el("importFileInput").classList.add("is-invalid");
+                    el("errImportFile").textContent = {{ translations.invalid_file_format|default('Invalid file format. Please select a JSON file.')|json_encode|raw }};
+                    selectedImportFile = null;
+                    el("btnStartImport").disabled = true;
+                    return;
+                }
+
+                // Validate file size (max 10MB)
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                if (file.size > maxSize) {
+                    el("importFileInput").classList.add("is-invalid");
+                    el("errImportFile").textContent = {{ translations.file_too_large|default('File is too large. Maximum size is 10MB.')|json_encode|raw }};
+                    selectedImportFile = null;
+                    el("btnStartImport").disabled = true;
+                    return;
+                }
+
+                // File is valid
+                selectedImportFile = file;
+                el("importFileName").textContent = file.name;
+                el("importFileSize").textContent = formatFileSize(file.size);
+                el("importFileInfo").classList.remove("d-none");
+                el("btnStartImport").disabled = false;
+            }
+
+            async function startImport() {
+                if (!selectedImportFile) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: {{ translations.warning|default('Warning')|json_encode|raw }},
+                        text: {{ translations.no_file_selected|default('Please select a file first.')|json_encode|raw }}
+                    });
+                    return;
+                }
+
+                // Read file content
+                const reader = new FileReader();
+
+                reader.onload = async function(e) {
+                    try {
+                        // Parse JSON
+                        const jsonData = JSON.parse(e.target.result);
+
+                        // Show progress
+                        el("btnStartImport").disabled = true;
+                        el("btnCancelImport").disabled = true;
+                        el("importProgress").classList.remove("d-none");
+
+                        // Send to API
+                        const resp = await api(`/ajax/catalog/products/import`, {
+                            method: 'POST',
+                            data: jsonData
+                        });
+
+                        if (resp.success || resp.ok) {
+                            importModal.hide();
+
+                            // Show success message with stats
+                            const stats = resp.data || {};
+                            const message = stats.imported
+                                ? `{{ translations.import_success_message|default('Successfully imported')|raw }}: ${stats.imported} {{ translations.products|default('products')|raw }}`
+                                : {{ translations.import_completed|default('Import completed successfully.')|json_encode|raw }};
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: {{ translations.success|json_encode|raw }},
+                                html: message,
+                                timer: 3000,
+                                showConfirmButton: true
+                            });
+
+                            // Reload products
+                            await loadProducts();
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: {{ translations.error|json_encode|raw }},
+                                text: resp.message || {{ translations.import_failed|default('Import failed. Please check the file format.')|json_encode|raw }}
+                            });
+                        }
+                    } catch (parseErr) {
+                        console.error('JSON parse error:', parseErr);
+                        Swal.fire({
+                            icon: 'error',
+                            title: {{ translations.error|json_encode|raw }},
+                            text: {{ translations.invalid_json_file|default('Invalid JSON file. Please check the file content.')|json_encode|raw }}
+                        });
+                    } finally {
+                        el("btnStartImport").disabled = false;
+                        el("btnCancelImport").disabled = false;
+                        el("importProgress").classList.add("d-none");
+                    }
+                };
+
+                reader.onerror = function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: {{ translations.error|json_encode|raw }},
+                        text: {{ translations.file_read_error|default('Error reading file. Please try again.')|json_encode|raw }}
+                    });
+                };
+
+                reader.readAsText(selectedImportFile);
+            }
+
+            async function assignAllergen(productId, allergenId) {
+                return api(`/ajax/catalog/products/${productId}/allergens`, {
+                    method: "POST",
+                    data: { allergen_id: Number(allergenId) }
+                });
+            }
+
+            async function unassignAllergen(productId, allergenId) {
+                return api(`/ajax/catalog/products/${productId}/allergens/${allergenId}`, {
+                    method: "DELETE"
+                });
+            }
+
+            // =========================
+            // Bind events
+            // =========================
+            function bindEvents() {
+                el("btnAddProduct").addEventListener("click", openCreateModal);
+                el("btnImportProducts").addEventListener("click", openImportModal);
+
+                el("btnClearFilters").addEventListener("click", async () => {
+                    el("filterSearch").value = "";
+                    await loadProducts();
+                });
+
+                el("filterSearch").addEventListener("input", () => renderTable());
+
+                el("btnSaveProduct").addEventListener("click", saveProduct);
+
+                // Import modal events
+                el("importFileInput").addEventListener("change", handleFileSelect);
+                el("btnStartImport").addEventListener("click", startImport);
+
+                // akcje w tabeli
+                el("productsTbody").addEventListener("click", (ev) => {
+                    const tr = ev.target.closest("tr");
+                    if (!tr) return;
+
+                    const product = getProductByRow(tr);
+                    if (!product) return;
+
+                    if (ev.target.closest(".btn-edit")) return openEditModal(product);
+                    if (ev.target.closest(".btn-delete")) return confirmDelete(product);
+                    if (ev.target.closest(".btn-allergens")) return openAllergensModal(product);
+                    if (ev.target.closest(".btn-specification")) return openSpecificationModal(product);
+                });
+
+                // filtr wyszukiwania w modalu alergenów
+                el("allergensSearch").addEventListener("input", () => {
+                    const pid = el("allergensProductId").value;
+                    const product = state.products.find(p => String(p.id) === String(pid));
+                    if (product) renderAllergensList(product);
+                });
+
+                // toggle przypisania alergenu
+                el("allergensList").addEventListener("change", async (ev) => {
+                    const chk = ev.target.closest(".allergen-toggle");
+                    if (!chk) return;
+
+                    const productId = el("allergensProductId").value;
+                    const allergenId = chk.dataset.allergenId;
+
+                    try {
+                        chk.disabled = true;
+
+                        let resp;
+                        if (chk.checked) resp = await assignAllergen(productId, allergenId);
+                        else resp = await unassignAllergen(productId, allergenId);
+
+                        if (resp.success || resp.ok) {
+                            const p = state.products.find(x => String(x.id) === String(productId));
+                            if (p) {
+                                p.allergens = Array.isArray(p.allergens) ? p.allergens : [];
+
+                                const aid = String(allergenId);
+
+                                if (chk.checked) {
+                                    // dodaj obiekt alergenu z master listy (żeby tabela mogła od razu pokazać badge)
+                                    const found = (window.ALLERGENS || []).find(a => String(a.id) === aid);
+                                    if (found && !p.allergens.some(x => String(x.id) === aid)) {
+                                        p.allergens.push({ id: found.id, name: found.name, code: found.code });
+                                    }
+                                } else {
+                                    // usuń po id
+                                    p.allergens = p.allergens.filter(x => String(x.id) !== aid);
+                                }
+
+                                // odśwież UI w modalu (liczniki + układ)
+                                renderAllergensList(p);
+
+                                // odśwież tabelę, żeby badge’e się zaktualizowały
+                                renderTable();
+                            }
+                        } else {
+                            chk.checked = !chk.checked;
+                            Swal.fire({
+                                icon: 'error',
+                                title: {{ translations.error|json_encode|raw }},
+                                text: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }}
+                            });
+                        }
+
+                    } catch (err) {
+                        console.error(err);
+                        chk.checked = !chk.checked;
+                        Swal.fire({
+                            icon: 'error',
+                            title: {{ translations.error|json_encode|raw }},
+                            text: {{ translations.no_api_connection|json_encode|raw }}
+                        });
+                    } finally {
+                        chk.disabled = false;
+                    }
+                });
+
+                // Specification modal: language switching
+                document.querySelectorAll('input[name="specLang"]').forEach(radio => {
+                    radio.addEventListener('change', (ev) => {
+                        const lang = ev.target.value;
+                        switchSpecificationLanguage(lang);
+                    });
+                });
+
+                // Specification modal: save button
+                el("btnSaveSpecification").addEventListener("click", saveSpecification);
+            }
+
+            async function init() {
+                bindEvents();
+                await loadProducts();
+            }
+
+            init().catch(console.error);
+        });
+    </script>
+{% endblock %}

@@ -1,0 +1,80 @@
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title mb-0">{{ translations.import_products|default('Import Products') }}</h5>
+                    <div class="small text-muted">{{ translations.import_products_subtitle|default('Upload JSON file with products data') }}</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close }}"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="alert alert-light-info small mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    {{ translations.import_modal_hint|default('Select a JSON file containing products data. The file will be sent to API for processing.') }}
+                </div>
+
+                <div class="alert alert-light-warning small mb-3">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    <strong>{{ translations.important|default('Important') }}:</strong>
+                    {{ translations.import_warning|default('Import operation may take some time depending on file size. Please wait for confirmation.') }}
+                </div>
+
+                <div class="mb-3">
+                    <label for="importFileInput" class="form-label fw-bold">
+                        {{ translations.select_json_file|default('Select JSON File') }}
+                    </label>
+                    <input
+                        type="file"
+                        class="form-control"
+                        id="importFileInput"
+                        accept=".json,application/json"
+                    >
+                    <div class="invalid-feedback" id="errImportFile"></div>
+                    <div class="form-text">
+                        <i class="bi bi-file-earmark-code me-1"></i>
+                        {{ translations.accepted_format|default('Accepted format') }}: <strong>.json</strong>
+                    </div>
+                </div>
+
+                <div id="importFileInfo" class="alert alert-light-success small d-none">
+                    <i class="bi bi-file-check me-1"></i>
+                    <strong>{{ translations.selected_file|default('Selected file') }}:</strong>
+                    <span id="importFileName"></span>
+                    (<span id="importFileSize"></span>)
+                </div>
+
+                <div id="importProgress" class="d-none">
+                    <div class="mb-2">
+                        <strong>{{ translations.importing|default('Importing') }}...</strong>
+                    </div>
+                    <div class="progress" style="height: 24px;">
+                        <div
+                            class="progress-bar progress-bar-striped progress-bar-animated"
+                            role="progressbar"
+                            style="width: 100%"
+                            id="importProgressBar">
+                            {{ translations.processing|default('Processing') }}...
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <div class="me-auto small text-muted" id="importFooterMeta"></div>
+                <button class="btn btn-light" data-bs-dismiss="modal" id="btnCancelImport">
+                    {{ translations.cancel }}
+                </button>
+                <button class="btn btn-success" id="btnStartImport" disabled>
+                    <i class="bi bi-upload me-1"></i>{{ translations.start_import|default('Start Import') }}
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+

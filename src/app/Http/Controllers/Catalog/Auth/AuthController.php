@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Supplier\app\Http\Controllers\Auth;
+namespace App\Supplier\app\Http\Controllers\Catalog\Auth;
 
 
 use App\Supplier\app\Http\Controllers\Controller;

@@ -66,6 +66,11 @@ class PriceListRepository
 
     public function deletePrice($supplierId, $clientId, $productId, $priceId)
     {
-        return $this->apiClient->delete("/material-suppliers/$supplierId/shops/$clientId/products/$productId/prices/$priceId");
+        return $this->apiClient->delete("/material-suppliers/$supplierId/shops/$clientId/price-lists/$priceId");
+    }
+
+    public function importPriceList($supplierId, $clientId, $data)
+    {
+        return $this->apiClient->post("/material-suppliers/$supplierId/shops/$clientId/price-lists/import", $data);
     }
 }

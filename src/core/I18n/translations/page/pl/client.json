@@ -55,8 +55,13 @@
   "price_modal_hint": "Wybierz produkt, ustaw datę obowiązywania i wpisz cenę netto lub brutto. Druga wartość przeliczy się automatycznie wg VAT%.",
 
   "missing_prices_title": "Uwaga: niekompletny cennik",
-  "missing_prices_body": "Niektóre produkty nie mają aktualnie obowiązującej ceny (brak rekordu z datą ≤ dziś) albo cena wynosi 0. Uzupełnij je, żeby uniknąć błędów w wycenie/produkcji.",
+  "missing_prices_body": "Niektóre produkty nie mają aktualnie obowiązującej ceny (brak rekordu z datą ≤ dziś) albo cena wynosi 0. Produkty bez ustalonej ceny nie będą wyświetlane u klienta jako możliwe do zamówienia. Uzupełnij je, żeby uniknąć błędów w wycenie/produkcji.",
   "missing_price_short": "Brak",
+  "sale_status": "Dostępność sprzedażowa",
+  "for_sale": "Dostępny w sprzedaży",
+  "not_for_sale": "Niedostępny w sprzedaży",
+  "filter_by_sale_status": "Filtruj po dostępności do sprzedaży",
+  "sale_all": "Wszystkie",
 
   "select_product_required": "Wybierz produkt.",
   "valid_from_required": "Uzupełnij datę obowiązywania.",
@@ -74,5 +79,37 @@
   "ajax_hint": "Zmiany zapisują się automatycznie (AJAX).",
 
   "delete_only_future": "Usunięcie możliwe tylko dla cen z przyszłą datą (dzisiaj < * Obowiązuje od *).",
-  "valid_from_must_be_future": "Data * Obowiązuje od * musi być późniejsza niż dzisiaj (wybierz datę z przyszłości)."
+  "valid_from_must_be_future": "Data * Obowiązuje od * musi być późniejsza niż dzisiaj (wybierz datę z przyszłości).",
+
+  "import_price_list": "Importuj cennik",
+  "import_price_list_subtitle": "Wgraj plik JSON z cenami dla klienta",
+  "import_price_list_modal_hint": "Wybierz plik JSON zawierający dane cennika. Plik zostanie wysłany do API w celu przetworzenia.",
+  "import_price_list_warning": "Operacja importu może zająć trochę czasu w zależności od rozmiaru pliku. Poczekaj na potwierdzenie.",
+  "import_price_list_success": "Import cennika zakończony pomyślnie",
+  "import_price_list_failed": "Import cennika nie powiódł się. Sprawdź format pliku.",
+  "price_items": "pozycji cennikowych",
+
+  "close": "Zamknij",
+  "cancel": "Anuluj",
+  "save": "Zapisz",
+  "important": "Ważne",
+  "warning": "Ostrzeżenie",
+  "success": "Sukces",
+  "error": "Błąd",
+  "operation_successful": "Operacja zakończona powodzeniem",
+  "undefined_error_occurred": "Wystąpił nieoczekiwany błąd",
+  "no_api_connection": "Brak połączenia z API",
+
+  "select_json_file": "Wybierz plik JSON",
+  "accepted_format": "Akceptowany format",
+  "selected_file": "Wybrany plik",
+  "importing": "Importowanie",
+  "processing": "Przetwarzanie",
+  "start_import": "Rozpocznij import",
+  "invalid_file_format": "Nieprawidłowy format pliku. Wybierz plik JSON.",
+  "file_too_large": "Plik jest za duży. Maksymalny rozmiar to 10MB.",
+  "no_file_selected": "Najpierw wybierz plik.",
+  "invalid_json_file": "Nieprawidłowy plik JSON. Sprawdź zawartość pliku.",
+  "file_read_error": "Błąd odczytu pliku. Spróbuj ponownie.",
+  "loading": "Ładowanie..."
 }

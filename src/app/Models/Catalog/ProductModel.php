@@ -29,7 +29,7 @@ class ProductModel implements \JsonSerializable
         $this->package_unit     = $data['package_unit'] ?? null;
         $this->vat_rate         = $data['vat_rate'] ?? null;
         $this->created_at       = $data['created_at'] ?? null;
-        $this->active           = $data['active'] ?? true;
+        $this->active           = $data['is_active'] ?? false;
         $this->weight_grams     = $data['weight_grams'] ?? null;
         $this->weight_unit      = $data['weight_unit'] ?? 'g';
         $this->shelf_life_days  = $data['shelf_life_days'] ?? null;

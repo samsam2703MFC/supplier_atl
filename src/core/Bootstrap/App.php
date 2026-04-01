@@ -1,16 +1,14 @@
 <?php
 namespace App\Supplier\core\Bootstrap;
 
-use App\Supplier\app\Http\Controllers\Auth\AuthController;
-
-//require_once 'vendor/autoload.php';
+use App\Supplier\app\Http\Controllers\Catalog\Auth\AuthController;
 use App\Supplier\app\Http\Middleware\AuthMiddleware;
 use Exception;
-use FastRoute;
 use FastRoute\Dispatcher;
-use Psr\Container\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
 use function FastRoute\simpleDispatcher;
+
+//require_once 'vendor/autoload.php';
 
 
 class App {

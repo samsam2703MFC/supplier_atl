@@ -45,6 +45,16 @@ class PriceController extends Controller
         $data = $this->getJson($request);
 
         $resp = $this->priceListService->deletePrice($clientId, $productId, $priceId);
-        return $this->json($resp, $resp['code']);
+        return $this->json($resp);
+    }
+
+    #[Route('POST', '/ajax/clients/{clientId:\d+}/price-list/import')]
+    public function ajaxImportPriceList($clientId)
+    {
+        $request = Request::createFromGlobals();
+        $data = $this->getJson($request);
+
+        $resp = $this->priceListService->importPriceList($clientId, $data);
+        return $this->json($resp, $resp['code'] ?? 200);
     }
 }

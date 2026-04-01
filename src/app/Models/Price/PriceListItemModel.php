@@ -13,6 +13,7 @@ class PriceListItemModel implements \JsonSerializable
         private string $vat_rate;
         private string $price_net;
         private string $valid_from;
+        private $is_active_to_sale;
 
     public function __construct($data)    {
         $this->product_id = $data['product_id'] ?? 0;
@@ -24,6 +25,7 @@ class PriceListItemModel implements \JsonSerializable
         $this->vat_rate = $data['vat_rate'] ?? '';
         $this->price_net = $data['price_net'] ?? '';
         $this->valid_from = $data['valid_from'] ?? '';
+        $this->is_active_to_sale = $data['is_active_to_sale'] ?? '';
     }
 
     //getters
@@ -36,6 +38,7 @@ class PriceListItemModel implements \JsonSerializable
     public function getVatRate(): string { return $this->vat_rate; }
     public function getPriceNet(): string { return $this->price_net; }
     public function getValidFrom(): string { return $this->valid_from; }
+    public function getIsActiveToSaleStatus(): string { return $this->is_active_to_sale; }
 
 
     public function jsonSerialize(): mixed
@@ -49,7 +52,8 @@ class PriceListItemModel implements \JsonSerializable
             'package_unit' => $this->package_unit,
             'vat_rate' => $this->vat_rate,
             'price_net' => $this->price_net,
-            'valid_from' => $this->valid_from
+            'valid_from' => $this->valid_from,
+            'is_active_to_sale' => $this->is_active_to_sale,
         ];
     }
 }

@@ -1,0 +1,33 @@
+# Zależności PHP
+vendor/
+
+# Artefakty agenta AI (GitHub Copilot, ChatGPT, itp.)
+/Agent/
+
+# Dokumentacja i pliki robocze generowane przez agenta
+ANALIZA_KATALOGU.md
+CHECKLIST_NAPRAWY.md
+IMPLEMENTACJA_ZAKONCZONA.md
+IMPORT_CENNIKA_DOKUMENTACJA.md
+price_list_import_example.json
+
+# Środowisko
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Logi
+*.log
+/logs/
+
+# Cache / pliki tymczasowe systemu
+*.DS_Store
+Thumbs.db
+desktop.ini
+*.Zone.Identifier
+

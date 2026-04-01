@@ -48,7 +48,7 @@
                 <div class="card-body">
 
                     <div class="row g-2 align-items-end mb-3">
-                        <div class="col-12">
+                        <div class="col-12 col-md-8">
                             <label class="form-label">{{ translations.filter_and_search }}</label>
 
                             <div class="d-flex flex-column flex-md-row gap-2">
@@ -64,6 +64,18 @@
 
                             <div class="form-text">
                                 {{ translations.search_hint }}
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.status|default('Status') }}</label>
+                            <select id="filterStatus" class="form-select">
+                                <option value="all">{{ translations.all|default('All') }}</option>
+                                <option value="active" selected>{{ translations.active }}</option>
+                                <option value="inactive">{{ translations.inactive }}</option>
+                            </select>
+                            <div class="form-text">
+                                {{ translations.filter_by_status|default('Filter by product status') }}
                             </div>
                         </div>
                     </div>
@@ -213,6 +225,7 @@
             // =========================
             function getFilteredProducts() {
                 const q = (el("filterSearch").value || "").trim().toLowerCase();
+                const statusFilter = el("filterStatus").value;
 
                 return state.products.filter(p => {
 
@@ -222,7 +235,17 @@
                     const hay = `${p.sku||""} ${p.name||""} ${allergensText} ${pkg}`.toLowerCase();
 
                     const matchQ = !q || hay.includes(q);
-                    return matchQ;
+
+                    // Filtrowanie po statusie
+                    let matchStatus = true;
+                    if (statusFilter === 'active') {
+                        matchStatus = (p.active !== 0 && p.active !== false && p.active !== null);
+                    } else if (statusFilter === 'inactive') {
+                        matchStatus = (p.active === 0 || p.active === false || p.active === null);
+                    }
+                    // dla 'all' matchStatus pozostaje true
+
+                    return matchQ && matchStatus;
                 });
             }
 
@@ -255,7 +278,7 @@
                     const idBadge  = badge(`#${p.id}`, "bg-light text-muted");
 
                     // NOWE: Status badge (aktywny/nieaktywny)
-                    const statusBadge = (p.active === false)
+                    const statusBadge = (p.active === 0 || p.active === false || p.active === null)
                         ? badge("{{ translations.inactive }}", "bg-secondary text-white")
                         : badge("{{ translations.active }}", "bg-success text-white");
 
@@ -321,12 +344,12 @@
                 <i class="bi bi-list-check me-2"></i>${escapeHtml({{ translations.specification|default('Specification')|json_encode|raw }})}
               </button>
             </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-              <button class="dropdown-item text-danger btn-delete" type="button">
-                <i class="bi bi-trash me-2"></i>${escapeHtml({{ translations.delete|json_encode|raw }})}
-              </button>
-            </li>
+            {#<li><hr class="dropdown-divider"></li>#}
+            {#<li>#}
+            {#  <button class="dropdown-item text-danger btn-delete" type="button">#}
+            {#    <i class="bi bi-trash me-2"></i>${escapeHtml({{ translations.delete|json_encode|raw }})}#}
+            {#  </button>#}
+            {#</li>#}
           </ul>
         </div>
       </td>
@@ -429,7 +452,7 @@
                 el("productVatRate").value = product.vat_rate ?? "0";
 
                 // NOWE pola - podstawowe
-                el("productActive").checked = product.active ?? true;
+                el("productActive").checked = (product.active !== 0 && product.active !== false && product.active !== null);
                 el("productWeightGrams").value = product.weight_grams ?? "";
                 el("productWeightUnit").value = product.weight_unit ?? "g";
                 el("productShelfLifeDays").value = product.shelf_life_days ?? "";
@@ -452,7 +475,8 @@
                     vat_rate: el("productVatRate").value || "0",
 
                     // NOWE pola
-                    is_active: el("productActive").checked,
+                    // API expects numeric active flag; send 1 for true, 0 for false
+                    is_active: el("productActive").checked ? 1 : 0,
                     weight_grams: el("productWeightGrams").value ? Number(el("productWeightGrams").value) : null,
                     weight_unit: el("productWeightUnit").value || "g",
                     shelf_life_days: el("productShelfLifeDays").value ? Number(el("productShelfLifeDays").value) : null
@@ -936,6 +960,30 @@
                         // Parse JSON
                         const jsonData = JSON.parse(e.target.result);
 
+                        // Normalize payload: ensure we send an array of items and set default active=1 when missing
+                        let payloadToSend;
+                        function normalizeItem(item) {
+                            // If item.active is explicitly 0/false/null -> keep 0
+                            const hasActive = Object.prototype.hasOwnProperty.call(item, 'active') && (item.active !== undefined);
+                            const activeVal = hasActive ? (item.active === 0 || item.active === false || item.active === null ? 0 : item.active) : 1;
+                            return { ...item, active: activeVal };
+                        }
+
+                        if (Array.isArray(jsonData)) {
+                            // If array contains exactly one element, send single object (avoid sending [ {...} ] which caused server to see array(1){ [0]=> ... })
+                            if (jsonData.length === 1 && typeof jsonData[0] === 'object' && jsonData[0] !== null) {
+                                payloadToSend = normalizeItem(jsonData[0]); // send OBJECT
+                            } else {
+                                // Multiple items -> keep as array (each normalized)
+                                payloadToSend = jsonData.map(it => (typeof it === 'object' && it !== null) ? normalizeItem(it) : it);
+                            }
+                        } else if (typeof jsonData === 'object' && jsonData !== null) {
+                            // Single object -> send as object (not wrapped in array)
+                            payloadToSend = normalizeItem(jsonData);
+                        } else {
+                            throw new Error('Invalid JSON structure');
+                        }
+
                         // Show progress
                         el("btnStartImport").disabled = true;
                         el("btnCancelImport").disabled = true;
@@ -944,7 +992,7 @@
                         // Send to API
                         const resp = await api(`/ajax/catalog/products/import`, {
                             method: 'POST',
-                            data: jsonData
+                            data: payloadToSend
                         });
 
                         if (resp.success || resp.ok) {
@@ -1020,10 +1068,12 @@
 
                 el("btnClearFilters").addEventListener("click", async () => {
                     el("filterSearch").value = "";
-                    await loadProducts();
+                    el("filterStatus").value = "all";
+                    renderTable();
                 });
 
                 el("filterSearch").addEventListener("input", () => renderTable());
+                el("filterStatus").addEventListener("change", () => renderTable());
 
                 el("btnSaveProduct").addEventListener("click", saveProduct);
 

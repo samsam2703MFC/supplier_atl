@@ -13,6 +13,9 @@
   "clear_filters": "Clear Filters",
   "filter_category_hint": "Filter by category.",
   "search_hint": "Search by product name or SKU.",
+  "status": "Status",
+  "all": "All",
+  "filter_by_status": "Filter by product status",
 
   "category": "Category",
   "sku": "SKU",

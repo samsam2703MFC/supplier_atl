@@ -43,6 +43,9 @@
                         <a href="{{ ROOT }}/clients" class="btn btn-light">
                             <i class="bi bi-arrow-left me-1"></i>{{ translations.back_to_clients }}
                         </a>
+                        <button class="btn btn-outline-primary" id="btnImportPriceList">
+                            <i class="bi bi-upload me-1"></i>{{ translations.import_price_list }}
+                        </button>
                         <button class="btn btn-primary" id="btnAddPrice">
                             <i class="bi bi-plus-lg me-1"></i>{{ translations.add_price }}
                         </button>
@@ -57,6 +60,12 @@
 
                             <div class="d-flex flex-column flex-md-row gap-2">
                                 <input id="filterSearch" type="text" class="form-control" placeholder="{{ translations.search_placeholder }}">
+
+                                <select id="filterSaleStatus" class="form-select" style="max-width:220px;">
+                                    <option value="for_sale">{{ translations.for_sale|default('Dostępny w sprzedaży') }}</option>
+                                    <option value="not_for_sale">{{ translations.not_for_sale|default('Niedostępny w sprzedaży') }}</option>
+                                    <option value="all">{{ translations.sale_all|default('Wszystkie') }}</option>
+                                </select>
 
                                 <button class="btn btn-light" id="btnClearFilters" type="button" style="white-space: nowrap;">
                                     <i class="bi bi-x-circle me-1"></i>{{ translations.clear_filters }}
@@ -77,6 +86,7 @@
                                 <th style="width:56px;">#</th>
                                 <th>{{ translations.product }}</th>
                                 <th style="width:260px;">{{ translations.current_price }}</th>
+                                <th style="width:160px;">{{ translations.sale_status|default('Dostępność') }}</th>
                                 <th style="width:340px;">{{ translations.schedule }}</th>
                             </tr>
                             </thead>
@@ -170,6 +180,77 @@
         </div>
     </div>
 
+
+    {# MODAL: IMPORT PRICE LIST #}
+    <div class="modal fade" id="importPriceListModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0">{{ translations.import_price_list }}</h5>
+                        <div class="small text-muted">{{ translations.import_price_list_subtitle }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Zamknij') }}"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="alert alert-light-info small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {{ translations.import_price_list_modal_hint }}
+                    </div>
+
+                    <div class="alert alert-light-warning small mb-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <strong>{{ translations.important|default('Ważne') }}:</strong>
+                        {{ translations.import_price_list_warning }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="importPriceListFileInput" class="form-label fw-bold">
+                            {{ translations.select_json_file|default('Wybierz plik JSON') }}
+                        </label>
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="importPriceListFileInput"
+                            accept=".json,application/json"
+                        >
+                        <div class="invalid-feedback" id="errImportPriceListFile"></div>
+                        <div class="form-text">
+                            <i class="bi bi-file-earmark-code me-1"></i>
+                            {{ translations.accepted_format|default('Akceptowany format') }}: <strong>.json</strong>
+                        </div>
+                    </div>
+
+                    <div id="importPriceListFileInfo" class="alert alert-light-success small d-none">
+                        <i class="bi bi-file-check me-1"></i>
+                        <strong>{{ translations.selected_file|default('Wybrany plik') }}:</strong>
+                        <span id="importPriceListFileName"></span>
+                        (<span id="importPriceListFileSize"></span>)
+                    </div>
+
+                    <div id="importPriceListProgress" class="alert alert-light-primary small d-none">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">{{ translations.processing|default('Przetwarzanie') }}...</span>
+                            </div>
+                            <span>{{ translations.importing|default('Importowanie') }}...</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button class="btn btn-light" data-bs-dismiss="modal" id="btnCancelImportPriceList">
+                            {{ translations.cancel|default('Anuluj') }}
+                        </button>
+                        <button class="btn btn-primary" id="btnStartImportPriceList" disabled>
+                            <i class="bi bi-upload me-1"></i>{{ translations.start_import|default('Rozpocznij import') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -239,7 +320,9 @@
                             sku: it.sku,
                             package_size: it.package_size,
                             package_unit: it.package_unit,
-                            vat_rate: it.vat_rate
+                            vat_rate: it.vat_rate,
+                            // zachowaj informację o dostępności do sprzedaży (jeśli jest dostępna w danych)
+                            is_active_to_sale: (it.is_active_to_sale !== undefined ? it.is_active_to_sale : '')
                         });
                     }
                 });
@@ -393,10 +476,17 @@
                     return;
                 }
 
-                products.forEach((p, idx) => {
-                    const list = state.grouped.get(String(p.product_id)) || [];
-                    const cur = getCurrentItem(list);
-                    const fut = getFutureItems(list);
+                function isSaleActive(val) {
+                    const s = String(val ?? '').trim().toLowerCase();
+                    return s === '1' || s === 'true' || s === 'yes' || s === 'on' || s === 'for_sale';
+                }
+
+               products.forEach((p, idx) => {
+                    const saleStatusRaw = (p.is_active_to_sale !== undefined && p.is_active_to_sale !== null) ? String(p.is_active_to_sale) : '';
+                    const saleStatus = String(saleStatusRaw).toLowerCase();
+                     const list = state.grouped.get(String(p.product_id)) || [];
+                     const cur = getCurrentItem(list);
+                     const fut = getFutureItems(list);
 
                     const vatTxt = `${money(p.vat_rate)}%`;
                     const packTxt = `${String(p.package_size || '')} ${String(p.package_unit || '')}`.trim();
@@ -421,6 +511,15 @@
                     }
 
                     let scheduleHtml = "";
+                    // sale badge
+                    // sale badge - subtler / smaller styling
+                    const badgeTextForSale = escapeHtml({{ translations.for_sale|json_encode|raw }});
+                    const badgeTextNotForSale = escapeHtml({{ translations.not_for_sale|json_encode|raw }});
+                    // compact badge: smaller font and padding for tighter table layout
+                    const badgeSale = isSaleActive(saleStatus)
+                        ? `<span class="badge bg-success text-white" style="font-size:.65rem;padding:.12rem .35rem;border-radius:.25rem;line-height:1;">${badgeTextForSale}</span>`
+                        : `<span class="badge bg-secondary text-white" style="font-size:.65rem;padding:.12rem .35rem;border-radius:.25rem;line-height:1;">${badgeTextNotForSale}</span>`;
+
                     if (!fut.length) {
                         scheduleHtml = `<span class="text-muted small">—</span>`;
                     } else {
@@ -450,7 +549,7 @@
                     }
 
                     rows.push(`
-                        <tr data-product-id="${escapeHtml(p.product_id)}">
+                        <tr data-product-id="${escapeHtml(p.product_id)}" data-sale-status="${escapeHtml(saleStatus)}">
                             <td class="text-muted">${idx + 1}</td>
                             <td>
                                 <div class="fw-semibold">${escapeHtml(p.name || "")}</div>
@@ -461,6 +560,7 @@
                                 </div>
                             </td>
                             <td>${currentHtml}</td>
+                            <td class="text-center align-middle">${badgeSale}</td>
                             <td>
                                 <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
                                     <div class="small fw-semibold">{{ translations.schedule }}</div>
@@ -476,9 +576,17 @@
 
                 tbody.innerHTML = rows.join("");
                 el("tableMeta").textContent = `${products.length}`;
-
-                renderMissingAlert();
-            }
+                // Filtruj po sale status jeśli ustawiony (używamy data-sale-status)
+                const saleFilter = el("filterSaleStatus") ? el("filterSaleStatus").value : 'for_sale';
+                if (saleFilter && saleFilter !== 'all') {
+                    Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+                        const sRaw = String(tr.getAttribute('data-sale-status') || '').toLowerCase();
+                        const active = isSaleActive(sRaw);
+                        if (saleFilter === 'for_sale' && !active) tr.style.display = 'none';
+                        if (saleFilter === 'not_for_sale' && active) tr.style.display = 'none';
+                    });
+                }
+             }
 
             function upsertLocalPrice(productId, validFrom, priceNet, priceId = null) {
                 const pid = Number(productId);
@@ -663,6 +771,158 @@
             }
 
             // =========================
+            // IMPORT PRICE LIST
+            // =========================
+            const importPriceListModal = new bootstrap.Modal(el("importPriceListModal"));
+            let selectedImportPriceListFile = null;
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+            }
+
+            function openImportPriceListModal() {
+                // Reset form
+                el("importPriceListFileInput").value = "";
+                selectedImportPriceListFile = null;
+                el("btnStartImportPriceList").disabled = true;
+                el("importPriceListFileInfo").classList.add("d-none");
+                el("importPriceListProgress").classList.add("d-none");
+
+                // Clear errors
+                el("importPriceListFileInput").classList.remove("is-invalid");
+                el("errImportPriceListFile").textContent = "";
+
+                importPriceListModal.show();
+            }
+
+            function handleImportPriceListFileSelect(event) {
+                const file = event.target.files[0];
+
+                // Clear previous errors
+                el("importPriceListFileInput").classList.remove("is-invalid");
+                el("errImportPriceListFile").textContent = "";
+                el("importPriceListFileInfo").classList.add("d-none");
+
+                if (!file) {
+                    selectedImportPriceListFile = null;
+                    el("btnStartImportPriceList").disabled = true;
+                    return;
+                }
+
+                // Validate file type
+                if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+                    el("importPriceListFileInput").classList.add("is-invalid");
+                    el("errImportPriceListFile").textContent = `{{ translations.invalid_file_format|default('Nieprawidłowy format pliku. Wybierz plik JSON.') }}`;
+                    selectedImportPriceListFile = null;
+                    el("btnStartImportPriceList").disabled = true;
+                    return;
+                }
+
+                // Validate file size (max 10MB)
+                const maxSize = 10 * 1024 * 1024; // 10MB
+                if (file.size > maxSize) {
+                    el("importPriceListFileInput").classList.add("is-invalid");
+                    el("errImportPriceListFile").textContent = `{{ translations.file_too_large|default('Plik jest za duży. Maksymalny rozmiar to 10MB.') }}`;
+                    selectedImportPriceListFile = null;
+                    el("btnStartImportPriceList").disabled = true;
+                    return;
+                }
+
+                // File is valid
+                selectedImportPriceListFile = file;
+                el("importPriceListFileName").textContent = file.name;
+                el("importPriceListFileSize").textContent = formatFileSize(file.size);
+                el("importPriceListFileInfo").classList.remove("d-none");
+                el("btnStartImportPriceList").disabled = false;
+            }
+
+            async function startImportPriceList() {
+                if (!selectedImportPriceListFile) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: `{{ translations.warning|default('Ostrzeżenie') }}`,
+                        text: `{{ translations.no_file_selected|default('Najpierw wybierz plik.') }}`
+                    });
+                    return;
+                }
+
+                // Read file content
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        // Parse JSON
+                        const jsonData = JSON.parse(e.target.result);
+
+                        // Show progress
+                        el("btnStartImportPriceList").disabled = true;
+                        el("btnCancelImportPriceList").disabled = true;
+                        el("importPriceListProgress").classList.remove("d-none");
+
+                        // Send to API - zgodnie z podanym endpointem
+                        const resp = await api(`/ajax/clients/${clientId}/price-list/import`, {
+                            method: 'POST',
+                            data: jsonData
+                        });
+
+                        if (resp.success || resp.ok) {
+                            importPriceListModal.hide();
+
+                            // Show success message with stats
+                            const stats = resp.data || {};
+                            const message = stats.imported
+                                ? `{{ translations.import_price_list_success|default('Import cennika zakończony pomyślnie')|raw }}: ${stats.imported} {{ translations.price_items|default('pozycji cennikowych')|raw }}`
+                                : `{{ translations.import_price_list_success|default('Import cennika zakończony pomyślnie.') }}`;
+
+                            Swal.fire({
+                                icon: 'success',
+                                title: `{{ translations.success|default('Sukces') }}`,
+                                html: message,
+                                timer: 3000,
+                                showConfirmButton: true
+                            });
+
+                            // Reload page to show updated data
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: `{{ translations.error|default('Błąd') }}`,
+                                text: resp.message || `{{ translations.import_price_list_failed|default('Import cennika nie powiódł się. Sprawdź format pliku.') }}`
+                            });
+                        }
+                    } catch (parseErr) {
+                        console.error('JSON parse error:', parseErr);
+                        Swal.fire({
+                            icon: 'error',
+                            title: `{{ translations.error|default('Błąd') }}`,
+                            text: `{{ translations.invalid_json_file|default('Nieprawidłowy plik JSON. Sprawdź zawartość pliku.') }}`
+                        });
+                    } finally {
+                        el("btnStartImportPriceList").disabled = false;
+                        el("btnCancelImportPriceList").disabled = false;
+                        el("importPriceListProgress").classList.add("d-none");
+                    }
+                };
+
+                reader.onerror = function() {
+                    Swal.fire({
+                        icon: 'error',
+                        title: `{{ translations.error|default('Błąd') }}`,
+                        text: `{{ translations.file_read_error|default('Błąd odczytu pliku. Spróbuj ponownie.') }}`
+                    });
+                };
+
+                reader.readAsText(selectedImportPriceListFile);
+            }
+
+            // =========================
             // Init + events
             // =========================
             function init() {
@@ -676,18 +936,27 @@
 
                 // sygnał o brakach
                 renderMissingAlert();
+                // ustaw domyślny filtr dostępności sprzedażowej
+                if (el("filterSaleStatus")) el("filterSaleStatus").value = 'for_sale';
             }
 
             el("btnAddPrice")?.addEventListener("click", () => openAddPriceModal(""));
+            el("btnImportPriceList")?.addEventListener("click", openImportPriceListModal);
+            el("importPriceListFileInput")?.addEventListener("change", handleImportPriceListFileSelect);
+            el("btnStartImportPriceList")?.addEventListener("click", startImportPriceList);
+
             el("btnClearFilters")?.addEventListener("click", () => {
-                state.q = "";
-                el("filterSearch").value = "";
+                 state.q = "";
+                 el("filterSearch").value = "";
+                // reset sale status filter to default (for sale)
+                if (el("filterSaleStatus")) el("filterSaleStatus").value = 'for_sale';
                 renderTable();
-            });
-            el("filterSearch")?.addEventListener("input", () => {
-                state.q = el("filterSearch").value || "";
-                renderTable();
-            });
+             });
+             el("filterSearch")?.addEventListener("input", () => {
+                 state.q = el("filterSearch").value || "";
+                 renderTable();
+             });
+            el("filterSaleStatus")?.addEventListener("change", () => renderTable());
 
             el("priceProductSearch")?.addEventListener("input", () => {
                 el("priceProductId").value = ""; // wymuszamy ponowne dopasowanie
@@ -740,4 +1009,8 @@
         });
     </script>
 {% endblock %}
+
+
+
+
 

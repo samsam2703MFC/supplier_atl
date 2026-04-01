@@ -25,4 +25,9 @@ return function (RouteCollector $r) {
         'method' => 'ajaxDelete'
     ]);
 
+    $r->addRoute('POST', '/ajax/clients/{clientId:\d+}/price-list/import', [
+        'controller' => \App\Supplier\app\Http\Controllers\Price\PriceController::class,
+        'method' => 'ajaxImportPriceList'
+    ]);
+
 };

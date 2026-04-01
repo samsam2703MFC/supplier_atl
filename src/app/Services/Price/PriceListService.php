@@ -39,4 +39,8 @@ class PriceListService
         return $this->pricelistRepository->deletePrice(GlobalRegistry::get('user')['supplier_id'], $clientId, $productId, $priceId);
     }
 
+    public function importPriceList($clientId, $data)
+    {
+        return $this->pricelistRepository->importPriceList(GlobalRegistry::get('user')['supplier_id'], $clientId, $data);
+    }
 }

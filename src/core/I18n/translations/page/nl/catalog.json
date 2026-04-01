@@ -13,6 +13,9 @@
   "clear_filters": "Filters Wissen",
   "filter_category_hint": "Filteren op categorie.",
   "search_hint": "Zoeken op productnaam of SKU.",
+  "status": "Status",
+  "all": "Alle",
+  "filter_by_status": "Filteren op productstatus",
 
   "category": "Categorie",
   "sku": "SKU",

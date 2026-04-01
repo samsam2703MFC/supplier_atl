@@ -1,0 +1,21 @@
+{
+  "comment": "Przykładowy plik JSON do importu cennika dla klienta",
+  "prices": [
+    {
+      "product_id": 1,
+      "price_net": 12.50,
+      "valid_from": "2026-03-01"
+    },
+    {
+      "product_id": 2,
+      "price_net": 25.00,
+      "valid_from": "2026-03-01"
+    },
+    {
+      "product_id": 3,
+      "price_net": 15.75,
+      "valid_from": "2026-03-15"
+    }
+  ]
+}
+

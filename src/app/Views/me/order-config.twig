@@ -1,0 +1,307 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.order_config_title ?? 'Konfiguracja zamówień' }}{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <h3>{{ translations.order_config_heading ?? 'Konfiguracja zamówień' }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.order_config_subtitle ?? 'Minimalna wartość zamówienia i progi kosztów dostawy' }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/alerts.twig" %}
+
+    <form method="POST" action="{{ ROOT }}/me/order-config" id="orderConfigForm">
+
+        {# ── Sekcja: Minimalna wartość zamówienia ── #}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-shield-check me-2"></i>
+                    {{ translations.order_config_min_order ?? 'Minimalna wartość zamówienia' }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-light-secondary d-flex gap-2 align-items-start mb-3">
+                    <i class="bi bi-info-circle mt-1"></i>
+                    <div class="small">
+                        {{ translations.order_config_min_help ?? 'Jeśli wartość zamówienia jest niższa od podanej kwoty, złożenie zamówienia zostanie zablokowane. Ustaw 0, aby wyłączyć minimum.' }}
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label fw-semibold" for="min_order_value">
+                            {{ translations.order_config_min_value ?? 'Minimalna wartość' }}
+                        </label>
+                        <div class="input-group">
+                            <input type="number"
+                                   id="min_order_value"
+                                   name="min_order_value"
+                                   class="form-control"
+                                   min="0"
+                                   step="0.01"
+                                   value="{{ config.min_order_value ?? 0 }}"
+                                   placeholder="0.00">
+                            <span class="input-group-text" id="currency-symbol">
+                                {{ config.currency_code ?? 'EUR' }}
+                            </span>
+                        </div>
+                        <div class="form-text">{{ translations.order_config_min_zero ?? '0 = brak minimalnej wartości' }}</div>
+                    </div>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label fw-semibold" for="currency_code">
+                            {{ translations.order_config_currency ?? 'Waluta' }}
+                        </label>
+                        <select name="currency_code" id="currency_code" class="form-select" onchange="updateCurrencySymbol(this.value)">
+                            {% set currencies = ['EUR', 'PLN', 'GBP', 'CHF', 'CZK'] %}
+                            {% for c in currencies %}
+                                <option value="{{ c }}" {% if (config.currency_code ?? 'EUR') == c %}selected{% endif %}>{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# ── Sekcja: Progi kosztów dostawy ── #}
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bi bi-truck me-2"></i>
+                    {{ translations.order_config_tiers ?? 'Progi kosztów dostawy' }}
+                </h5>
+                <span class="badge bg-secondary">{{ translations.order_config_max_tiers ?? 'Maks. 5 progów' }}</span>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-light-secondary d-flex gap-2 align-items-start mb-3">
+                    <i class="bi bi-info-circle mt-1"></i>
+                    <div class="small">
+                        {{ translations.order_config_tiers_help ?? 'Zdefiniuj do 5 przedziałów wartości zamówienia. Puste pola „Do" w ostatnim progu oznaczają brak górnego limitu (franco). Etykiety generowane są automatycznie.' }}
+                    </div>
+                </div>
+
+                {# Indeksujemy istniejące tiery po tier_order #}
+                {% set tiersMap = {} %}
+                {% for tier in (config.tiers ?? []) %}
+                    {% set tiersMap = tiersMap|merge({(tier.tier_order): tier}) %}
+                {% endfor %}
+
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0" id="tiersTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:60px" class="text-center">#</th>
+                                <th>{{ translations.order_config_tier_from ?? 'Od (≥)' }}</th>
+                                <th>{{ translations.order_config_tier_to ?? 'Do (<)' }}</th>
+                                <th>{{ translations.order_config_tier_fee ?? 'Koszt dostawy' }}</th>
+                                <th class="text-muted small">{{ translations.order_config_tier_label ?? 'Etykieta (auto)' }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in 1..5 %}
+                                {% set tier = tiersMap[i] ?? null %}
+                                <tr data-tier="{{ i }}" class="tier-row">
+                                    <td class="text-center fw-bold text-muted">{{ i }}</td>
+                                    <td>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number"
+                                                   name="tier_{{ i }}_min"
+                                                   class="form-control tier-min"
+                                                   min="0"
+                                                   step="0.01"
+                                                   value="{{ tier ? tier.min_order_value : '' }}"
+                                                   placeholder="0.00"
+                                                   {% if i == 1 %}readonly{% endif %}
+                                                   data-tier="{{ i }}">
+                                            <span class="input-group-text currency-label">{{ config.currency_code ?? 'EUR' }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number"
+                                                   name="tier_{{ i }}_max"
+                                                   class="form-control tier-max"
+                                                   min="0"
+                                                   step="0.01"
+                                                   value="{{ tier and tier.max_order_value is not null ? tier.max_order_value : '' }}"
+                                                   placeholder="{{ i == 5 ? (translations.order_config_no_limit ?? '∞ franco') : '' }}"
+                                                   data-tier="{{ i }}">
+                                            <span class="input-group-text currency-label">{{ config.currency_code ?? 'EUR' }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number"
+                                                   name="tier_{{ i }}_fee"
+                                                   class="form-control tier-fee"
+                                                   min="0"
+                                                   step="0.01"
+                                                   value="{{ tier ? tier.fee_amount : '' }}"
+                                                   placeholder="0.00"
+                                                   data-tier="{{ i }}">
+                                            <span class="input-group-text currency-label">{{ config.currency_code ?? 'EUR' }}</span>
+                                        </div>
+                                        {% if tier and tier.fee_amount == 0 %}
+                                            <small class="text-success"><i class="bi bi-check-circle"></i> Franco</small>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted small tier-label-preview" data-tier="{{ i }}">
+                                        {% if tier %}
+                                            {% if tier.fee_amount == 0 %}
+                                                <span class="badge bg-success">Franco</span>
+                                            {% elseif tier.max_order_value is not null %}
+                                                {{ tier.min_order_value|number_format(0, ',', ' ') }} – {{ tier.max_order_value|number_format(0, ',', ' ') }} {{ config.currency_code ?? 'EUR' }}
+                                            {% else %}
+                                                > {{ tier.min_order_value|number_format(0, ',', ' ') }} {{ config.currency_code ?? 'EUR' }}
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {# Podgląd progów jako kafelki (analogicznie do PoC) #}
+                <div class="mt-4" id="tiersPreview">
+                    <div class="small fw-semibold text-muted text-uppercase mb-2">
+                        {{ translations.order_config_preview ?? 'Podgląd progów' }}
+                    </div>
+                    <div class="d-flex flex-wrap gap-2" id="tierBadges">
+                        {# Wypełniane przez JS #}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        {# ── Akcje ── #}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-floppy me-1"></i>
+                {{ translations.save ?? 'Zapisz' }}
+            </button>
+            <a href="{{ ROOT }}/me" class="btn btn-outline-secondary">
+                {{ translations.cancel ?? 'Anuluj' }}
+            </a>
+        </div>
+
+    </form>
+
+    <script>
+        const currencyLabels = document.querySelectorAll('.currency-label');
+        const currencySymbolEl = document.getElementById('currency-symbol');
+
+        function updateCurrencySymbol(val) {
+            currencyLabels.forEach(el => el.textContent = val);
+            if (currencySymbolEl) currencySymbolEl.textContent = val;
+            renderTierBadges();
+        }
+
+        // Synchronizacja: max progu N → min progu N+1
+        document.querySelectorAll('.tier-max').forEach(input => {
+            input.addEventListener('input', function () {
+                const tierNum = parseInt(this.getAttribute('data-tier'));
+                const nextMin = document.querySelector(`.tier-min[data-tier="${tierNum + 1}"]`);
+                if (nextMin && !nextMin.readOnly) {
+                    nextMin.value = this.value;
+                }
+                renderTierBadges();
+            });
+        });
+
+        document.querySelectorAll('.tier-min, .tier-fee').forEach(input => {
+            input.addEventListener('input', renderTierBadges);
+        });
+
+        function getCurrency() {
+            return document.getElementById('currency_code')?.value ?? 'EUR';
+        }
+
+        function fmtAmt(v) {
+            const n = parseFloat(v);
+            if (isNaN(n)) return '—';
+            return new Intl.NumberFormat('pl-PL', {minimumFractionDigits: 0, maximumFractionDigits: 2}).format(n);
+        }
+
+        function renderTierBadges() {
+            const currency = getCurrency();
+            const container = document.getElementById('tierBadges');
+            if (!container) return;
+            container.innerHTML = '';
+
+            for (let i = 1; i <= 5; i++) {
+                const fee  = document.querySelector(`input[name="tier_${i}_fee"]`)?.value;
+                const min  = document.querySelector(`input[name="tier_${i}_min"]`)?.value;
+                const max  = document.querySelector(`input[name="tier_${i}_max"]`)?.value;
+
+                if (fee === '' || fee === undefined) continue;
+
+                const feeNum = parseFloat(fee);
+                const isFranco = feeNum === 0;
+
+                let label;
+                if (isFranco) {
+                    label = 'Franco';
+                } else if (max && max !== '') {
+                    label = `${fmtAmt(min)} – ${fmtAmt(max)} ${currency}`;
+                } else {
+                    label = `> ${fmtAmt(min)} ${currency}`;
+                }
+
+                const feeLabel = isFranco ? 'Gratuit' : `${fmtAmt(fee)} ${currency}`;
+
+                const badge = document.createElement('div');
+                badge.className = `border rounded p-2 text-center ${isFranco ? 'border-success bg-success-subtle' : 'border-secondary bg-light'}`;
+                badge.style.minWidth = '120px';
+                badge.innerHTML = `
+                    <div class="small fw-semibold text-muted">${label}</div>
+                    <div class="fw-bold ${isFranco ? 'text-success' : ''} fs-6">${feeLabel}</div>
+                `;
+                container.appendChild(badge);
+            }
+
+            if (!container.children.length) {
+                container.innerHTML = '<span class="text-muted small">Brak zdefiniowanych progów</span>';
+            }
+        }
+
+        // Walidacja formularza przed submit
+        document.getElementById('orderConfigForm').addEventListener('submit', function (e) {
+            let prevMax = null;
+            for (let i = 1; i <= 5; i++) {
+                const minEl = document.querySelector(`input[name="tier_${i}_min"]`);
+                const maxEl = document.querySelector(`input[name="tier_${i}_max"]`);
+                const feeEl = document.querySelector(`input[name="tier_${i}_fee"]`);
+
+                if (!feeEl || feeEl.value === '') continue;
+
+                const min = parseFloat(minEl?.value ?? 0);
+                const max = maxEl?.value !== '' ? parseFloat(maxEl.value) : null;
+                const fee = parseFloat(feeEl.value);
+
+                if (max !== null && min >= max) {
+                    e.preventDefault();
+                    alert(`Próg ${i}: wartość "Od" musi być mniejsza niż "Do".`);
+                    minEl.focus();
+                    return;
+                }
+                if (fee < 0) {
+                    e.preventDefault();
+                    alert(`Próg ${i}: koszt dostawy nie może być ujemny.`);
+                    feeEl.focus();
+                    return;
+                }
+            }
+        });
+
+        // Inicjalizacja podglądu
+        renderTierBadges();
+    </script>
+
+{% endblock %}
+

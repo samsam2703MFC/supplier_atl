@@ -1,0 +1,121 @@
+{
+  "clients": "Clients",
+  "clients_subtitle": "Parcourez la liste des clients et ouvrez leurs listes de prix.",
+  "clients_table": "Liste des Clients",
+  "clients_table_hint": "Sélectionnez un client pour ouvrir sa liste de prix.",
+  "name": "Nom",
+  "actions": "Actions",
+  "price_list": "Liste de prix",
+  "no_clients": "Aucun client à afficher.",
+  "client_price_list": "Liste de prix du client",
+  "client_price_list_subtitle": "Gérez les prix des produits pour le client sélectionné",
+
+  "price_list_help_title": "Comment fonctionne la liste de prix client ?",
+  "price_list_help_body": "Saisissez un prix et activez l'interrupteur pour utiliser un prix personnalisé pour le client. Lorsque l'interrupteur est désactivé, le produit n'a pas de prix pour le client (il peut utiliser un prix par défaut si vous l'avez dans le système).",
+
+  "price_schedule_help_title": "Liste de prix – calendrier",
+  "price_schedule_help_body": "Vous voyez le prix actuellement en vigueur et les changements planifiés (futurs). Ajoutez une nouvelle entrée via le modal. Nous n'éditons pas les enregistrements existants – les futurs peuvent être supprimés.",
+
+  "price_list_table": "Éléments de la liste de prix",
+  "price_list_table_hint": "Définissez un prix pour le produit et décidez s'il doit s'appliquer à ce client",
+
+  "price_schedule_table": "Calendrier des prix",
+  "price_schedule_table_hint": "Prix actuel + changements futurs",
+
+  "back_to_clients": "Retour aux clients",
+  "save_changes": "Enregistrer les modifications",
+
+  "filter_and_search": "Filtrer et rechercher",
+  "all_categories": "Toutes les catégories",
+  "search_placeholder": "Rechercher un produit...",
+  "clear_filters": "Effacer",
+  "filter_category_hint": "Filtrer par catégorie",
+  "search_hint": "Rechercher par nom de produit",
+
+  "product": "Produit",
+  "category": "Catégorie",
+  "client_price": "Prix client",
+  "active": "Actif",
+
+  "sku": "SKU",
+  "current_price": "Prix actuel",
+  "schedule": "Calendrier (futur)",
+  "package": "Emballage",
+  "vat_rate": "TVA",
+  "net": "Net",
+  "gross": "Brut",
+  "valid_from": "Valable à partir de",
+  "price_net": "Prix net",
+  "price_gross": "Prix brut",
+
+  "add_price": "Ajouter une entrée",
+  "add_price_for": "Ajouter",
+  "select_product": "Sélectionner un produit...",
+  "product_select_hint": "La sélection définit la TVA pour les calculs",
+  "price_modal_hint": "Choisissez un produit, définissez la date d'entrée en vigueur et saisissez le prix net ou brut. L'autre valeur sera calculée automatiquement selon le % TVA.",
+
+  "missing_prices_title": "Attention : liste de prix incomplète",
+  "missing_prices_body": "Certains produits n'ont actuellement pas de prix en vigueur (aucun enregistrement avec date ≤ aujourd'hui) ou le prix est 0. Les produits sans prix défini ne seront pas affichés au client comme disponibles à la commande. Veuillez les compléter pour éviter des erreurs de tarification/production.",
+  "missing_price_short": "Manquant",
+  "sale_status": "Disponibilité à la vente",
+  "for_sale": "Disponible à la vente",
+  "not_for_sale": "Non disponible à la vente",
+  "filter_by_sale_status": "Filtrer par disponibilité à la vente",
+  "sale_all": "Tous",
+
+  "select_product_required": "Sélectionnez un produit.",
+  "valid_from_required": "Remplissez la date d'entrée en vigueur.",
+  "price_required": "Saisissez un prix supérieur à zéro.",
+
+  "delete_future_price_confirm": "Supprimer le prix planifié ?",
+
+  "price_placeholder": "ex. 12,50",
+  "price_hint_short": "Prix brut",
+  "use_client_price": "Utiliser",
+  "no_products": "Aucun produit à afficher.",
+  "price_list_meta_default": "0 / 0",
+  "price_list_footer_hint": "N'oubliez pas d'enregistrer les modifications.",
+
+  "ajax_hint": "Les modifications sont enregistrées automatiquement (AJAX).",
+
+  "delete_only_future": "Suppression possible uniquement pour les prix avec une date future (aujourd'hui < * Valable à partir *).",
+  "valid_from_must_be_future": "La date * Valable à partir * doit être postérieure à aujourd'hui (choisissez une date future).",
+
+  "import_price_list": "Importer la liste de prix",
+  "import_price_list_subtitle": "Téléchargez un fichier JSON contenant les prix du client",
+  "import_price_list_modal_hint": "Sélectionnez un fichier JSON contenant les données de la liste de prix. Le fichier sera envoyé à l'API pour traitement.",
+  "import_price_list_warning": "L'import n'écrasera pas les prix actuellement en vigueur. Les nouveaux prix entreront en vigueur uniquement à partir de la date sélectionnée. Veuillez attendre la confirmation.",
+  "import_price_list_success": "Importation de la liste de prix terminée avec succès",
+  "import_price_list_failed": "L'import de la liste de prix a échoué. Vérifiez le format du fichier.",
+  "price_items": "éléments de la liste de prix",
+
+  "import_valid_from_label": "Date d'entrée en vigueur du tarif",
+  "import_valid_from_hint": "Les prix du fichier importé entreront en vigueur à partir de cette date. Cette date doit être dans le futur.",
+  "import_valid_from_required": "Veuillez indiquer la date à partir de laquelle le tarif doit entrer en vigueur.",
+  "import_valid_from_must_be_future": "La date d'entrée en vigueur doit être postérieure à aujourd'hui (choisissez une date future).",
+
+  "close": "Fermer",
+  "cancel": "Annuler",
+  "save": "Enregistrer",
+  "important": "Important",
+  "warning": "Avertissement",
+  "success": "Succès",
+  "error": "Erreur",
+  "operation_successful": "Opération terminée avec succès",
+  "undefined_error_occurred": "Une erreur inattendue s'est produite",
+  "no_api_connection": "Pas de connexion à l'API",
+
+  "select_json_file": "Sélectionner un fichier JSON",
+  "accepted_format": "Format accepté",
+  "selected_file": "Fichier sélectionné",
+  "importing": "Importation en cours",
+  "processing": "Traitement",
+  "start_import": "Démarrer l'import",
+  "invalid_file_format": "Format de fichier invalide. Sélectionnez un fichier JSON.",
+  "file_too_large": "Le fichier est trop volumineux. Taille maximale 10 Mo.",
+  "no_file_selected": "Sélectionnez d'abord un fichier.",
+  "invalid_json_file": "Fichier JSON invalide. Vérifiez le contenu du fichier.",
+  "file_read_error": "Erreur de lecture du fichier. Veuillez réessayer.",
+  "loading": "Chargement..."
+}
+

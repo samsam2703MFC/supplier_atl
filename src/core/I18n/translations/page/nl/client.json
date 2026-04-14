@@ -1,0 +1,121 @@
+{
+  "clients": "Klanten",
+  "clients_subtitle": "Bekijk de lijst met klanten en open hun prijslijsten.",
+  "clients_table": "Klantenlijst",
+  "clients_table_hint": "Selecteer een klant om zijn prijslijst te openen.",
+  "name": "Naam",
+  "actions": "Acties",
+  "price_list": "Prijslijst",
+  "no_clients": "Geen klanten om weer te geven.",
+  "client_price_list": "Prijslijst klant",
+  "client_price_list_subtitle": "Beheer productprijzen voor de geselecteerde klant",
+
+  "price_list_help_title": "Hoe werkt de prijslijst voor klanten?",
+  "price_list_help_body": "Voer een prijs in en schakel de schakelaar om een aangepaste prijs voor de klant te gebruiken. Wanneer de schakelaar uit staat, heeft het product geen klantprijs (het kan een standaardprijs gebruiken als deze in het systeem staat).",
+
+  "price_schedule_help_title": "Prijslijst – planning",
+  "price_schedule_help_body": "U ziet de momenteel geldende prijs en geplande (toekomstige) wijzigingen. Voeg een nieuwe regel toe via het modal. We bewerken geen bestaande records – toekomstige kunnen worden verwijderd.",
+
+  "price_list_table": "Prijslijst items",
+  "price_list_table_hint": "Stel een prijs voor het product in en beslis of deze voor deze klant moet gelden",
+
+  "price_schedule_table": "Prijsplanning",
+  "price_schedule_table_hint": "Huidige prijs + toekomstige wijzigingen",
+
+  "back_to_clients": "Terug naar klanten",
+  "save_changes": "Wijzigingen opslaan",
+
+  "filter_and_search": "Filter & zoek",
+  "all_categories": "Alle categorieën",
+  "search_placeholder": "Zoek product...",
+  "clear_filters": "Wissen",
+  "filter_category_hint": "Filter op categorie",
+  "search_hint": "Zoek op productnaam",
+
+  "product": "Product",
+  "category": "Categorie",
+  "client_price": "Klantprijs",
+  "active": "Actief",
+
+  "sku": "SKU",
+  "current_price": "Huidige prijs",
+  "schedule": "Planning (toekomst)",
+  "package": "Verpakking",
+  "vat_rate": "BTW",
+  "net": "Netto",
+  "gross": "Bruto",
+  "valid_from": "Geldig vanaf",
+  "price_net": "Prijs netto",
+  "price_gross": "Prijs bruto",
+
+  "add_price": "Item toevoegen",
+  "add_price_for": "Toevoegen",
+  "select_product": "Selecteer product...",
+  "product_select_hint": "Selectie stelt BTW in voor berekeningen",
+  "price_modal_hint": "Kies een product, stel de ingangsdatum in en voer netto of bruto prijs in. De andere waarde wordt automatisch berekend op basis van BTW%.",
+
+  "missing_prices_title": "Let op: onvolledige prijslijst",
+  "missing_prices_body": "Sommige producten hebben momenteel geen geldige prijs (geen record met datum ≤ vandaag) of de prijs is 0. Producten zonder prijs worden niet aan de klant getoond als bestelbaar. Vul ze in om prijs-/productiefouten te voorkomen.",
+  "missing_price_short": "Ontbreekt",
+  "sale_status": "Verkoopbeschikbaarheid",
+  "for_sale": "Te koop",
+  "not_for_sale": "Niet te koop",
+  "filter_by_sale_status": "Filter op verkoopbeschikbaarheid",
+  "sale_all": "Alles",
+
+  "select_product_required": "Selecteer een product.",
+  "valid_from_required": "Vul de ingangsdatum in.",
+  "price_required": "Voer een prijs groter dan nul in.",
+
+  "delete_future_price_confirm": "Geplande prijs verwijderen?",
+
+  "price_placeholder": "bijv. 12,50",
+  "price_hint_short": "Brutoprijs",
+  "use_client_price": "Gebruik",
+  "no_products": "Geen producten om te tonen.",
+  "price_list_meta_default": "0 / 0",
+  "price_list_footer_hint": "Vergeet niet wijzigingen op te slaan.",
+
+  "ajax_hint": "Wijzigingen worden automatisch opgeslagen (AJAX).",
+
+  "delete_only_future": "Verwijderen alleen mogelijk voor prijzen met een toekomstige datum (vandaag < * Geldig vanaf *).",
+  "valid_from_must_be_future": "De * Geldig vanaf * datum moet later zijn dan vandaag (kies een toekomstige datum).",
+
+  "import_price_list": "Prijslijst importeren",
+  "import_price_list_subtitle": "Upload JSON-bestand met prijzen voor de klant",
+  "import_price_list_modal_hint": "Selecteer een JSON-bestand met de prijslijstgegevens. Het bestand wordt naar de API gestuurd voor verwerking.",
+  "import_price_list_warning": "Import overschrijft geen momenteel actieve prijzen. Nieuwe prijzen gaan pas in op de geselecteerde datum. Wacht op bevestiging.",
+  "import_price_list_success": "Prijslijst succesvol geïmporteerd",
+  "import_price_list_failed": "Prijslijstimport mislukt. Controleer het bestandsformaat.",
+  "price_items": "prijslijstitems",
+
+  "import_valid_from_label": "Ingangsdatum prijslijst",
+  "import_valid_from_hint": "Prijzen uit het geïmporteerde bestand gaan in op deze datum. Moet een toekomstige datum zijn.",
+  "import_valid_from_required": "Geef de datum op vanaf wanneer de prijslijst van kracht moet zijn.",
+  "import_valid_from_must_be_future": "De ingangsdatum moet later zijn dan vandaag (kies een toekomstige datum).",
+
+  "close": "Sluiten",
+  "cancel": "Annuleren",
+  "save": "Opslaan",
+  "important": "Belangrijk",
+  "warning": "Waarschuwing",
+  "success": "Succes",
+  "error": "Fout",
+  "operation_successful": "Bewerking succesvol voltooid",
+  "undefined_error_occurred": "Er is een onverwachte fout opgetreden",
+  "no_api_connection": "Geen verbinding met API",
+
+  "select_json_file": "Selecteer JSON-bestand",
+  "accepted_format": "Geaccepteerd formaat",
+  "selected_file": "Geselecteerd bestand",
+  "importing": "Bezig met importeren",
+  "processing": "Verwerken",
+  "start_import": "Start import",
+  "invalid_file_format": "Ongeldig bestandsformaat. Selecteer een JSON-bestand.",
+  "file_too_large": "Bestand is te groot. Maximale grootte is 10MB.",
+  "no_file_selected": "Selecteer eerst een bestand.",
+  "invalid_json_file": "Ongeldig JSON-bestand. Controleer de inhoud van het bestand.",
+  "file_read_error": "Fout bij het lezen van het bestand. Probeer het opnieuw.",
+  "loading": "Laden..."
+}
+

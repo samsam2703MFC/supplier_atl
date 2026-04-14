@@ -1,0 +1,121 @@
+{
+  "clients": "Clienti",
+  "clients_subtitle": "Sfoglia l'elenco dei clienti e apri i loro listini.",
+  "clients_table": "Elenco Clienti",
+  "clients_table_hint": "Seleziona un cliente per aprire il suo listino.",
+  "name": "Nome",
+  "actions": "Azioni",
+  "price_list": "Listino",
+  "no_clients": "Nessun cliente da mostrare.",
+  "client_price_list": "Listino Cliente",
+  "client_price_list_subtitle": "Gestisci i prezzi dei prodotti per il cliente selezionato",
+
+  "price_list_help_title": "Come funziona il listino cliente?",
+  "price_list_help_body": "Inserisci un prezzo e attiva l'interruttore per utilizzare un prezzo personalizzato per il cliente. Quando l'interruttore è spento, il prodotto non ha prezzo per il cliente (può usare un prezzo predefinito se presente nel sistema).",
+
+  "price_schedule_help_title": "Listino – pianificazione",
+  "price_schedule_help_body": "Vedi il prezzo attualmente in vigore e le modifiche programmate (future). Aggiungi una nuova voce tramite il modal. Non modifichiamo i record esistenti – quelli futuri possono essere rimossi.",
+
+  "price_list_table": "Voci del listino",
+  "price_list_table_hint": "Imposta un prezzo per il prodotto e decidi se applicarlo a questo cliente",
+
+  "price_schedule_table": "Pianificazione prezzi",
+  "price_schedule_table_hint": "Prezzo attuale + modifiche future",
+
+  "back_to_clients": "Torna ai clienti",
+  "save_changes": "Salva le modifiche",
+
+  "filter_and_search": "Filtra e cerca",
+  "all_categories": "Tutte le categorie",
+  "search_placeholder": "Cerca prodotto...",
+  "clear_filters": "Cancella",
+  "filter_category_hint": "Filtra per categoria",
+  "search_hint": "Cerca per nome prodotto",
+
+  "product": "Prodotto",
+  "category": "Categoria",
+  "client_price": "Prezzo cliente",
+  "active": "Attivo",
+
+  "sku": "SKU",
+  "current_price": "Prezzo corrente",
+  "schedule": "Pianificazione (futuro)",
+  "package": "Confezione",
+  "vat_rate": "IVA",
+  "net": "Netto",
+  "gross": "Lordo",
+  "valid_from": "Valido da",
+  "price_net": "Prezzo netto",
+  "price_gross": "Prezzo lordo",
+
+  "add_price": "Aggiungi voce",
+  "add_price_for": "Aggiungi",
+  "select_product": "Seleziona prodotto...",
+  "product_select_hint": "La selezione imposta l'IVA per i calcoli",
+  "price_modal_hint": "Scegli un prodotto, imposta la data di validità e inserisci il prezzo netto o lordo. L'altro valore verrà calcolato automaticamente in base alla % IVA.",
+
+  "missing_prices_title": "Attenzione: listino incompleto",
+  "missing_prices_body": "Alcuni prodotti non hanno attualmente un prezzo valido (nessun record con data ≤ oggi) oppure il prezzo è 0. I prodotti senza prezzo non saranno mostrati al cliente come ordinabili. Compilali per evitare errori di prezzo/produzione.",
+  "missing_price_short": "Mancante",
+  "sale_status": "Disponibilità vendita",
+  "for_sale": "Disponibile",
+  "not_for_sale": "Non disponibile",
+  "filter_by_sale_status": "Filtra per disponibilità",
+  "sale_all": "Tutti",
+
+  "select_product_required": "Seleziona un prodotto.",
+  "valid_from_required": "Inserisci la data di validità.",
+  "price_required": "Inserisci un prezzo maggiore di zero.",
+
+  "delete_future_price_confirm": "Eliminare il prezzo pianificato?",
+
+  "price_placeholder": "es. 12,50",
+  "price_hint_short": "Prezzo lordo",
+  "use_client_price": "Usa",
+  "no_products": "Nessun prodotto da mostrare.",
+  "price_list_meta_default": "0 / 0",
+  "price_list_footer_hint": "Ricorda di salvare le modifiche.",
+
+  "ajax_hint": "Le modifiche vengono salvate automaticamente (AJAX).",
+
+  "delete_only_future": "La cancellazione è possibile solo per i prezzi con data futura (oggi < * Valido da *).",
+  "valid_from_must_be_future": "La data * Valido da * deve essere successiva a oggi (scegli una data futura).",
+
+  "import_price_list": "Importa listino",
+  "import_price_list_subtitle": "Carica file JSON con i prezzi per il cliente",
+  "import_price_list_modal_hint": "Seleziona un file JSON contenente i dati del listino. Il file verrà inviato all'API per l'elaborazione.",
+  "import_price_list_warning": "L'import non sovrascriverà i prezzi attualmente in vigore. I nuovi prezzi avranno effetto solo a partire dalla data selezionata. Attendi la conferma.",
+  "import_price_list_success": "Import listino completato con successo",
+  "import_price_list_failed": "Import listino fallito. Controlla il formato del file.",
+  "price_items": "voci del listino",
+
+  "import_valid_from_label": "Data di validità del listino",
+  "import_valid_from_hint": "I prezzi del file importato avranno effetto a partire da questa data. Deve essere una data futura.",
+  "import_valid_from_required": "Indica la data a partire dalla quale il listino deve essere in vigore.",
+  "import_valid_from_must_be_future": "La data di validità deve essere successiva a oggi (scegli una data futura).",
+
+  "close": "Chiudi",
+  "cancel": "Annulla",
+  "save": "Salva",
+  "important": "Importante",
+  "warning": "Avviso",
+  "success": "Successo",
+  "error": "Errore",
+  "operation_successful": "Operazione completata con successo",
+  "undefined_error_occurred": "Si è verificato un errore imprevisto",
+  "no_api_connection": "Nessuna connessione all'API",
+
+  "select_json_file": "Seleziona file JSON",
+  "accepted_format": "Formato accettato",
+  "selected_file": "File selezionato",
+  "importing": "Importazione in corso",
+  "processing": "Elaborazione",
+  "start_import": "Avvia importazione",
+  "invalid_file_format": "Formato file non valido. Seleziona un file JSON.",
+  "file_too_large": "Il file è troppo grande. Dimensione massima 10MB.",
+  "no_file_selected": "Seleziona prima un file.",
+  "invalid_json_file": "File JSON non valido. Verifica il contenuto del file.",
+  "file_read_error": "Errore durante la lettura del file. Riprova.",
+  "loading": "Caricamento..."
+}
+

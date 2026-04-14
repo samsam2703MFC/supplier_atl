@@ -1,0 +1,31 @@
+{
+  "supplier_portal": "Supplier Portal",
+  "supplier_app_external_short": "Supplier (ext.)",
+  "franchise_ecosystem": "Franchise network ecosystem",
+
+  "menu": "Menu",
+  "account": "Account",
+  "logout": "Logout",
+  "my_profile": "My profile",
+
+  "supplier_dashboard": "Dashboard",
+  "supplier_dashboard_subtitle": "Quick overview of important information and shortcuts to work.",
+
+  "quick_actions": "Quick actions",
+  "manage_catalog": "Product Catalog",
+  "manage_catalog_subtitle": "Add and update products available for ordering.",
+  "manage_price_lists": "Price lists per store",
+  "manage_price_lists_subtitle": "Set prices for specific customers/stores.",
+  "view_profile": "My profile",
+  "view_profile_subtitle": "Check account details and supplier information.",
+
+  "products_in_catalog": "Products in catalog",
+  "active_price_lists": "Active price lists",
+  "last_update": "Last update",
+  "not_available": "No data",
+
+  "catalog": "Catalog",
+  "price_lists": "Price lists",
+  "client": "Client"
+}
+

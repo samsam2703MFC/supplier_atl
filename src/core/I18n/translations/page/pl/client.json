@@ -84,10 +84,15 @@
   "import_price_list": "Importuj cennik",
   "import_price_list_subtitle": "Wgraj plik JSON z cenami dla klienta",
   "import_price_list_modal_hint": "Wybierz plik JSON zawierający dane cennika. Plik zostanie wysłany do API w celu przetworzenia.",
-  "import_price_list_warning": "Operacja importu może zająć trochę czasu w zależności od rozmiaru pliku. Poczekaj na potwierdzenie.",
+  "import_price_list_warning": "Import nie nadpisze aktualnie obowiązujących cen. Nowe ceny zaczną obowiązywać dopiero od wskazanej daty. Poczekaj na potwierdzenie.",
   "import_price_list_success": "Import cennika zakończony pomyślnie",
   "import_price_list_failed": "Import cennika nie powiódł się. Sprawdź format pliku.",
   "price_items": "pozycji cennikowych",
+
+  "import_valid_from_label": "Data obowiązywania cennika",
+  "import_valid_from_hint": "Ceny z importowanego pliku zaczną obowiązywać od tej daty. Musi to być data przyszła.",
+  "import_valid_from_required": "Wskaż datę, od której cennik ma obowiązywać.",
+  "import_valid_from_must_be_future": "Data obowiązywania musi być późniejsza niż dzisiaj (wybierz datę z przyszłości).",
 
   "close": "Zamknij",
   "cancel": "Anuluj",

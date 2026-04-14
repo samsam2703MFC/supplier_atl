@@ -1,0 +1,121 @@
+{
+  "clients": "Clients",
+  "clients_subtitle": "Browse the list of clients and open their price lists.",
+  "clients_table": "Clients List",
+  "clients_table_hint": "Select a client to open their price list.",
+  "name": "Name",
+  "actions": "Actions",
+  "price_list": "Price List",
+  "no_clients": "No clients to display.",
+  "client_price_list": "Client Price List",
+  "client_price_list_subtitle": "Manage product prices for the selected client",
+
+  "price_list_help_title": "How does the client price list work?",
+  "price_list_help_body": "Enter a price and toggle the switch to use a custom price for the client. When the switch is off, the product has no client price (it may use a default price if you have it in the system).",
+
+  "price_schedule_help_title": "Price list – schedule",
+  "price_schedule_help_body": "You see the currently effective price and scheduled (future) changes. Add a new entry using the modal. We do not edit existing records – future ones can be removed.",
+
+  "price_list_table": "Price List Items",
+  "price_list_table_hint": "Set a price for the product and decide if it should apply to this client",
+
+  "price_schedule_table": "Price Schedule",
+  "price_schedule_table_hint": "Current price + future changes",
+
+  "back_to_clients": "Back to clients",
+  "save_changes": "Save changes",
+
+  "filter_and_search": "Filter & search",
+  "all_categories": "All categories",
+  "search_placeholder": "Search product...",
+  "clear_filters": "Clear",
+  "filter_category_hint": "Filter by category",
+  "search_hint": "Search by product name",
+
+  "product": "Product",
+  "category": "Category",
+  "client_price": "Client Price",
+  "active": "Active",
+
+  "sku": "SKU",
+  "current_price": "Current Price",
+  "schedule": "Schedule (future)",
+  "package": "Package",
+  "vat_rate": "VAT",
+  "net": "Net",
+  "gross": "Gross",
+  "valid_from": "Valid from",
+  "price_net": "Price net",
+  "price_gross": "Price gross",
+
+  "add_price": "Add item",
+  "add_price_for": "Add",
+  "select_product": "Select product...",
+  "product_select_hint": "Selecting sets VAT for calculations",
+  "price_modal_hint": "Choose a product, set the effective date and enter net or gross price. The other value will be calculated automatically using VAT%.",
+
+  "missing_prices_title": "Warning: incomplete price list",
+  "missing_prices_body": "Some products do not currently have an effective price (no record with date ≤ today) or the price is 0. Products without a set price will not be shown to the client as available to order. Please fill them to avoid pricing/production errors.",
+  "missing_price_short": "Missing",
+  "sale_status": "Sale availability",
+  "for_sale": "For sale",
+  "not_for_sale": "Not for sale",
+  "filter_by_sale_status": "Filter by sale availability",
+  "sale_all": "All",
+
+  "select_product_required": "Select a product.",
+  "valid_from_required": "Provide a valid from date.",
+  "price_required": "Enter a price greater than zero.",
+
+  "delete_future_price_confirm": "Delete scheduled price?",
+
+  "price_placeholder": "e.g. 12.50",
+  "price_hint_short": "Gross price",
+  "use_client_price": "Use",
+  "no_products": "No products to display.",
+  "price_list_meta_default": "0 / 0",
+  "price_list_footer_hint": "Remember to save changes.",
+
+  "ajax_hint": "Changes are saved automatically (AJAX).",
+
+  "delete_only_future": "Deletion possible only for prices with a future date (today < * Valid from *).",
+  "valid_from_must_be_future": "The * Valid from * date must be later than today (choose a future date).",
+
+  "import_price_list": "Import price list",
+  "import_price_list_subtitle": "Upload JSON file with prices for the client",
+  "import_price_list_modal_hint": "Select a JSON file containing the price list data. The file will be sent to the API for processing.",
+  "import_price_list_warning": "Import will not overwrite currently active prices. New prices will take effect from the selected date only. Please wait for confirmation.",
+  "import_price_list_success": "Price list import completed successfully",
+  "import_price_list_failed": "Price list import failed. Check file format.",
+  "price_items": "price list items",
+
+  "import_valid_from_label": "Price list effective date",
+  "import_valid_from_hint": "Prices from the imported file will take effect from this date. Must be a future date.",
+  "import_valid_from_required": "Please specify the date from which the price list should take effect.",
+  "import_valid_from_must_be_future": "The effective date must be later than today (choose a future date).",
+
+  "close": "Close",
+  "cancel": "Cancel",
+  "save": "Save",
+  "important": "Important",
+  "warning": "Warning",
+  "success": "Success",
+  "error": "Error",
+  "operation_successful": "Operation completed successfully",
+  "undefined_error_occurred": "An unexpected error occurred",
+  "no_api_connection": "No connection to API",
+
+  "select_json_file": "Select JSON File",
+  "accepted_format": "Accepted format",
+  "selected_file": "Selected file",
+  "importing": "Importing",
+  "processing": "Processing",
+  "start_import": "Start Import",
+  "invalid_file_format": "Invalid file format. Please select a JSON file.",
+  "file_too_large": "File is too large. Maximum size is 10MB.",
+  "no_file_selected": "Please select a file first.",
+  "invalid_json_file": "Invalid JSON file. Please check the file content.",
+  "file_read_error": "Error reading file. Please try again.",
+  "loading": "Loading..."
+}
+

@@ -206,6 +206,25 @@
                     </div>
 
                     <div class="mb-3">
+                        <label for="importValidFrom" class="form-label fw-bold">
+                            {{ translations.import_valid_from_label }}
+                        </label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="importValidFrom"
+                            min="{{ "tomorrow"|date("Y-m-d") }}"
+                            value="{{ "tomorrow"|date("Y-m-d") }}"
+                            required
+                        >
+                        <div class="invalid-feedback" id="errImportValidFrom"></div>
+                        <div class="form-text">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ translations.import_valid_from_hint }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
                         <label for="importPriceListFileInput" class="form-label fw-bold">
                             {{ translations.select_json_file|default('Wybierz plik JSON') }}
                         </label>
@@ -792,7 +811,12 @@
                 el("importPriceListFileInfo").classList.add("d-none");
                 el("importPriceListProgress").classList.add("d-none");
 
-                // Clear errors
+                // Reset date field to tomorrow
+                el("importValidFrom").value = isoTomorrow();
+                el("importValidFrom").classList.remove("is-invalid");
+                el("errImportValidFrom").textContent = "";
+
+                // Clear file errors
                 el("importPriceListFileInput").classList.remove("is-invalid");
                 el("errImportPriceListFile").textContent = "";
 
@@ -850,12 +874,37 @@
                     return;
                 }
 
+                // Validate valid_from date before reading the file
+                const importValidFromValue = (el("importValidFrom")?.value || "").trim();
+                el("importValidFrom")?.classList.remove("is-invalid");
+                if (el("errImportValidFrom")) el("errImportValidFrom").textContent = "";
+
+                if (!importValidFromValue) {
+                    el("importValidFrom")?.classList.add("is-invalid");
+                    if (el("errImportValidFrom")) el("errImportValidFrom").textContent = `{{ translations.import_valid_from_required }}`;
+                    return;
+                }
+
+                if (importValidFromValue <= isoToday()) {
+                    el("importValidFrom")?.classList.add("is-invalid");
+                    if (el("errImportValidFrom")) el("errImportValidFrom").textContent = `{{ translations.import_valid_from_must_be_future }}`;
+                    Swal.fire({
+                        icon: 'warning',
+                        title: `{{ translations.attention|default('Uwaga') }}`,
+                        text: `{{ translations.import_valid_from_must_be_future }}`
+                    });
+                    return;
+                }
+
                 // Read file content
                 const reader = new FileReader();
                 reader.onload = async function(e) {
                     try {
                         // Parse JSON
                         const jsonData = JSON.parse(e.target.result);
+
+                        // Inject valid_from from user selection (always overrides any value in the file)
+                        jsonData.valid_from = importValidFromValue;
 
                         // Show progress
                         el("btnStartImportPriceList").disabled = true;

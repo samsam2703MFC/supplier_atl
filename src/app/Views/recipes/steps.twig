@@ -1,0 +1,617 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ recipe.name ?? 'Receptura' }} — {{ translations.steps_page_title|default('Kroki przygotowania') }}{% endblock %}
+
+{% block head %}
+<style>
+/* ---- Step cards ---- */
+.step-card {
+    background: #fff;
+    border: 1.5px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 14px;
+    transition: box-shadow .15s, border-color .15s;
+    position: relative;
+}
+.step-card.dragging-over {
+    border-color: #6366F1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+}
+.step-card.is-dragging {
+    opacity: .5;
+}
+.step-badge {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: #EEF2FF;
+    color: #4338CA;
+    font-size: 13px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.step-drag-handle {
+    cursor: grab;
+    color: #CBD5E1;
+    font-size: 18px;
+    padding: 4px 6px;
+    border-radius: 6px;
+    transition: color .12s;
+}
+.step-drag-handle:hover { color: #6366F1; }
+.step-drag-handle:active { cursor: grabbing; }
+/* ---- Order buttons ---- */
+.step-order-btn {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid #E2E8F0;
+    background: #F8FAFC;
+    color: #64748B;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all .12s;
+    cursor: pointer;
+}
+.step-order-btn:hover:not(:disabled) { background: #EEF2FF; border-color: #6366F1; color: #6366F1; }
+.step-order-btn:disabled { opacity: .35; cursor: not-allowed; }
+/* ---- Description textarea ---- */
+.step-desc-wrap textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    border-radius: 8px;
+    border: 1.5px solid #E2E8F0;
+    transition: border-color .15s;
+}
+.step-desc-wrap textarea:focus { border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+/* ---- Photos ---- */
+.step-photos {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+}
+.photo-slot {
+    width: 100px; height: 100px;
+    border-radius: 10px;
+    border: 2px dashed #CBD5E1;
+    overflow: hidden;
+    position: relative;
+    background: #F8FAFC;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+}
+.photo-slot:hover { border-color: #6366F1; background: #EEF2FF; }
+.photo-slot input[type=file] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+}
+.photo-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+.photo-slot .photo-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    color: #94A3B8;
+    font-size: 11px;
+    pointer-events: none;
+}
+.photo-slot .photo-placeholder i { font-size: 22px; }
+.photo-slot .photo-delete {
+    position: absolute;
+    top: 4px; right: 4px;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: rgba(239,68,68,.9);
+    color: #fff;
+    border: none;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: background .12s;
+}
+.photo-slot .photo-delete:hover { background: #dc2626; }
+.photo-slot .photo-uploading {
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: #6366F1;
+    z-index: 3;
+}
+/* ---- Step footer actions ---- */
+.step-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
+/* ---- Empty state ---- */
+.steps-empty {
+    text-align: center;
+    padding: 56px 24px;
+    color: #94A3B8;
+}
+.steps-empty i { font-size: 40px; opacity: .35; display: block; margin-bottom: 12px; }
+/* ---- Add step card ---- */
+.add-step-card {
+    border: 2px dashed #CBD5E1;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    color: #64748B;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, color .15s;
+    font-size: 14px;
+}
+.add-step-card:hover { border-color: #6366F1; background: #EEF2FF; color: #4338CA; }
+.save-indicator {
+    font-size: 11px;
+    color: #94A3B8;
+    transition: color .3s;
+}
+.save-indicator.saving { color: #6366F1; }
+.save-indicator.saved  { color: #16A34A; }
+.save-indicator.error  { color: #DC2626; }
+</style>
+{% endblock %}
+
+{% block page_heading %}
+<div class="page-heading">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item">
+                <a href="{{ ROOT }}/recipes" class="text-muted small text-decoration-none">
+                    <i class="bi bi-book me-1"></i>{{ translations.recipes_title|default('Receptury') }}
+                </a>
+            </li>
+            <li class="breadcrumb-item">
+                <a href="{{ ROOT }}/recipes/{{ recipeId }}" class="text-muted small text-decoration-none">
+                    {{ recipe.name|default('Receptura') }}
+                </a>
+            </li>
+            <li class="breadcrumb-item active small">{{ translations.steps_page_title|default('Kroki przygotowania') }}</li>
+        </ol>
+    </nav>
+    <h3>{{ translations.steps_page_title|default('Kroki przygotowania') }}</h3>
+    <p class="text-subtitle text-muted">{{ recipe.name|default('') }}</p>
+</div>
+{% endblock %}
+
+{% block content %}
+
+{% include "page_components/alerts.twig" %}
+
+<div class="row">
+    <div class="col-12 col-lg-8 offset-lg-2">
+
+        {# Info #}
+        <div class="alert alert-light-primary d-flex align-items-start gap-2 mb-4">
+            <i class="bi bi-info-circle mt-1"></i>
+            <div class="small">
+                {{ translations.steps_info|default('Dodaj kolejne kroki przygotowania receptury. Do każdego kroku możesz dołączyć do 3 zdjęć. Kolejność możesz zmieniać przeciągając karty lub przyciskami strzałek.') }}
+            </div>
+        </div>
+
+        {# Steps container (initially rendered from PHP, potem aktualizowane przez JS) #}
+        <div id="stepsContainer">
+            {# Steps rendered by JS on load #}
+            <div class="steps-empty" id="stepsEmpty" style="display:none;">
+                <i class="bi bi-list-ol"></i>
+                {{ translations.steps_empty|default('Brak kroków. Dodaj pierwszy krok przygotowania.') }}
+            </div>
+        </div>
+
+        {# Add step card #}
+        <div class="add-step-card mt-2" id="btnAddStep">
+            <i class="bi bi-plus-circle me-2"></i>{{ translations.steps_add|default('Dodaj krok') }}
+        </div>
+
+    </div>
+</div>
+
+{# Confirm delete modal #}
+<div class="modal fade" id="deleteStepModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ translations.steps_delete_confirm_title|default('Usuń krok') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                {{ translations.steps_delete_confirm_body|default('Czy na pewno chcesz usunąć ten krok? Zdjęcia zostaną trwale usunięte.') }}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel|default('Anuluj') }}</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmDelete">{{ translations.delete|default('Usuń') }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    'use strict';
+
+    const RECIPE_ID = {{ recipeId }};
+    const ROOT      = '{{ ROOT }}';
+
+    // -----------------------------------------------------------------------
+    //  State
+    // -----------------------------------------------------------------------
+    let steps        = {{ steps|json_encode|raw }};
+    let deleteTarget = null; // id kroku do usunięcia
+    let dragSrcIdx   = null; // indeks przeciąganego elementu
+
+    // Wzbogać dane o photo_x_url przekazane z PHP (już w SSR)
+    // Przy operacjach AJAX będziemy aktualizować state.
+    function el(id) { return document.getElementById(id); }
+
+    function escapeHtml(s) {
+        if (s === null || s === undefined) return '';
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    const deleteModal = new bootstrap.Modal(el('deleteStepModal'));
+
+    // -----------------------------------------------------------------------
+    //  Render
+    // -----------------------------------------------------------------------
+
+    function renderAll() {
+        const container = el('stepsContainer');
+        el('stepsEmpty').style.display = steps.length === 0 ? '' : 'none';
+
+        // Usuń stare karty (nie #stepsEmpty i nie nowo tworzone)
+        container.querySelectorAll('.step-card').forEach(c => c.remove());
+
+        steps.forEach((step, idx) => {
+            const card = buildCard(step, idx);
+            container.insertBefore(card, el('stepsEmpty'));
+        });
+    }
+
+    function buildCard(step, idx) {
+        const div = document.createElement('div');
+        div.className = 'step-card';
+        div.dataset.id    = step.id;
+        div.dataset.idx   = idx;
+        div.draggable     = true;
+
+        const photoSlots = [1, 2, 3].map(slot => buildPhotoSlot(step, slot)).join('');
+
+        div.innerHTML = `
+<div class="d-flex align-items-start gap-2">
+    <span class="step-drag-handle" title="{{ translations.steps_drag_hint|default('Przeciągnij, aby zmienić kolejność') }}">
+        <i class="bi bi-grip-vertical"></i>
+    </span>
+    <span class="step-badge">${idx + 1}</span>
+    <div class="flex-grow-1 step-desc-wrap">
+        <textarea class="form-control step-textarea"
+            rows="3"
+            data-id="${escapeHtml(String(step.id))}"
+            placeholder="{{ translations.steps_description_placeholder|default('Opisz krok przygotowania…') }}"
+        >${escapeHtml(step.description)}</textarea>
+        <span class="save-indicator mt-1 d-block" id="save-${escapeHtml(String(step.id))}"></span>
+    </div>
+    <div class="d-flex flex-column gap-1">
+        <button type="button" class="step-order-btn btn-move-up" data-id="${escapeHtml(String(step.id))}" title="{{ translations.steps_move_up|default('Przesuń wyżej') }}"${idx === 0 ? ' disabled' : ''}>
+            <i class="bi bi-chevron-up"></i>
+        </button>
+        <button type="button" class="step-order-btn btn-move-down" data-id="${escapeHtml(String(step.id))}" title="{{ translations.steps_move_down|default('Przesuń niżej') }}"${idx === steps.length - 1 ? ' disabled' : ''}>
+            <i class="bi bi-chevron-down"></i>
+        </button>
+    </div>
+</div>
+<div class="step-photos">${photoSlots}</div>
+<div class="step-actions">
+    <button type="button" class="btn btn-sm btn-danger btn-delete-step" data-id="${escapeHtml(String(step.id))}">
+        <i class="bi bi-trash me-1"></i>{{ translations.delete|default('Usuń krok') }}
+    </button>
+</div>
+`;
+
+        // Bind textarea auto-save
+        const ta = div.querySelector('.step-textarea');
+        let saveTimer;
+        ta.addEventListener('input', () => {
+            clearTimeout(saveTimer);
+            setIndicator(step.id, 'saving', '{{ translations.steps_saving|default('Zapisywanie…') }}');
+            saveTimer = setTimeout(() => saveDescription(step.id, ta.value), 900);
+        });
+
+        // Bind photo inputs
+        div.querySelectorAll('.photo-input').forEach(input => {
+            input.addEventListener('change', onPhotoSelected);
+        });
+
+        // Bind photo delete buttons
+        div.querySelectorAll('.photo-delete').forEach(btn => {
+            btn.addEventListener('click', onPhotoDelete);
+        });
+
+        // Bind order buttons
+        div.querySelector('.btn-move-up')?.addEventListener('click', () => moveStep(step.id, -1));
+        div.querySelector('.btn-move-down')?.addEventListener('click', () => moveStep(step.id, +1));
+
+        // Bind delete
+        div.querySelector('.btn-delete-step').addEventListener('click', () => {
+            deleteTarget = step.id;
+            deleteModal.show();
+        });
+
+        // Drag-and-drop
+        div.addEventListener('dragstart', onDragStart);
+        div.addEventListener('dragover',  onDragOver);
+        div.addEventListener('drop',      onDrop);
+        div.addEventListener('dragend',   onDragEnd);
+
+        return div;
+    }
+
+    function buildPhotoSlot(step, slot) {
+        const url = step[`photo_${slot}_url`] || null;
+        if (url) {
+            return `<div class="photo-slot" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}">
+    <img src="${escapeHtml(url)}" alt="foto ${slot}" />
+    <button type="button" class="photo-delete" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}" title="{{ translations.steps_photo_delete|default('Usuń zdjęcie') }}">
+        <i class="bi bi-x"></i>
+    </button>
+    <input type="file" class="photo-input" accept="image/*" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}" style="display:none;">
+</div>`;
+        }
+        return `<div class="photo-slot" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}">
+    <div class="photo-placeholder">
+        <i class="bi bi-camera"></i>
+        <span>{{ translations.steps_photo_slot|default('Zdjęcie') }} ${slot}</span>
+    </div>
+    <input type="file" class="photo-input" accept="image/*" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}">
+</div>`;
+    }
+
+    function setIndicator(stepId, cls, text) {
+        const ind = el('save-' + stepId);
+        if (!ind) return;
+        ind.className = 'save-indicator mt-1 d-block ' + cls;
+        ind.textContent = text;
+        if (cls === 'saved' || cls === 'error') {
+            setTimeout(() => { ind.className = 'save-indicator mt-1 d-block'; ind.textContent = ''; }, 2000);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    //  CRUD — Description
+    // -----------------------------------------------------------------------
+
+    async function saveDescription(stepId, description) {
+        const resp = await api('/ajax/recipes/' + RECIPE_ID + '/steps/' + stepId, {
+            method: 'PATCH',
+            data: { description }
+        });
+
+        if (resp.ok || resp.success) {
+            const s = steps.find(s => s.id == stepId);
+            if (s) s.description = description;
+            setIndicator(stepId, 'saved', '{{ translations.steps_saved|default('Zapisano') }}');
+        } else {
+            setIndicator(stepId, 'error', '{{ translations.steps_save_error|default('Błąd zapisu') }}');
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    //  CRUD — Add step
+    // -----------------------------------------------------------------------
+
+    async function addStep() {
+        const btn = el('btnAddStep');
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '.6';
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID + '/steps', {
+            method: 'POST',
+            data: { description: '' }
+        });
+
+        btn.style.pointerEvents = '';
+        btn.style.opacity = '';
+
+        if ((resp.ok || resp.success) && resp.inserted_id) {
+            steps.push({
+                id:           resp.inserted_id,
+                recipe_id:    RECIPE_ID,
+                sort_order:   steps.length + 1,
+                description:  '',
+                photo_1_key:  null, photo_1_url: null,
+                photo_2_key:  null, photo_2_url: null,
+                photo_3_key:  null, photo_3_url: null,
+            });
+            renderAll();
+            // Focus na nowej textarea
+            const cards = document.querySelectorAll('.step-card');
+            const last  = cards[cards.length - 1];
+            last?.querySelector('.step-textarea')?.focus();
+        } else {
+            Swal.fire({ icon: 'error', title: 'Błąd', text: resp.message || '{{ translations.undefined_error_occurred|default('Nieoczekiwany błąd') }}' });
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    //  CRUD — Delete step
+    // -----------------------------------------------------------------------
+
+    el('btnConfirmDelete').addEventListener('click', async () => {
+        if (deleteTarget === null) return;
+
+        deleteModal.hide();
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID + '/steps/' + deleteTarget, {
+            method: 'DELETE'
+        });
+
+        if (resp.ok || resp.success) {
+            steps = steps.filter(s => s.id !== deleteTarget);
+            deleteTarget = null;
+            renderAll();
+        } else {
+            Swal.fire({ icon: 'error', title: 'Błąd', text: resp.message || '{{ translations.undefined_error_occurred|default('Nieoczekiwany błąd') }}' });
+        }
+    });
+
+    // -----------------------------------------------------------------------
+    //  Order — Arrow buttons
+    // -----------------------------------------------------------------------
+
+    async function moveStep(stepId, direction) {
+        const idx = steps.findIndex(s => s.id == stepId);
+        const newIdx = idx + direction;
+        if (newIdx < 0 || newIdx >= steps.length) return;
+
+        // Swap
+        [steps[idx], steps[newIdx]] = [steps[newIdx], steps[idx]];
+
+        renderAll();
+        await sendReorder();
+    }
+
+    // -----------------------------------------------------------------------
+    //  Order — Drag and drop
+    // -----------------------------------------------------------------------
+
+    function onDragStart(e) {
+        const card = e.currentTarget;
+        dragSrcIdx = parseInt(card.dataset.idx);
+        card.classList.add('is-dragging');
+        e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function onDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        document.querySelectorAll('.step-card').forEach(c => c.classList.remove('dragging-over'));
+        e.currentTarget.classList.add('dragging-over');
+    }
+
+    function onDrop(e) {
+        e.preventDefault();
+        const targetIdx = parseInt(e.currentTarget.dataset.idx);
+        if (dragSrcIdx === null || dragSrcIdx === targetIdx) return;
+
+        const moved = steps.splice(dragSrcIdx, 1)[0];
+        steps.splice(targetIdx, 0, moved);
+
+        renderAll();
+        sendReorder();
+    }
+
+    function onDragEnd() {
+        dragSrcIdx = null;
+        document.querySelectorAll('.step-card').forEach(c => {
+            c.classList.remove('is-dragging', 'dragging-over');
+        });
+    }
+
+    async function sendReorder() {
+        const items = steps.map((s, i) => ({ id: s.id, sort_order: i + 1 }));
+        await api('/ajax/recipes/' + RECIPE_ID + '/steps/reorder', {
+            method: 'PATCH',
+            data: { items }
+        });
+    }
+
+    // -----------------------------------------------------------------------
+    //  Photos
+    // -----------------------------------------------------------------------
+
+    async function onPhotoSelected(e) {
+        const input   = e.currentTarget;
+        const stepId  = parseInt(input.dataset.stepId);
+        const slot    = parseInt(input.dataset.slot);
+        const file    = input.files?.[0];
+        if (!file) return;
+
+        const slot_div = input.closest('.photo-slot');
+        const uploading = document.createElement('div');
+        uploading.className = 'photo-uploading';
+        uploading.innerHTML = '<span>{{ translations.steps_uploading|default('Wysyłanie…') }}</span>';
+        slot_div.appendChild(uploading);
+
+        const formData = new FormData();
+        formData.append('photo', file);
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID + '/steps/' + stepId + '/photos/' + slot, {
+            method: 'POST',
+            data:   formData
+        });
+
+        uploading.remove();
+
+        const photoUrl = resp.data?.photo_url || resp.photo_url;
+        if ((resp.ok || resp.success) && photoUrl) {
+            const s = steps.find(s => s.id == stepId);
+            if (s) {
+                s['photo_' + slot + '_url'] = photoUrl;
+                s['photo_' + slot + '_key'] = resp.data?.object_key || resp.object_key || null;
+            }
+            renderAll();
+        } else {
+            Swal.fire({ icon: 'error', title: 'Błąd', text: resp.message || '{{ translations.steps_photo_error|default('Błąd wysyłania zdjęcia') }}' });
+        }
+    }
+
+    async function onPhotoDelete(e) {
+        e.stopPropagation();
+        const btn    = e.currentTarget;
+        const stepId = parseInt(btn.dataset.stepId);
+        const slot   = parseInt(btn.dataset.slot);
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID + '/steps/' + stepId + '/photos/' + slot, {
+            method: 'DELETE'
+        });
+
+        if (resp.ok || resp.success) {
+            const s = steps.find(s => s.id == stepId);
+            if (s) {
+                s['photo_' + slot + '_url'] = null;
+                s['photo_' + slot + '_key'] = null;
+            }
+            renderAll();
+        } else {
+            Swal.fire({ icon: 'error', title: 'Błąd', text: resp.message || '{{ translations.undefined_error_occurred|default('Nieoczekiwany błąd') }}' });
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    //  Bootstrap
+    // -----------------------------------------------------------------------
+
+    el('btnAddStep').addEventListener('click', addStep);
+
+    // Initial render from SSR data
+    renderAll();
+
+})();
+</script>
+{% endblock %}

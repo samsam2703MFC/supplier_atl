@@ -1,0 +1,20 @@
+{
+    "logistics_title": "Logistica",
+    "logistics_heading": "Logistica",
+    "logistics_subtitle": "Consegne in arrivo in base alla data di consegna prevista",
+    "logistics_empty": "Nessuna consegna in arrivo. Gli ordini con stato NUOVO o IN TRANSITO appariranno qui.",
+    "logistics_empty_group": "Nessun ordine in questo gruppo.",
+    "logistics_total_label": "consegne",
+    "logistics_group_today": "Oggi",
+    "logistics_group_tomorrow": "Domani",
+    "logistics_group_this_week": "Questa settimana",
+    "logistics_group_later": "Più tardi / nessuna data",
+    "logistics_col_order_key": "N° ordine",
+    "logistics_col_shop": "Negozio",
+    "logistics_col_expected_date": "Consegna prevista",
+    "logistics_col_order_date": "Data ordine",
+    "logistics_col_value_net": "Valore (netto)",
+    "logistics_col_status": "Stato",
+    "logistics_status_new": "Nuovo",
+    "logistics_status_in_transit": "In transito"
+}

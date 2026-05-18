@@ -158,6 +158,20 @@
   "import_completed": "Importation terminée avec succès.",
   "import_failed": "L'importation a échoué. Veuillez vérifier le format du fichier.",
   "invalid_json_file": "Fichier JSON invalide. Veuillez vérifier le contenu du fichier.",
-  "file_read_error": "Erreur de lecture du fichier. Veuillez réessayer."
+  "file_read_error": "Erreur de lecture du fichier. Veuillez réessayer.",
+
+  "catalog_photo_manage": "Photo du produit",
+  "catalog_no_photo": "Aucune photo",
+  "catalog_photo_upload_new": "Télécharger une photo",
+  "catalog_photo_delete": "Supprimer la photo",
+  "catalog_photo_crop_save": "Recadrer et enregistrer",
+  "catalog_upload_photo": "Ajouter une photo",
+  "catalog_photo_uploading": "Téléchargement en cours...",
+  "catalog_photo_uploaded": "Photo enregistrée avec succès",
+  "catalog_photo_delete_confirm": "Supprimer la photo ?",
+  "catalog_photo_deleted": "Photo supprimée",
+
+  "catalog_inactive_mapped_info_title": "Produits inactifs visibles par les clients",
+"catalog_inactive_mapped_info_body": "Les produits marqués comme inactifs qui sont associés aux matières premières des clients restent visibles dans la vue de commande. Les clients voient une icône d'avertissement indiquant que le produit pourrait ne pas être livré."
 }
 

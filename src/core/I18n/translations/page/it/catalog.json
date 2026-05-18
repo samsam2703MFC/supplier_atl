@@ -158,6 +158,20 @@
   "import_completed": "Importazione completata con successo.",
   "import_failed": "Importazione fallita. Controlla il formato del file.",
   "invalid_json_file": "File JSON non valido. Controlla il contenuto del file.",
-  "file_read_error": "Errore nella lettura del file. Riprova."
+  "file_read_error": "Errore nella lettura del file. Riprova.",
+
+  "catalog_photo_manage": "Foto del prodotto",
+  "catalog_no_photo": "Nessuna foto",
+  "catalog_photo_upload_new": "Carica foto",
+  "catalog_photo_delete": "Elimina foto",
+  "catalog_photo_crop_save": "Ritaglia e salva",
+  "catalog_upload_photo": "Aggiungi foto",
+  "catalog_photo_uploading": "Caricamento foto...",
+  "catalog_photo_uploaded": "Foto salvata con successo",
+  "catalog_photo_delete_confirm": "Eliminare la foto?",
+  "catalog_photo_deleted": "Foto eliminata",
+
+  "catalog_inactive_mapped_info_title": "Prodotti inattivi visibili ai clienti",
+  "catalog_inactive_mapped_info_body": "I prodotti contrassegnati come inattivi che sono mappati alle materie prime dei clienti rimangono visibili nella vista degli ordini. I clienti vedono un'icona di avviso che indica che il prodotto potrebbe non essere consegnato."
 }
 

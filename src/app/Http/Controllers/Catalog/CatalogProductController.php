@@ -85,4 +85,38 @@ class CatalogProductController extends Controller
         $response = $this->catalogProductService->unassignAllergen($productId, $allergenId);
         return $this->json($response);
     }
+
+    #[Route('POST', '/ajax/catalog/products/{id:\d+}/photo')]
+    public function ajaxUploadPhoto($id)
+    {
+        $file = $_FILES['photo'] ?? null;
+
+        if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+            return $this->json(['success' => false, 'message' => 'No file uploaded'], 400);
+        }
+
+        $resp = $this->catalogProductService->uploadPhoto($id, $file);
+
+        if ($resp['success'] ?? false) {
+            return $this->json([
+                'success' => true,
+                'photo_url' => $resp['data']['photo_url'] ?? null,
+                'object_key' => $resp['data']['object_key'] ?? null,
+            ]);
+        }
+
+        return $this->json(['success' => false, 'message' => $resp['description'] ?? 'Upload failed'], $resp['code'] ?? 500);
+    }
+
+    #[Route('DELETE', '/ajax/catalog/products/{id:\d+}/photo')]
+    public function ajaxDeletePhoto($id)
+    {
+        $resp = $this->catalogProductService->deletePhoto($id);
+
+        if ($resp['success'] ?? false) {
+            return $this->json(['success' => true]);
+        }
+
+        return $this->json(['success' => false, 'message' => $resp['description'] ?? 'Delete failed'], $resp['code'] ?? 500);
+    }
 }

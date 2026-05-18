@@ -16,6 +16,12 @@ class SupplierModel implements JsonSerializable{
     private $phone;
     private $email;
     private $country_code;
+    private $logo_url;
+    private $iban;
+    private $website_url;
+    private $notes;
+    private $logo_signed_url;
+    private $currency;
 
     public function __construct($data) {
         $this->id = $data['id'] ?? null;
@@ -28,6 +34,12 @@ class SupplierModel implements JsonSerializable{
         $this->phone = $data['phone'] ?? null;
         $this->email = $data['email'] ?? null;
         $this->country_code = $data['country_code'] ?? null;
+        $this->logo_url = $data['logo_url'] ?? null;
+        $this->iban = $data['iban'] ?? null;
+        $this->website_url = $data['website_url'] ?? null;
+        $this->notes = $data['notes'] ?? null;
+        $this->logo_signed_url = $data['logo_signed_url'] ?? null;
+        $this->currency = $data['currency'] ?? 'EUR';
     }
 
      public function jsonSerialize(): mixed
@@ -42,7 +54,11 @@ class SupplierModel implements JsonSerializable{
             'zip' => $this->zip,
             'phone' => $this->phone,
             'email' => $this->email,
-            'country_code' => $this->country_code
+            'country_code' => $this->country_code,
+            'logo_url' => $this->logo_url,
+            'iban' => $this->iban,
+            'website_url' => $this->website_url,
+            'notes' => $this->notes,
         ];
     }
 
@@ -57,6 +73,12 @@ class SupplierModel implements JsonSerializable{
     public function getPhone() { return $this->phone; }
     public function getEmail() { return $this->email; }
     public function getCountryCode() { return $this->country_code; }
+    public function getLogoUrl() { return $this->logo_url; }
+    public function getIban() { return $this->iban; }
+    public function getWebsiteUrl() { return $this->website_url; }
+    public function getNotes() { return $this->notes; }
+    public function getLogoSignedUrl() { return $this->logo_signed_url; }
+    public function getCurrency(): string { return $this->currency ?? 'EUR'; }
 
 
 }

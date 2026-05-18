@@ -43,4 +43,39 @@ class PriceListService
     {
         return $this->pricelistRepository->importPriceList(GlobalRegistry::get('user')['supplier_id'], $clientId, $data);
     }
+
+    // -----------------------------------------------------------------------
+    // Global (all-shops) operations
+    // -----------------------------------------------------------------------
+
+    public function getPriceListScheduleGlobal(): array
+    {
+        return $this->pricelistRepository->getPriceListScheduleGlobal(GlobalRegistry::get('user')['supplier_id']);
+    }
+
+    public function insertNewPriceAllShops($productId, $data): array
+    {
+        return $this->pricelistRepository->insertNewPriceAllShops(
+            GlobalRegistry::get('user')['supplier_id'],
+            $productId,
+            $data
+        );
+    }
+
+    public function deletePriceAllShops($productId, $validFrom): array
+    {
+        return $this->pricelistRepository->deletePriceAllShops(
+            GlobalRegistry::get('user')['supplier_id'],
+            $productId,
+            $validFrom
+        );
+    }
+
+    public function importPriceListAllShops($data): array
+    {
+        return $this->pricelistRepository->importPriceListAllShops(
+            GlobalRegistry::get('user')['supplier_id'],
+            $data
+        );
+    }
 }

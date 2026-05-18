@@ -55,4 +55,14 @@ return function(RouteCollector $r) {
         'controller' => \App\Supplier\app\Http\Controllers\Catalog\CatalogProductController::class,
         'method'     => 'ajaxUnassignAllergen'
     ]);
+
+    $r->addRoute('POST', '/ajax/catalog/products/{id:\d+}/photo', [
+        'controller' => \App\Supplier\app\Http\Controllers\Catalog\CatalogProductController::class,
+        'method'     => 'ajaxUploadPhoto'
+    ]);
+
+    $r->addRoute('DELETE', '/ajax/catalog/products/{id:\d+}/photo', [
+        'controller' => \App\Supplier\app\Http\Controllers\Catalog\CatalogProductController::class,
+        'method'     => 'ajaxDeletePhoto'
+    ]);
 };

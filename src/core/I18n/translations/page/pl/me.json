@@ -23,6 +23,29 @@
   "supplier_phone_label": "Telefon",
   "supplier_email_label": "E-mail",
 
+  "supplier_logo_section": "Logo firmy",
+  "supplier_logo_hint": "JPG, PNG lub WebP, maks. 2 MB.",
+  "supplier_logo_upload_btn": "Wgraj logo",
+  "supplier_logo_alt": "Logo firmy",
+
+  "supplier_profile_edit_title": "Dane profilowe",
+  "supplier_profile_edit_hint": "Informacje widoczne w ramach platformy.",
+
+  "supplier_iban_label": "IBAN",
+  "supplier_iban_placeholder": "np. PL61 1090 1014 0000 0712 1981 2874",
+  "supplier_website_label": "Strona WWW",
+  "supplier_website_placeholder": "https://",
+  "supplier_notes_label": "Notatki",
+  "supplier_notes_placeholder": "Wewnętrzne notatki dotyczące konta dostawcy...",
+
+  "save_btn": "Zapisz",
+  "cancel_btn": "Anuluj",
+
+  "profile_saved": "Profil zapisany pomyślnie.",
+  "profile_save_failed": "Wystąpił błąd podczas zapisywania profilu.",
+  "logo_uploaded": "Logo wgrane pomyślnie.",
+  "logo_upload_failed": "Wystąpił błąd podczas wgrywania logo.",
+
   "not_provided": "Brak danych",
   "read_only_hint": "To jest widok informacyjny (bez edycji).",
   "contact_hint": "Dane kontaktowe są używane do komunikacji w ramach integracji z siecią franczyzową."

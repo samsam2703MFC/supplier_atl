@@ -1,0 +1,95 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.orders_title }}{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <h3>{{ translations.orders_heading }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.orders_subtitle }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/messages.twig" %}
+
+    {# Filters #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ ROOT }}/orders" class="row g-3 align-items-end">
+                <div class="col-12 col-md-3">
+                    <label class="form-label">{{ translations.orders_filter_status }}</label>
+                    <select name="status" class="form-select">
+                        <option value="">{{ translations.orders_status_all }}</option>
+                        <option value="NEW"        {% if filters.status == 'NEW' %}selected{% endif %}>{{ translations.orders_status_new }}</option>
+                        <option value="IN_TRANSIT" {% if filters.status == 'IN_TRANSIT' %}selected{% endif %}>{{ translations.orders_status_in_transit }}</option>
+                        <option value="DELIVERED"  {% if filters.status == 'DELIVERED' %}selected{% endif %}>{{ translations.orders_status_delivered }}</option>
+                        <option value="CANCELLED"  {% if filters.status == 'CANCELLED' %}selected{% endif %}>{{ translations.orders_status_cancelled }}</option>
+                        <option value="ARCHIVED"   {% if filters.status == 'ARCHIVED' %}selected{% endif %}>{{ translations.orders_status_archived }}</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label">{{ translations.orders_filter_from }}</label>
+                    <input type="date" name="from" class="form-control" value="{{ filters.from ?? '' }}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label">{{ translations.orders_filter_to }}</label>
+                    <input type="date" name="to" class="form-control" value="{{ filters.to ?? '' }}">
+                </div>
+                <div class="col-12 col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel"></i> {{ translations.orders_filter_apply }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Orders table #}
+    <div class="card">
+        <div class="card-body">
+            {% if orders is empty %}
+                <p class="text-muted text-center py-4">{{ translations.orders_empty }}</p>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ translations.orders_col_order_key }}</th>
+                                <th>{{ translations.orders_col_shop }}</th>
+                                <th>{{ translations.orders_col_order_date }}</th>
+                                <th>{{ translations.orders_col_expected_date }}</th>
+                                <th class="text-end">{{ translations.orders_col_value_net }}</th>
+                                <th>{{ translations.orders_col_status }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for order in orders %}
+                                <tr>
+                                    <td><code>{{ order.order_key }}</code></td>
+                                    <td>{{ order.shop_name ?? '—' }}</td>
+                                    <td>{{ order.order_date ? order.order_date|date('d.m.Y') : '—' }}</td>
+                                    <td>{{ order.expected_date ? order.expected_date|date('d.m.Y') : '—' }}</td>
+                                    <td class="text-end">{{ order.approximate_value_net is not null ? order.approximate_value_net|number_format(2, '.', ' ') : '—' }}</td>
+                                    <td>
+                                        {% set statusMap = {
+                                            'NEW':        'primary',
+                                            'IN_TRANSIT': 'info',
+                                            'DELIVERED':  'success',
+                                            'CANCELLED':  'danger',
+                                            'ARCHIVED':   'secondary'
+                                        } %}
+                                        {% set badgeColor = statusMap[order.status] ?? 'secondary' %}
+                                        {% set statusLabel = translations['orders_status_' ~ order.status|lower|replace({'-': '_', ' ': '_'})] ?? order.status %}
+                                        <span class="badge bg-{{ badgeColor }}">{{ statusLabel }}</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}

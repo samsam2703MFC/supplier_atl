@@ -1,0 +1,331 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.analytics_title }}{% endblock %}
+
+{% block head %}
+<style>
+.dash-sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#64748B;margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
+.dash-sec::after{content:'';flex:1;height:1px;background:#E2E8F0;}
+.kpi-card{border-radius:10px;border:1px solid #E2E8F0;padding:18px 20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.kpi-label{font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.kpi-value{font-size:26px;font-weight:700;color:#0F172A;line-height:1.1;}
+.kpi-sub{font-size:11px;color:#94A3B8;margin-top:4px;}
+.filter-pill{display:inline-block;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid #E2E8F0;background:#fff;color:#64748B;text-decoration:none;transition:all .15s;}
+.filter-pill:hover{border-color:#6366F1;color:#6366F1;}
+.filter-pill.active{background:#6366F1;color:#fff;border-color:#6366F1;box-shadow:0 2px 8px rgba(99,102,241,.25);}
+.t5-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F1F5F9;}
+.t5-item:last-child{border-bottom:none;}
+.t5-rank{width:22px;height:22px;border-radius:5px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.t5-bar-wrap{flex:1;height:5px;background:#F1F5F9;border-radius:4px;overflow:hidden;}
+.t5-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#6366F1,#818CF8);}
+.t5-val{font-size:12px;font-weight:700;color:#0F172A;min-width:70px;text-align:right;}
+</style>
+{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h3>{{ translations.analytics_heading }}</h3>
+                <p class="text-subtitle text-muted">{{ translations.analytics_subtitle }}</p>
+            </div>
+            <a href="{{ ROOT }}/logistics" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-truck"></i> {{ translations.logistics ?? 'Logistics' }}
+            </a>
+            <a href="{{ ROOT }}/analytics/raw-material-sales" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-boxes"></i> {{ translations.rms_menu ?? 'Raw Material Sales' }}
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/messages.twig" %}
+
+    {# Period filter pills #}
+    <div class="d-flex align-items-center gap-2 flex-wrap mb-4">
+        {% set thisYear = 'now'|date('Y') %}
+        <a href="{{ ROOT }}/analytics?from={{ thisYear }}-01-01&to={{ 'now'|date('Y-m-d') }}"
+           class="filter-pill {{ params.from == thisYear ~ '-01-01' ? 'active' : '' }}">
+            {{ translations.analytics_preset_ytd }}
+        </a>
+        <a href="{{ ROOT }}/analytics?from={{ ('now - 3 months')|date('Y-m-d') }}&to={{ 'now'|date('Y-m-d') }}"
+           class="filter-pill">3M</a>
+        <a href="{{ ROOT }}/analytics?from={{ ('now - 6 months')|date('Y-m-d') }}&to={{ 'now'|date('Y-m-d') }}"
+           class="filter-pill">6M</a>
+
+        <div class="ms-auto d-flex align-items-center gap-2 flex-wrap">
+            <form method="GET" action="{{ ROOT }}/analytics" class="d-flex align-items-center gap-2">
+                <input type="date" name="from" class="form-control form-control-sm" value="{{ params.from }}" style="width:140px">
+                <span class="text-muted small">→</span>
+                <input type="date" name="to" class="form-control form-control-sm" value="{{ params.to }}" style="width:140px">
+                <button type="submit" class="btn btn-sm btn-primary">
+                    <i class="bi bi-funnel"></i> {{ translations.analytics_filter_apply }}
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {# KPI summary row #}
+    {% if revenue is not empty %}
+        {% set totalRevenue = revenue|map(r => r.revenue_net)|reduce((carry, v) => carry + v, 0) %}
+        {% set totalOrders  = revenue|map(r => r.order_count)|reduce((carry, v) => carry + v, 0) %}
+        {% set avgBasket    = totalOrders > 0 ? (totalRevenue / totalOrders) : 0 %}
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card">
+                    <div class="kpi-label">{{ translations.analytics_col_revenue }}</div>
+                    <div class="kpi-value">{{ totalRevenue|number_format(0, '.', ' ') }}</div>
+                    <div class="kpi-sub">{{ params.from }} → {{ params.to }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card">
+                    <div class="kpi-label">{{ translations.analytics_col_orders }}</div>
+                    <div class="kpi-value">{{ totalOrders }}</div>
+                    <div class="kpi-sub">{{ translations.analytics_kpi_orders_sub ?? 'total' }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card">
+                    <div class="kpi-label">{{ translations.analytics_kpi_avg_basket ?? 'Avg basket' }}</div>
+                    <div class="kpi-value">{{ avgBasket|number_format(0, '.', ' ') }}</div>
+                    <div class="kpi-sub">{{ translations.analytics_kpi_per_order ?? 'per order' }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card">
+                    <div class="kpi-label">{{ translations.analytics_top_products_title }}</div>
+                    <div class="kpi-value">{{ top_products|length }}</div>
+                    <div class="kpi-sub">{{ translations.analytics_kpi_products_sub ?? 'active products' }}</div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Main chart + shop doughnut #}
+    <div class="dash-sec">{{ translations.analytics_chart_title }}</div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-8">
+            <div class="card h-100">
+                <div class="card-body">
+                    {% if revenue is empty %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-bar-chart fs-1 text-muted d-block mb-2"></i>
+                            <p class="text-muted">{{ translations.analytics_no_data }}</p>
+                        </div>
+                    {% else %}
+                        <canvas id="revenueChart" style="min-height:380px;"></canvas>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">{{ translations.analytics_revenue_by_shop }}</h6>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    {% if shop_revenue is empty %}
+                        <p class="text-muted text-center">{{ translations.analytics_no_data }}</p>
+                    {% else %}
+                        <canvas id="shopChart" style="max-height:220px;max-width:220px;"></canvas>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Monthly table + Top 5 #}
+    <div class="dash-sec">{{ translations.analytics_table_title }}</div>
+
+    <div class="row g-3">
+
+        <div class="col-12 col-lg-7">
+            <div class="card h-100">
+                <div class="card-body p-0">
+                    {% if revenue is empty %}
+                        <p class="text-muted text-center py-4 px-3">{{ translations.analytics_no_data }}</p>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3">{{ translations.analytics_col_period }}</th>
+                                        <th class="text-center">{{ translations.analytics_col_orders }}</th>
+                                        <th class="text-end pe-3">{{ translations.analytics_col_revenue }}</th>
+                                        <th class="text-end pe-3" style="width:70px">%</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% set totalRev = revenue|map(r => r.revenue_net)|reduce((carry, v) => carry + v, 0) %}
+                                    {% set prevRevenue = 0 %}
+                                    {% for row in revenue %}
+                                        {% set pct = totalRev > 0 ? ((row.revenue_net / totalRev) * 100)|round(1) : 0 %}
+                                        <tr>
+                                            <td class="ps-3 fw-semibold">{{ row.period }}</td>
+                                            <td class="text-center">{{ row.order_count }}</td>
+                                            <td class="text-end pe-3">
+                                                {{ row.revenue_net|number_format(2, '.', ' ') }}
+                                                {% if prevRevenue > 0 %}
+                                                    {% if row.revenue_net > prevRevenue %}
+                                                        <i class="bi bi-arrow-up-short text-success small"></i>
+                                                    {% elseif row.revenue_net < prevRevenue %}
+                                                        <i class="bi bi-arrow-down-short text-danger small"></i>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </td>
+                                            <td class="text-end pe-3">
+                                                <span class="badge bg-light text-secondary" style="font-size:10px">{{ pct }}%</span>
+                                            </td>
+                                        </tr>
+                                        {% set prevRevenue = row.revenue_net %}
+                                    {% endfor %}
+                                </tbody>
+                                {% if revenue|length > 1 %}
+                                <tfoot class="table-light">
+                                    <tr>
+                                        <td class="ps-3 fw-bold">Total</td>
+                                        <td class="text-center fw-bold">{{ revenue|map(r => r.order_count)|reduce((carry, v) => carry + v, 0) }}</td>
+                                        <td class="text-end pe-3 fw-bold">{{ totalRev|number_format(2, '.', ' ') }}</td>
+                                        <td class="text-end pe-3 fw-bold">100%</td>
+                                    </tr>
+                                </tfoot>
+                                {% endif %}
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">{{ translations.analytics_top_products_title }}</h6>
+                </div>
+                <div class="card-body">
+                    {% if top_products is empty %}
+                        <p class="text-muted text-center py-4">{{ translations.analytics_no_data }}</p>
+                    {% else %}
+                        {% set maxQty = top_products[0].total_qty %}
+                        {% for i, product in top_products %}
+                            <div class="t5-item">
+                                {% if i == 0 %}
+                                    <div class="t5-rank" style="background:#FEF3C7;color:#D97706;">1</div>
+                                {% elseif i == 1 %}
+                                    <div class="t5-rank" style="background:#F1F5F9;color:#475569;">2</div>
+                                {% elseif i == 2 %}
+                                    <div class="t5-rank" style="background:#FEF2E7;color:#92400E;">3</div>
+                                {% else %}
+                                    <div class="t5-rank" style="background:#EEF2FF;color:#6366F1;">{{ i + 1 }}</div>
+                                {% endif %}
+                                <div style="flex:1;min-width:0;">
+                                    <div class="fw-semibold text-truncate" style="font-size:13px;">{{ product.material_name ?? '—' }}</div>
+                                    <div class="t5-bar-wrap mt-1">
+                                        <div class="t5-bar" style="width:{{ maxQty > 0 ? ((product.total_qty / maxQty) * 100)|round : 0 }}%"></div>
+                                    </div>
+                                </div>
+                                <div class="t5-val">{{ product.total_qty|number_format(0, '.', ' ') }} u.</div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+{% if revenue is not empty or shop_revenue is not empty %}
+<script src="{{ ROOT }}/assets/vendors/chartjs/Chart.bundle.min.js"></script>
+<script>
+(function () {
+    {% if revenue is not empty %}
+    // Bar chart — monthly revenue
+    var barLabels = {{ revenue|map(r => r.period)|json_encode|raw }};
+    var barValues = {{ revenue|map(r => r.revenue_net)|json_encode|raw }};
+
+    new Chart(document.getElementById('revenueChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: barLabels,
+            datasets: [{
+                label: '{{ translations.analytics_chart_legend|e('js') }}',
+                data: barValues,
+                backgroundColor: 'rgba(99,102,241,0.75)',
+                borderColor: 'rgba(99,102,241,1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            legend: { display: false },
+            tooltips: {
+                callbacks: {
+                    label: function(item) {
+                        return ' ' + parseFloat(item.yLabel).toLocaleString('fr-FR', {minimumFractionDigits: 2}) + ' net';
+                    }
+                }
+            },
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        callback: function(value) { return value.toLocaleString(); }
+                    }
+                }]
+            }
+        }
+    });
+    {% endif %}
+
+    {% if shop_revenue is not empty %}
+    // Doughnut chart — revenue by shop
+    var shopLabels = {{ shop_revenue|map(r => r.shop_name)|json_encode|raw }};
+    var shopValues = {{ shop_revenue|map(r => r.revenue_net)|json_encode|raw }};
+    var shopColors = [
+        '#6366F1','#22C55E','#F59E0B','#EF4444','#14B8A6',
+        '#8B5CF6','#F97316','#06B6D4','#EC4899','#84CC16'
+    ];
+
+    new Chart(document.getElementById('shopChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: shopLabels,
+            datasets: [{
+                data: shopValues,
+                backgroundColor: shopColors.slice(0, shopLabels.length),
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutoutPercentage: 60,
+            legend: {
+                position: 'bottom',
+                labels: { fontSize: 11, boxWidth: 12 }
+            },
+            tooltips: {
+                callbacks: {
+                    label: function(item, data) {
+                        var val = data.datasets[0].data[item.index];
+                        return ' ' + data.labels[item.index] + ': ' + parseFloat(val).toLocaleString('fr-FR', {minimumFractionDigits: 2});
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+})();
+</script>
+{% endif %}
+{% endblock %}

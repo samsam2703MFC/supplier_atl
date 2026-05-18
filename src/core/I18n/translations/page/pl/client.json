@@ -116,5 +116,8 @@
   "no_file_selected": "Najpierw wybierz plik.",
   "invalid_json_file": "Nieprawidłowy plik JSON. Sprawdź zawartość pliku.",
   "file_read_error": "Błąd odczytu pliku. Spróbuj ponownie.",
-  "loading": "Ładowanie..."
+  "loading": "Ładowanie...",
+
+  "attention": "Uwaga",
+  "yes_delete_it": "Tak, usuń"
 }

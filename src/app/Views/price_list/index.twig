@@ -1,0 +1,1659 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.global_price_list_title|default('Cennik') }}{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <h3>{{ translations.global_price_list_title|default('Cennik') }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.global_price_list_subtitle|default('Zarządzaj cenami dla wszystkich sklepów jednocześnie') }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/alerts.twig" %}
+
+    <div class="row">
+        <div class="col-12">
+
+            <div class="alert alert-light-primary d-flex align-items-start gap-2">
+                <i class="bi bi-info-circle mt-1"></i>
+                <div>
+                    <div class="fw-bold">{{ translations.price_schedule_help_title }}</div>
+                    <div class="small">{{ translations.global_price_schedule_help_body }}</div>
+                </div>
+            </div>
+
+            <div class="alert alert-light-warning d-flex align-items-start gap-2" id="missingPricesAlert" style="display:none;">
+                <i class="bi bi-exclamation-triangle mt-1"></i>
+                <div>
+                    <div class="fw-bold">{{ translations.missing_prices_title }}</div>
+                    <div class="small">{{ translations.missing_prices_body }}</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <h4 class="card-title mb-0">{{ translations.price_schedule_table }}</h4>
+                        <div class="text-muted small">{{ translations.price_schedule_table_hint }}</div>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-primary" id="btnImportPriceList">
+                            <i class="bi bi-upload me-1"></i>{{ translations.import_price_list }}
+                        </button>
+                        <button class="btn btn-primary" id="btnAddPrice">
+                            <i class="bi bi-plus-circle me-1"></i>{{ translations.add_price }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-2 align-items-end mb-3">
+                        <div class="col-12">
+                            <label class="form-label">{{ translations.filter_and_search }}</label>
+
+                            <div class="d-flex flex-column flex-md-row gap-2">
+                                <input id="filterSearch" type="text" class="form-control" placeholder="{{ translations.search_placeholder }}">
+
+                                <select id="filterSaleStatus" class="form-select" style="max-width:220px;">
+                                    <option value="for_sale">{{ translations.for_sale|default('Dostępny w sprzedaży') }}</option>
+                                    <option value="not_for_sale">{{ translations.not_for_sale|default('Niedostępny w sprzedaży') }}</option>
+                                    <option value="all">{{ translations.sale_all|default('Wszystkie') }}</option>
+                                </select>
+
+                                <button class="btn btn-light" id="btnClearFilters" type="button" style="white-space: nowrap;">
+                                    <i class="bi bi-x-circle me-1"></i>{{ translations.clear_filters }}
+                                </button>
+                            </div>
+
+                            <div class="form-text">{{ translations.search_hint }}</div>
+                        </div>
+                    </div>
+
+                    <div id="badgeFiltersBar" class="mb-3 pb-2" style="border-bottom:1px solid #e9ecef;">
+                        <div class="d-flex flex-wrap gap-3 align-items-center">
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <span class="small text-muted fw-semibold me-1" style="white-space:nowrap;">{{ translations.filter_badge_margin_label|default('Marża:') }}</span>
+                                <button class="btn btn-sm btn-outline-success badge-filter-btn" data-filter-group="margin" data-filter-value="above" type="button">{{ translations.filter_badge_margin_above|default('Powyżej celu') }}</button>
+                                <button class="btn btn-sm btn-outline-warning badge-filter-btn" data-filter-group="margin" data-filter-value="at" type="button">{{ translations.filter_badge_margin_at|default('W okolicach celu') }}</button>
+                                <button class="btn btn-sm btn-outline-danger badge-filter-btn" data-filter-group="margin" data-filter-value="below" type="button">{{ translations.filter_badge_margin_below|default('Poniżej celu') }}</button>
+                            </div>
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <span class="small text-muted fw-semibold me-1" style="white-space:nowrap;">{{ translations.filter_badge_recipe_label|default('Receptura:') }}</span>
+                                <button class="btn btn-sm btn-outline-success badge-filter-btn" data-filter-group="recipe" data-filter-value="has" type="button">{{ translations.filter_badge_recipe_has|default('Pełna') }}</button>
+                                <button class="btn btn-sm btn-outline-warning badge-filter-btn" data-filter-group="recipe" data-filter-value="incomplete" type="button">{{ translations.filter_badge_recipe_incomplete|default('Niepełna') }}</button>
+                                <button class="btn btn-sm btn-outline-secondary badge-filter-btn" data-filter-group="recipe" data-filter-value="none" type="button">{{ translations.filter_badge_recipe_none|default('Brak') }}</button>
+                            </div>
+                            <div class="d-flex align-items-center gap-1 flex-wrap">
+                                <span class="small text-muted fw-semibold me-1" style="white-space:nowrap;">{{ translations.filter_badge_schedule_label|default('Harmonogram:') }}</span>
+                                <button class="btn btn-sm btn-outline-primary badge-filter-btn" data-filter-group="schedule" data-filter-value="has" type="button">{{ translations.filter_badge_schedule_has|default('Zaplanowane') }}</button>
+                                <button class="btn btn-sm btn-outline-secondary badge-filter-btn" data-filter-group="schedule" data-filter-value="none" type="button">{{ translations.filter_badge_schedule_none|default('Brak zmian') }}</button>
+                            </div>
+                            <button class="btn btn-sm btn-light d-none" id="btnClearBadgeFilters" type="button">
+                                <i class="bi bi-x-circle me-1"></i>{{ translations.filter_badge_clear|default('Wyczyść filtry') }}
+                            </button>
+                        </div>
+                        <div class="form-text mt-1">{{ translations.filter_badge_hint|default('Kliknij filtr ponownie, aby go odznaczyć.') }}</div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle" id="priceListTable">
+                            <thead>
+                            <tr>
+                                <th style="width:40px;">#</th>
+                                <th>{{ translations.product }}</th>
+                                <th style="width:155px;">{{ translations.current_price }}</th>
+                                <th style="width:110px;text-align:center;">{{ translations.margin_column|default('Marża') }}</th>
+                                <th style="width:85px;text-align:center;">{{ translations.sale_status|default('Dostępność') }}</th>
+                                <th style="width:185px;">{{ translations.schedule }}</th>
+                            </tr>
+                            </thead>
+                            <tbody id="priceListTbody">
+                            <tr>
+                                <td colspan="6" class="text-muted">{{ translations.loading|default('Ładowanie...') }}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="small text-muted" id="tableMeta">{{ translations.price_list_meta_default }}</div>
+                        <div class="small text-muted">{{ translations.ajax_hint }}</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    {# MODAL: ADD PRICE #}
+    <div class="modal fade" id="priceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0">{{ translations.add_price }}</h5>
+                        <div class="small text-muted" id="priceModalSubtitle">{{ translations.price_modal_hint }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Zamknij') }}"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="row g-3">
+                        <input type="hidden" id="priceProductId" value="">
+
+                        <div class="col-12">
+                            <label class="form-label">{{ translations.product }}</label>
+                            <input id="priceProductSearch" class="form-control" placeholder="{{ translations.select_product }}" list="productsDatalist">
+                            <datalist id="productsDatalist"></datalist>
+                            <div class="form-text">{{ translations.product_select_hint }}</div>
+                            <div class="invalid-feedback" id="errProduct"></div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.vat_rate }}</label>
+                            <input id="priceVatRate" class="form-control" disabled>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.valid_from }}</label>
+                            <input id="priceValidFrom" type="date" class="form-control" min="{{ "tomorrow"|date("Y-m-d") }}" value="{{ "tomorrow"|date("Y-m-d") }}">
+                            <div class="invalid-feedback" id="errValidFrom"></div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.net }}</label>
+                            <input id="priceNet" type="number" step="0.01" min="0" class="form-control" placeholder="{{ translations.price_placeholder }}">
+                            <div class="invalid-feedback" id="errPrice"></div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.gross }}</label>
+                            <input id="priceGross" type="number" step="0.01" min="0" class="form-control" placeholder="{{ translations.price_placeholder }}">
+                        </div>
+
+                        <div class="col-12">
+                            <div class="alert alert-light-secondary small mb-0">
+                                <i class="bi bi-lightning-charge me-1"></i>
+                                {{ translations.global_price_modal_hint }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 d-flex justify-content-between align-items-center">
+                        <div class="small text-muted" id="modalMeta"></div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel|default('Anuluj') }}</button>
+                            <button class="btn btn-primary" id="btnSavePrice">
+                                <i class="bi bi-check-lg me-1"></i>{{ translations.save|default('Zapisz') }}
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {# MODAL: IMPORT PRICE LIST #}
+    <div class="modal fade" id="importPriceListModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0">{{ translations.import_price_list }}</h5>
+                        <div class="small text-muted">{{ translations.global_import_price_list_subtitle }}</div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Zamknij') }}"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="alert alert-light-info small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        {{ translations.import_price_list_modal_hint }}
+                    </div>
+
+                    <div class="alert alert-light-warning small mb-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        <strong>{{ translations.important|default('Ważne') }}:</strong>
+                        {{ translations.global_import_price_list_warning }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="importValidFrom" class="form-label fw-bold">
+                            {{ translations.import_valid_from_label }}
+                        </label>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="importValidFrom"
+                            min="{{ "now"|date("Y-m-d") }}"
+                            value="{{ "now"|date("Y-m-d") }}"
+                            required
+                        >
+                        <div class="invalid-feedback" id="errImportValidFrom"></div>
+                        <div class="form-text">
+                            <i class="bi bi-calendar-event me-1"></i>
+                            {{ translations.import_valid_from_hint }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="importPriceListFileInput" class="form-label fw-bold">
+                            {{ translations.select_json_file|default('Wybierz plik JSON') }}
+                        </label>
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="importPriceListFileInput"
+                            accept=".json,application/json"
+                        >
+                        <div class="invalid-feedback" id="errImportPriceListFile"></div>
+                        <div class="form-text">
+                            <i class="bi bi-file-earmark-code me-1"></i>
+                            {{ translations.accepted_format|default('Akceptowany format') }}: <strong>.json</strong>
+                        </div>
+                    </div>
+
+                    <div id="importPriceListFileInfo" class="alert alert-light-success small d-none">
+                        <i class="bi bi-file-check me-1"></i>
+                        <strong>{{ translations.selected_file|default('Wybrany plik') }}:</strong>
+                        <span id="importPriceListFileName"></span>
+                        (<span id="importPriceListFileSize"></span>)
+                    </div>
+
+                    <div id="importPriceListProgress" class="alert alert-light-primary small d-none">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="spinner-border spinner-border-sm" role="status">
+                                <span class="visually-hidden">{{ translations.processing|default('Przetwarzanie') }}...</span>
+                            </div>
+                            <span>{{ translations.importing|default('Importowanie') }}...</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button class="btn btn-light" data-bs-dismiss="modal" id="btnCancelImportPriceList">
+                            {{ translations.cancel|default('Anuluj') }}
+                        </button>
+                        <button class="btn btn-primary" id="btnStartImportPriceList" disabled>
+                            <i class="bi bi-upload me-1"></i>{{ translations.start_import|default('Rozpocznij import') }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# MODAL: SCHEDULE #}
+    <div class="modal fade" id="scheduleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0" id="scheduleModalTitle"></h5>
+                        <div class="small text-muted" id="scheduleModalSubtitle"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Zamknij') }}"></button>
+                </div>
+                <div class="modal-body" id="scheduleModalBody" style="min-height:60px;"></div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-primary" id="scheduleModalAddBtn" data-product-id="">
+                        <i class="bi bi-plus-circle me-1"></i>{{ translations.add_price }}
+                    </button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.close|default('Zamknij') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# MODAL: MARGIN CALCULATOR #}
+    <div class="modal fade" id="marginCalcModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0" id="marginCalcTitle"></h5>
+                        <div class="small text-muted" id="marginCalcSubtitle"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Zamknij') }}"></button>
+                </div>
+                <div class="modal-body" id="marginCalcBody" style="min-height:100px;"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.close|default('Zamknij') }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const el = (id) => document.getElementById(id);
+
+            function escapeHtml(s) {
+                return String(s ?? "").replace(/[&<>"']/g, m => ({
+                    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+                }[m]));
+            }
+
+            function money(x) {
+                const n = Number(x);
+                if (!Number.isFinite(n)) return "0.00";
+                return n.toFixed(2);
+            }
+
+            function isoToday() {
+                const d = new Date();
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                const dd = String(d.getDate()).padStart(2,'0');
+                return `${d.getFullYear()}-${mm}-${dd}`;
+            }
+
+            function isoTomorrow() {
+                const d = new Date();
+                d.setDate(d.getDate() + 1);
+                const mm = String(d.getMonth()+1).padStart(2,'0');
+                const dd = String(d.getDate()).padStart(2,'0');
+                return `${d.getFullYear()}-${mm}-${dd}`;
+            }
+
+            function groupByProduct(items) {
+                const map = new Map();
+                (items || []).forEach(it => {
+                    const pid = it.product_id ?? it.productId ?? it.id;
+                    if (!map.has(String(pid))) map.set(String(pid), []);
+                    map.get(String(pid)).push(it);
+                });
+                map.forEach(list => list.sort((a,b) => String(a.valid_from||"").localeCompare(String(b.valid_from||""))));
+                return map;
+            }
+
+            const RAW_ITEMS  = {{ products|default([])|json_encode|raw }};
+            const RECIPE_MAP = {{ recipeMap|default({})|json_encode|raw }};
+            const ROOT_URL   = '{{ ROOT }}';
+
+            const state = {
+                items: Array.isArray(RAW_ITEMS) ? RAW_ITEMS : [],
+                grouped: new Map(),
+                productsIndex: new Map(),
+                q: "",
+                saving: false,
+                badgeFilters: { margin: null, recipe: null, schedule: null }
+            };
+
+            const priceModal      = new bootstrap.Modal(el("priceModal"));
+            const marginCalcModal = new bootstrap.Modal(el("marginCalcModal"));
+            const scheduleModal   = new bootstrap.Modal(el("scheduleModal"));
+            let scheduleModalCurrentPid = null;
+
+            function buildProductsIndex() {
+                const idx = new Map();
+                state.items.forEach(it => {
+                    const pid = String(it.product_id);
+                    if (!idx.has(pid)) {
+                        idx.set(pid, {
+                            product_id: it.product_id,
+                            name: it.name,
+                            sku: it.sku,
+                            package_size: it.package_size,
+                            package_unit: it.package_unit,
+                            vat_rate: it.vat_rate,
+                            is_active_to_sale: (it.is_active_to_sale !== undefined ? it.is_active_to_sale : '')
+                        });
+                    }
+                });
+                state.productsIndex = idx;
+            }
+
+            function isFutureDate(validFrom) {
+                return isoToday() < String(validFrom || "");
+            }
+
+            function getCurrentItem(list) {
+                const today = isoToday();
+                const past = (list || []).filter(x => x.valid_from && String(x.valid_from) <= today);
+                if (!past.length) return null;
+                past.sort((a,b) => String(a.valid_from).localeCompare(String(b.valid_from)));
+                return past[past.length - 1];
+            }
+
+            function getFutureItems(list) {
+                const today = isoToday();
+                return (list || []).filter(x => x.valid_from && String(x.valid_from) > today)
+                    .sort((a,b) => String(a.valid_from).localeCompare(String(b.valid_from)));
+            }
+
+            function renderMissingAlert() {
+                let missing = 0;
+                state.grouped.forEach(list => {
+                    const cur = getCurrentItem(list);
+                    const net = Number(cur?.price_net ?? 0);
+                    if (!cur || !Number.isFinite(net) || net <= 0) missing++;
+                });
+                el("missingPricesAlert").style.display = missing > 0 ? "" : "none";
+            }
+
+            function productLabel(p) {
+                return `${p.name || ''} (SKU: ${p.sku || '—'})`;
+            }
+
+            function getProductById(pid) {
+                return state.productsIndex.get(String(pid)) || null;
+            }
+
+            function renderDatalist() {
+                const dl = el("productsDatalist");
+                dl.innerHTML = "";
+                Array.from(state.productsIndex.values())
+                    .sort((a,b) => String(a.name||"").localeCompare(String(b.name||"")))
+                    .forEach(p => {
+                        const opt = document.createElement("option");
+                        opt.value = productLabel(p);
+                        opt.setAttribute("data-product-id", p.product_id);
+                        dl.appendChild(opt);
+                    });
+            }
+
+            function findProductIdFromSearch() {
+                const val = (el("priceProductSearch").value || "").trim();
+                for (const p of state.productsIndex.values()) {
+                    if (productLabel(p) === val) return String(p.product_id);
+                }
+                return "";
+            }
+
+            function clearModalErrors() {
+                ["errProduct","errValidFrom","errPrice"].forEach(id => el(id).textContent = "");
+                ["priceProductSearch","priceValidFrom","priceNet"].forEach(id => el(id).classList.remove("is-invalid"));
+            }
+
+            function openAddPriceModal(prefillProductId = "", prefillNet = null) {
+                clearModalErrors();
+                const pid = String(prefillProductId || "");
+                el("priceProductId").value = pid;
+
+                if (pid) {
+                    const p = getProductById(pid);
+                    el("priceProductSearch").value = p ? productLabel(p) : "";
+                    el("modalMeta").textContent = p ? `${p.name || ''} (SKU: ${p.sku || '—'})` : ("#" + pid);
+                } else {
+                    el("priceProductSearch").value = "";
+                    el("modalMeta").textContent = "";
+                }
+
+                el("priceVatRate").value = "";
+                el("priceValidFrom").value = isoTomorrow();
+                el("priceNet").value = "";
+                el("priceGross").value = "";
+
+                syncVatDisplay();
+
+                if (prefillNet !== null) {
+                    const net = Number(prefillNet);
+                    if (Number.isFinite(net) && net > 0) {
+                        el("priceNet").value   = money(net);
+                        el("priceGross").value = netToGross(net, getVatRateSelected());
+                    }
+                }
+
+                priceModal.show();
+            }
+
+            function openMarginCalcModal(productId) {
+                const p = getProductById(productId);
+                if (!p) return;
+
+                const recipe    = RECIPE_MAP[String(productId)] || null;
+                const list      = state.grouped.get(String(productId)) || [];
+                const cur       = getCurrentItem(list);
+                const priceNet  = cur ? Number(cur.price_net) : 0;
+                const vatRate   = Number(p.vat_rate) || 0;
+                const pnl       = recipe?.pnl || null;
+                const isComplete = !!pnl?.is_complete;
+
+                const rawMat    = isComplete ? (Number(pnl.raw_materials_per_packaging) || 0) : 0;
+                const labor     = isComplete ? (Number(pnl.labor_per_packaging)         || 0) : 0;
+                const overhead  = isComplete ? (Number(pnl.overhead_per_packaging)      || 0) : 0;
+                const packaging = isComplete ? (Number(pnl.packaging_per_packaging)     || 0) : 0;
+                const total     = rawMat + labor + overhead + packaging;
+                const ppp       = isComplete ? (Number(pnl?.portions_per_packaging) || 0) : 0;
+                const targetMar = (recipe && recipe.target_margin !== null && recipe.target_margin !== undefined)
+                    ? Number(recipe.target_margin) : null;
+
+                el('marginCalcTitle').textContent    = p.name || '';
+                el('marginCalcSubtitle').textContent = `SKU: ${p.sku || '—'} | {{ translations.package|default('Opakowanie') }}: ${String(p.package_size || '')} ${String(p.package_unit || '')} | VAT: ${money(vatRate)}%`;
+
+                const dot = (bg) =>
+                    `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${bg};margin-right:4px;flex-shrink:0;"></span>`;
+
+                const costRow = (label, color, val, priceRef) => {
+                    if (val <= 0) return '';
+                    const pct     = priceRef > 0 ? (val / priceRef * 100).toFixed(1) : '—';
+                    return `<tr>
+                        <td style="padding:5px 8px;">${dot(color)}${label}</td>
+                        <td style="padding:5px 8px;text-align:right;font-variant-numeric:tabular-nums;">${money(val)}</td>
+                        <td style="padding:5px 8px;text-align:right;color:#6c757d;">${pct}%</td>
+                    </tr>`;
+                };
+
+                let costsSection = '';
+                if (!recipe) {
+                    costsSection = `<div class="alert alert-light-secondary d-flex align-items-center gap-2 mb-0">
+                        <i class="bi bi-calculator text-muted"></i>
+                        <span>{{ translations.cost_breakdown_no_recipe|default('Brak receptury') }} &mdash;
+                            <a href="${ROOT_URL}/recipes" class="text-primary">{{ translations.cost_breakdown_create_recipe|default('Utwórz recepturę') }}</a>
+                        </span>
+                    </div>`;
+                } else if (!isComplete) {
+                    const _missingHtml = getMissingPartsHtml(recipe);
+                    costsSection = `<div class="alert alert-light-warning mb-0">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-exclamation-circle text-warning mt-1" style="flex-shrink:0;"></i>
+                            <div>
+                                <div>{{ translations.cost_breakdown_incomplete|default('Receptura niepełna') }} &mdash;
+                                    <a href="${ROOT_URL}/recipes/${escapeHtml(recipe.id)}" class="text-primary">{{ translations.cost_breakdown_complete_recipe|default('Uzupełnij recepturę') }}</a>
+                                </div>
+                                ${_missingHtml}
+                            </div>
+                        </div>
+                    </div>`;
+                } else {
+                    const pRaw  = priceNet > 0 ? (rawMat    / priceNet * 100) : 0;
+                    const pLab  = priceNet > 0 ? (labor     / priceNet * 100) : 0;
+                    const pOh   = priceNet > 0 ? (overhead  / priceNet * 100) : 0;
+                    const pPack = priceNet > 0 ? (packaging / priceNet * 100) : 0;
+                    const pMar  = priceNet > 0 ? Math.max((priceNet - total) / priceNet * 100, 0) : 0;
+
+                    const seg = (w, bg) => w > 0
+                        ? `<div style="width:${w.toFixed(2)}%;background:${bg};height:100%;"></div>` : '';
+
+                    const barHtml = priceNet > 0
+                        ? `<div style="height:12px;border-radius:6px;overflow:hidden;display:flex;margin-bottom:10px;">
+                            ${seg(pRaw,'#F97316')}${seg(pLab,'#3B82F6')}${seg(pOh,'#8B5CF6')}${seg(pPack,'#06B6D4')}${seg(pMar,'#10B981')}
+                          </div>`
+                        : '';
+
+                    const currentMarginAmt = priceNet > 0 ? (priceNet - total) : null;
+                    const currentMarginPct = priceNet > 0 ? ((priceNet - total) / priceNet * 100) : null;
+
+                    costsSection = `
+                        ${barHtml}
+                        ${ppp > 0 ? `
+                        <div class="d-flex align-items-center gap-3 mb-3 px-1" style="font-size:12px;color:#374151;">
+                            <span style="display:inline-flex;align-items:center;gap:5px;">
+                                <i class="bi bi-grid-3x3-gap" style="color:#6c757d;"></i>
+                                <span class="text-muted">{{ translations.margin_calc_portions_per_pack|default('Porcji\/opak.') }}:</span>
+                                <strong>${ppp}</strong>
+                            </span>
+                            <span style="display:inline-flex;align-items:center;gap:5px;">
+                                <i class="bi bi-box" style="color:#6c757d;"></i>
+                                <span class="text-muted">{{ translations.margin_calc_cost_per_portion|default('Koszt\/porcja') }}:</span>
+                                <strong>${money(total / ppp)}</strong>
+                            </span>
+                            ${priceNet > 0 ? `
+                            <span style="display:inline-flex;align-items:center;gap:5px;">
+                                <i class="bi bi-tag" style="color:#6c757d;"></i>
+                                <span class="text-muted">{{ translations.margin_calc_price_per_portion|default('Cena\/porcja') }}:</span>
+                                <strong style="color:#059669;">${money(priceNet / ppp)}</strong>
+                            </span>` : ''}
+                        </div>` : ''}
+                        <div class="table-responsive mb-0">
+                            <table class="table table-sm mb-0" style="font-size:13px;">
+                                <thead>
+                                    <tr style="background:#f8fafc;">
+                                        <th style="padding:6px 8px;font-weight:600;">{{ translations.margin_calc_component|default('Składnik') }}</th>
+                                        <th style="padding:6px 8px;text-align:right;font-weight:600;">{{ translations.margin_calc_amount|default('Kwota') }} ({{ translations.net|default('netto') }})</th>
+                                        <th style="padding:6px 8px;text-align:right;font-weight:600;">{{ translations.margin_calc_share|default('Udział w cenie') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${costRow('{{ translations.cost_breakdown_raw_materials|default("Surowce") }}', '#F97316', rawMat, priceNet)}
+                                    ${costRow('{{ translations.cost_breakdown_labor|default("Praca") }}',           '#3B82F6', labor,  priceNet)}
+                                    ${costRow('{{ translations.cost_breakdown_overhead|default("Koszty stałe") }}', '#8B5CF6', overhead, priceNet)}
+                                    ${costRow('{{ translations.cost_breakdown_packaging|default("Opakowanie") }}',  '#06B6D4', packaging, priceNet)}
+                                </tbody>
+                                <tfoot>
+                                    <tr style="background:#f8fafc;font-weight:600;">
+                                        <td style="padding:6px 8px;">{{ translations.cost_breakdown_total_cost|default('Łączny koszt') }}</td>
+                                        <td style="padding:6px 8px;text-align:right;">${money(total)}</td>
+                                        <td style="padding:6px 8px;text-align:right;">${priceNet > 0 ? (total/priceNet*100).toFixed(1)+'%' : '—'}</td>
+                                    </tr>
+                                    ${priceNet > 0 ? `
+                                    <tr>
+                                        <td style="padding:6px 8px;color:#6c757d;">{{ translations.margin_calc_current_price|default('Aktualna cena netto') }}</td>
+                                        <td style="padding:6px 8px;text-align:right;color:#6c757d;">${money(priceNet)}</td>
+                                        <td style="padding:6px 8px;text-align:right;color:#6c757d;">100.0%</td>
+                                    </tr>
+                                    <tr style="color:${currentMarginAmt >= 0 ? '#059669' : '#EF4444'};">
+                                        <td style="padding:6px 8px;font-weight:600;">{{ translations.cost_breakdown_actual_margin|default('Marża') }}</td>
+                                        <td style="padding:6px 8px;text-align:right;font-weight:600;">${money(currentMarginAmt)}</td>
+                                        <td style="padding:6px 8px;text-align:right;font-weight:600;">${currentMarginPct.toFixed(1)}%</td>
+                                    </tr>` : ''}
+                                    ${targetMar !== null ? `
+                                    <tr style="border-top:2px solid #e2e8f0;background:#f8fafc;">
+                                        <td style="padding:6px 8px;">
+                                            <i class="bi bi-bullseye me-1 text-primary" style="font-size:11px;"></i>
+                                            <span style="color:#374151;font-weight:600;">{{ translations.margin_calc_target_label|default('Marża wymagana (receptura)') }}</span>
+                                        </td>
+                                        <td style="padding:6px 8px;text-align:right;font-size:11px;color:#6c757d;">
+                                            {{ translations.margin_calc_min_price|default('min. cena netto') }}: <strong>${money(total / (1 - targetMar / 100))}</strong>
+                                        </td>
+                                        <td style="padding:6px 8px;text-align:right;font-weight:700;color:${currentMarginPct !== null ? (currentMarginPct >= targetMar ? '#059669' : '#EF4444') : '#374151'};">
+                                            ${targetMar.toFixed(1)}%
+                                            ${currentMarginPct !== null ? (currentMarginPct >= targetMar
+                                                ? ' <i class="bi bi-check-circle-fill" style="font-size:12px;"></i>'
+                                                : ' <i class="bi bi-x-circle-fill" style="font-size:12px;"></i>') : ''}
+                                        </td>
+                                    </tr>` : ''}
+                                </tfoot>
+                            </table>
+                        </div>`;
+                }
+
+                // ── Calculator section ──────────────────────────────────────────────
+                const calcSection = isComplete && total > 0 ? `
+                    <hr class="my-3">
+                    <div class="fw-semibold mb-3">
+                        <i class="bi bi-calculator me-2 text-primary"></i>{{ translations.margin_calc_calculator_title|default('Kalkulator') }}
+                    </div>
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-6">
+                            <div class="card border" style="border-radius:8px;">
+                                <div class="card-body p-3">
+                                    <div class="small fw-semibold mb-2 text-muted text-uppercase" style="letter-spacing:.03em;font-size:11px;">
+                                        {{ translations.margin_calc_mode_from_margin|default('Podaj marżę → wyznacz cenę') }}
+                                    </div>
+                                    <div class="input-group input-group-sm mb-2">
+                                        <input type="number" id="mcInputMargin" class="form-control" step="0.1" min="-999" max="99.99"
+                                            placeholder="{{ translations.margin_calc_target_margin_placeholder|default('np. 30') }}">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                    <div id="mcResultFromMargin" class="small" style="min-height:36px;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <div class="card border" style="border-radius:8px;">
+                                <div class="card-body p-3">
+                                    <div class="small fw-semibold mb-2 text-muted text-uppercase" style="letter-spacing:.03em;font-size:11px;">
+                                        {{ translations.margin_calc_mode_from_price|default('Podaj cenę → wyznacz marżę') }}
+                                    </div>
+                                    <div class="input-group input-group-sm mb-2">
+                                        <input type="number" id="mcInputPrice" class="form-control" step="0.01" min="0"
+                                            placeholder="{{ translations.margin_calc_target_price_placeholder|default('np. 25.00') }}">
+                                        <span class="input-group-text">{{ translations.net|default('netto') }}</span>
+                                    </div>
+                                    <div id="mcResultFromPrice" class="small" style="min-height:36px;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>` : '';
+
+                el('marginCalcBody').innerHTML = `
+                    <div class="mb-3">${costsSection}</div>
+                    ${calcSection}`;
+
+                // pre-fill target margin from recipe
+                if (isComplete && total > 0 && targetMar !== null) {
+                    const inp = document.getElementById('mcInputMargin');
+                    if (inp) {
+                        inp.value = targetMar.toFixed(1);
+                        inp.dispatchEvent(new Event('input'));
+                    }
+                }
+
+                // attach live calculator listeners
+                if (isComplete && total > 0) {
+                    const resMargin = document.getElementById('mcResultFromMargin');
+                    const resPrice  = document.getElementById('mcResultFromPrice');
+
+                    document.getElementById('mcInputMargin')?.addEventListener('input', function () {
+                        const m = parseFloat(this.value);
+                        if (!isFinite(m) || m >= 100) { resMargin.innerHTML = ''; return; }
+                        const reqNet   = total / (1 - m / 100);
+                        const reqGross = reqNet * (1 + vatRate / 100);
+                        const markup   = ((reqNet - total) / total * 100).toFixed(1);
+                        const color    = m >= 0 ? '#059669' : '#EF4444';
+                        resMargin.innerHTML = `
+                            <div style="color:${color};">
+                                <strong>{{ translations.margin_calc_required_price|default('Wymagana cena netto') }}:</strong> ${money(reqNet)}
+                            </div>
+                            <div class="text-muted">{{ translations.margin_calc_required_price_gross|default('Cena brutto') }}: ${money(reqGross)}</div>
+                            <div class="text-muted">{{ translations.margin_calc_markup|default('Narzut') }}: ${markup}%</div>
+                            ${ppp > 0 ? `<div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:4px 10px;font-size:12px;">
+                                <i class="bi bi-egg-fried" style="color:#059669;"></i>
+                                <span style="color:#374151;">{{ translations.margin_calc_price_per_portion|default('Cena\/porcja') }}:</span>
+                                <strong style="color:#059669;">${money(reqNet / ppp)}</strong>
+                            </div>` : ''}
+                            <button class="btn btn-sm btn-primary mt-2 btn-set-calc-price d-block" type="button"
+                                data-product-id="${escapeHtml(productId)}" data-net-price="${reqNet.toFixed(4)}">
+                                <i class="bi bi-tag me-1"></i>{{ translations.margin_calc_set_price|default('Ustaw tę cenę') }}
+                            </button>`;
+                    });
+
+                    document.getElementById('mcInputPrice')?.addEventListener('input', function () {
+                        const net = parseFloat(this.value);
+                        if (!isFinite(net) || net <= 0) { resPrice.innerHTML = ''; return; }
+                        const margin    = (net - total) / net * 100;
+                        const markup    = ((net - total) / total * 100).toFixed(1);
+                        const gross     = net * (1 + vatRate / 100);
+                        const color     = margin >= 0 ? '#059669' : '#EF4444';
+                        resPrice.innerHTML = `
+                            <div style="color:${color};">
+                                <strong>{{ translations.margin_calc_implied_margin|default('Wynikowa marża') }}:</strong> ${margin.toFixed(1)}% (${money(net - total)})
+                            </div>
+                            <div class="text-muted">{{ translations.margin_calc_required_price_gross|default('Cena brutto') }}: ${money(gross)}</div>
+                            <div class="text-muted">{{ translations.margin_calc_markup|default('Narzut') }}: ${markup}%</div>
+                            ${ppp > 0 ? `<div style="margin-top:6px;display:inline-flex;align-items:center;gap:6px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:4px 10px;font-size:12px;">
+                                <i class="bi bi-egg-fried" style="color:#059669;"></i>
+                                <span style="color:#374151;">{{ translations.margin_calc_price_per_portion|default('Cena\/porcja') }}:</span>
+                                <strong style="color:#059669;">${money(net / ppp)}</strong>
+                            </div>` : ''}
+                            <button class="btn btn-sm btn-primary mt-2 btn-set-calc-price d-block" type="button"
+                                data-product-id="${escapeHtml(productId)}" data-net-price="${net.toFixed(4)}">
+                                <i class="bi bi-tag me-1"></i>{{ translations.margin_calc_set_price|default('Ustaw tę cenę') }}
+                            </button>`;
+                    });
+                }
+
+                marginCalcModal.show();
+            }
+
+            function renderScheduleModalBody(productId) {
+                const p       = getProductById(productId);
+                const list    = state.grouped.get(String(productId)) || [];
+                const fut     = getFutureItems(list);
+                if (!p) return;
+                if (!fut.length) {
+                    el('scheduleModalBody').innerHTML = `<p class="text-muted text-center py-3 mb-0">{{ translations.no_scheduled_prices|default('Brak zaplanowanych cen') }}</p>`;
+                    return;
+                }
+
+                const recipe     = RECIPE_MAP[String(productId)] || null;
+                const pnl        = recipe?.pnl || null;
+                const isComplete = !!pnl?.is_complete;
+                const targetMar  = (recipe && recipe.target_margin !== null && recipe.target_margin !== undefined)
+                    ? Number(recipe.target_margin) : null;
+                const rawMat     = isComplete ? (Number(pnl.raw_materials_per_packaging) || 0) : 0;
+                const labor      = isComplete ? (Number(pnl.labor_per_packaging)         || 0) : 0;
+                const overhead   = isComplete ? (Number(pnl.overhead_per_packaging)      || 0) : 0;
+                const packaging  = isComplete ? (Number(pnl.packaging_per_packaging)     || 0) : 0;
+                const totalCost  = rawMat + labor + overhead + packaging;
+
+                const dot = (bg) =>
+                    `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${bg};margin-right:3px;flex-shrink:0;"></span>`;
+
+                function buildMarginBar(priceNet) {
+                    if (!isComplete || totalCost <= 0) return '';
+                    const margin    = priceNet - totalCost;
+                    const isNeg     = margin < 0;
+                    const marginPct = (margin / priceNet * 100).toFixed(1);
+
+                    const pRaw  = Math.min(rawMat   / priceNet * 100, 100);
+                    const pLab  = Math.min(labor    / priceNet * 100, 100);
+                    const pOh   = Math.min(overhead / priceNet * 100, 100);
+                    const pPack = Math.min(packaging/ priceNet * 100, 100);
+                    const pMar  = Math.max(margin   / priceNet * 100, 0);
+
+                    const seg = (w, bg) => w > 0
+                        ? `<div style="width:${w.toFixed(2)}%;background:${bg};height:100%;"></div>` : '';
+
+                    const barHtml = isNeg
+                        ? `<div style="width:100%;background:#EF4444;height:100%;"></div>`
+                        : `${seg(pRaw,'#F97316')}${seg(pLab,'#3B82F6')}${seg(pOh,'#8B5CF6')}${seg(pPack,'#06B6D4')}${seg(pMar,'#10B981')}`;
+
+                    let tgtBadge = '';
+                    if (targetMar !== null) {
+                        const ok    = Number(marginPct) >= targetMar;
+                        const color = ok ? '#059669' : (Number(marginPct) >= targetMar - 5 ? '#D97706' : '#EF4444');
+                        tgtBadge = `<span style="margin-left:6px;font-size:10px;color:${color};font-weight:600;">
+                            {{ translations.margin_target|default('cel') }}: ${targetMar.toFixed(1)}%
+                            ${ok ? '<i class="bi bi-check-circle-fill" style="font-size:10px;"></i>'
+                               : '<i class="bi bi-exclamation-circle-fill" style="font-size:10px;"></i>'}
+                        </span>`;
+                    }
+
+                    const marColor = isNeg ? '#EF4444' : (Number(marginPct) >= 0 ? '#059669' : '#EF4444');
+
+                    return `<div style="margin-top:6px;padding-top:6px;border-top:1px solid #e9ecef;">
+                        <div style="height:8px;border-radius:4px;overflow:hidden;display:flex;margin-bottom:4px;">${barHtml}</div>
+                        <div style="display:flex;align-items:center;gap:4px;font-size:11px;flex-wrap:wrap;color:#6c757d;">
+                            ${dot('#F97316')}{{ translations.cost_breakdown_raw_materials|default('Surowce') }}: ${money(rawMat)}&nbsp;
+                            ${labor > 0 ? `${dot('#3B82F6')}{{ translations.cost_breakdown_labor|default('Praca') }}: ${money(labor)}&nbsp;` : ''}
+                            ${overhead > 0 ? `${dot('#8B5CF6')}{{ translations.cost_breakdown_overhead|default('Koszty stałe') }}: ${money(overhead)}&nbsp;` : ''}
+                            ${packaging > 0 ? `${dot('#06B6D4')}{{ translations.cost_breakdown_packaging|default('Opakowanie') }}: ${money(packaging)}&nbsp;` : ''}
+                            <span style="color:${marColor};font-weight:600;">${dot(isNeg ? '#EF4444' : '#10B981')}{{ translations.cost_breakdown_actual_margin|default('Marża') }}: ${money(margin)} (${marginPct}%)</span>
+                            ${tgtBadge}
+                        </div>
+                    </div>`;
+                }
+
+                el('scheduleModalBody').innerHTML = fut.map(it => {
+                    const gross    = netToGross(it.price_net, p.vat_rate);
+                    const canDel   = isFutureDate(it.valid_from);
+                    const priceNet = Number(it.price_net) || 0;
+                    const btn      = canDel
+                        ? `<button class="btn btn-sm btn-outline-danger btn-delete-price" type="button"
+                               data-product-id="${escapeHtml(p.product_id)}"
+                               data-valid-from="${escapeHtml(it.valid_from)}">
+                               <i class="bi bi-trash"></i>
+                           </button>`
+                        : `<button class="btn btn-sm btn-outline-secondary" type="button" disabled
+                               title="{{ translations.delete_only_future }}">
+                               <i class="bi bi-lock"></i>
+                           </button>`;
+                    const marginBar = priceNet > 0 ? buildMarginBar(priceNet) : '';
+                    return `<div class="border rounded px-3 py-2 mb-3">
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                            <div class="small">
+                                <div class="fw-semibold mb-1">${escapeHtml(it.valid_from || "")}</div>
+                                <div><span class="text-muted">{{ translations.net }}:</span> <span class="fw-semibold">${money(it.price_net)}</span>
+                                     <span class="text-muted ms-2">{{ translations.gross }}:</span> <span class="fw-semibold">${gross}</span></div>
+                            </div>
+                            <div class="flex-shrink-0">${btn}</div>
+                        </div>
+                        ${marginBar}
+                    </div>`;
+                }).join("");
+            }
+
+            function openScheduleModal(productId) {
+                scheduleModalCurrentPid = String(productId);
+                const p = getProductById(productId);
+                if (!p) return;
+                el('scheduleModalTitle').textContent    = p.name || '';
+                el('scheduleModalSubtitle').textContent = `SKU: ${p.sku || '—'} | {{ translations.package|default('Opakowanie') }}: ${String(p.package_size || '')} ${String(p.package_unit || '')}`.trim();
+                el('scheduleModalAddBtn').dataset.productId = String(productId);
+                renderScheduleModalBody(String(productId));
+                scheduleModal.show();
+            }
+
+            function getVatRateSelected() {
+                const pid = el("priceProductId").value || findProductIdFromSearch();
+                const p = pid ? state.productsIndex.get(String(pid)) : null;
+                const r = Number(p?.vat_rate ?? 0);
+                return Number.isFinite(r) ? r : 0;
+            }
+
+            function syncVatDisplay() {
+                const pid = el("priceProductId").value || findProductIdFromSearch();
+                if (!pid) { el("priceVatRate").value = ""; return; }
+                el("priceProductId").value = String(pid);
+                const p = state.productsIndex.get(String(pid));
+                el("priceVatRate").value = `${money(p?.vat_rate ?? 0)}%`;
+            }
+
+            function netToGross(net, vatRatePercent) {
+                const n = Number(net), v = Number(vatRatePercent);
+                if (!Number.isFinite(n)) return "";
+                return money(n * (1 + v / 100));
+            }
+
+            function grossToNet(gross, vatRatePercent) {
+                const g = Number(gross), v = Number(vatRatePercent);
+                if (!Number.isFinite(g)) return "";
+                return money(g / (1 + v / 100));
+            }
+
+            function isSaleActive(val) {
+                const s = String(val ?? '').trim().toLowerCase();
+                return s === '1' || s === 'true' || s === 'yes' || s === 'on' || s === 'for_sale';
+            }
+
+            function getMissingPartsHtml(recipe) {
+                const pnl = recipe?.pnl || {};
+                const ovh = recipe?.overhead || {};
+                const missing = [];
+
+                // Kafelek 3 — jednostka sprzedaży / porcje
+                if (pnl.portions_per_packaging == null)
+                    missing.push('{{ translations.recipe_missing_sales_unit|default("Jednostka sprzedaży — uzupełnij kafelek 3") }}');
+
+                // Kafelek 2 — koszty surowców
+                // Sprawdzamy zarówno pole _per_packaging (używane w kalkulacji) jak i _per_unit (dane wejściowe)
+                const rawMatOk = (pnl.raw_materials_per_packaging ?? pnl.raw_materials_per_unit ?? null) !== null;
+                if (!rawMatOk)
+                    missing.push('{{ translations.recipe_missing_raw_materials|default("Koszty surowców — sprawdź ceny składników (kafelek 2)") }}');
+
+                // Kafelek 4 — koszty pracy
+                // Błąd: poprzednio sprawdzano recipe.labor_cost_per_unit (root), zamiast pnl.labor_per_packaging lub pnl.labor_cost_per_unit
+                const laborOk = (pnl.labor_per_packaging ?? pnl.labor_cost_per_unit ?? recipe?.labor_cost_per_unit ?? null) !== null;
+                if (!laborOk)
+                    missing.push('{{ translations.recipe_missing_labor|default("Koszty pracy — ustaw czas i stawkę (kafelek 4)") }}');
+
+                // Kafelek 5 — koszty stałe
+                const ovhOk = (pnl.overhead_per_packaging ?? null) !== null
+                    || ((ovh.forecast_cartons_per_month ?? null) !== null && (ovh.monthly_overhead_pool ?? null) !== null);
+                if (!ovhOk)
+                    missing.push('{{ translations.recipe_missing_overhead|default("Koszty stałe — ustaw prognozę i pulę (kafelek 5)") }}');
+
+                // Jeśli wszystkie powyższe sprawdzenia przeszły, a mimo to is_complete jest false,
+                // wyświetl ogólny komunikat zamiast niczego nie pokazywać użytkownikowi
+                if (!missing.length)
+                    missing.push('{{ translations.recipe_missing_general|default("Receptura wymaga uzupełnienia — sprawdź wszystkie sekcje i zapisz ponownie") }}');
+
+                return `<ul class="mb-0 mt-1 ps-3" style="font-size:11px;">${missing.map(s => `<li>${s}</li>`).join('')}</ul>`;
+            }
+
+            function buildCostInsightRow(p, recipe, currentPriceNet, saleStatusRaw) {
+                const pid        = escapeHtml(p.product_id);
+                const saleStatus = escapeHtml(saleStatusRaw);
+
+                const dot = (bg) =>
+                    `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${bg};margin-right:3px;flex-shrink:0;"></span>`;
+
+                let inner = '';
+
+                if (!recipe) {
+                    inner = `<div class="d-flex align-items-center gap-2 py-1">
+                        <i class="bi bi-calculator text-muted" style="font-size:13px;opacity:.65;"></i>
+                        <span class="small text-muted">{{ translations.cost_breakdown_no_recipe|default('Brak receptury') }} &mdash;</span>
+                        <a href="${ROOT_URL}/recipes" class="small text-primary text-decoration-none">
+                            <i class="bi bi-plus-circle me-1"></i>{{ translations.cost_breakdown_create_recipe|default('Utwórz recepturę') }}
+                        </a>
+                    </div>`;
+                } else {
+                    const pnl = recipe.pnl || {};
+
+                    if (!pnl.is_complete) {
+                        const _missingHtml = getMissingPartsHtml(recipe);
+                        inner = `<div class="py-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-exclamation-circle text-warning" style="font-size:13px;"></i>
+                                <span class="small text-muted fw-semibold">{{ translations.cost_breakdown_incomplete|default('Receptura niepełna') }}</span>
+                                <a href="${ROOT_URL}/recipes/${escapeHtml(recipe.id)}" class="small text-primary text-decoration-none">
+                                    <i class="bi bi-pencil me-1"></i>{{ translations.cost_breakdown_complete_recipe|default('Uzupełnij recepturę') }}
+                                </a>
+                            </div>
+                            ${_missingHtml ? `<div class="text-muted" style="padding-left:20px;">${_missingHtml}</div>` : ''}
+                        </div>`;
+                    } else {
+                        const rawMat    = Number(pnl.raw_materials_per_packaging) || 0;
+                        const labor     = Number(pnl.labor_per_packaging)         || 0;
+                        const overhead  = Number(pnl.overhead_per_packaging)      || 0;
+                        const packaging = Number(pnl.packaging_per_packaging)     || 0;
+                        const total     = rawMat + labor + overhead + packaging;
+                        const priceNet  = Number(currentPriceNet) || 0;
+
+                        if (priceNet <= 0) {
+                            const costParts = [
+                                rawMat    > 0 ? `${dot('#F97316')}{{ translations.cost_breakdown_raw_materials|default('Surowce') }}: ${money(rawMat)}`    : '',
+                                labor     > 0 ? `${dot('#3B82F6')}{{ translations.cost_breakdown_labor|default('Praca') }}: ${money(labor)}`                : '',
+                                overhead  > 0 ? `${dot('#8B5CF6')}{{ translations.cost_breakdown_overhead|default('Koszty stałe') }}: ${money(overhead)}`   : '',
+                                packaging > 0 ? `${dot('#06B6D4')}{{ translations.cost_breakdown_packaging|default('Opakowanie') }}: ${money(packaging)}`  : '',
+                            ].filter(Boolean).map(s => `<span>${s}</span>`).join('');
+                            inner = `<div style="padding:4px 0 6px;font-size:11px;color:#6c757d;">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <i class="bi bi-graph-up" style="font-size:13px;opacity:.65;"></i>
+                                    <span>{{ translations.cost_breakdown_total_cost|default('Łączny koszt') }}: <strong style="color:#374151;">${money(total)}</strong> / {{ translations.cost_breakdown_per_packaging|default('op.') }}</span>
+                                </div>
+                                ${costParts ? `<div style="display:flex;gap:6px 14px;flex-wrap:wrap;">${costParts}</div>` : ''}
+                            </div>`;
+                        } else {
+                            const margin    = priceNet - total;
+                            const isNeg     = margin < 0;
+                            const marginPct = (margin / priceNet * 100).toFixed(1);
+
+                            const pRaw  = Math.min(rawMat    / priceNet * 100, 100);
+                            const pLab  = Math.min(labor     / priceNet * 100, 100);
+                            const pOh   = Math.min(overhead  / priceNet * 100, 100);
+                            const pPack = Math.min(packaging / priceNet * 100, 100);
+                            const pMar  = Math.max(margin    / priceNet * 100, 0);
+
+                            const seg = (w, bg, lbl, val, pct) =>
+                                `<div title="${lbl}: ${money(val)} (${pct.toFixed(1)}%)" style="width:${w.toFixed(2)}%;background:${bg};height:100%;"></div>`;
+
+                            const barSegments = isNeg
+                                ? `<div title="{{ translations.cost_breakdown_total_cost|default('Łączny koszt') }}: ${money(total)} (${(total/priceNet*100).toFixed(1)}%)" style="width:100%;background:#EF4444;height:100%;"></div>`
+                                : [
+                                    rawMat    > 0 ? seg(pRaw,  '#F97316', '{{ translations.cost_breakdown_raw_materials|default("Surowce") }}',  rawMat,    pRaw)  : '',
+                                    labor     > 0 ? seg(pLab,  '#3B82F6', '{{ translations.cost_breakdown_labor|default("Praca") }}',             labor,     pLab)  : '',
+                                    overhead  > 0 ? seg(pOh,   '#8B5CF6', '{{ translations.cost_breakdown_overhead|default("Koszty stałe") }}',   overhead,  pOh)   : '',
+                                    packaging > 0 ? seg(pPack, '#06B6D4', '{{ translations.cost_breakdown_packaging|default("Opakowanie") }}',    packaging, pPack) : '',
+                                    pMar      > 0 ? seg(pMar,  '#10B981', '{{ translations.cost_breakdown_margin|default("Marża") }}',            margin,    pMar)  : '',
+                                  ].join('');
+
+                            const legendItems = isNeg
+                                ? [
+                                    `<span class="text-danger fw-semibold">${dot('#EF4444')}{{ translations.cost_breakdown_negative_margin|default('Ujemna marża') }}: ${money(margin)} (${marginPct}%)</span>`,
+                                    `<span class="text-muted">{{ translations.cost_breakdown_total_cost|default('Łączny koszt') }}: <strong>${money(total)}</strong></span>`,
+                                    `<span class="text-muted">{{ translations.net|default('Netto') }}: <strong>${money(priceNet)}</strong></span>`,
+                                  ].join('')
+                                : [
+                                    rawMat    > 0 ? `<span>${dot('#F97316')}{{ translations.cost_breakdown_raw_materials|default('Surowce') }}: ${money(rawMat)} (${pRaw.toFixed(1)}%)</span>`    : '',
+                                    labor     > 0 ? `<span>${dot('#3B82F6')}{{ translations.cost_breakdown_labor|default('Praca') }}: ${money(labor)} (${pLab.toFixed(1)}%)</span>`               : '',
+                                    overhead  > 0 ? `<span>${dot('#8B5CF6')}{{ translations.cost_breakdown_overhead|default('Koszty stałe') }}: ${money(overhead)} (${pOh.toFixed(1)}%)</span>`   : '',
+                                    packaging > 0 ? `<span>${dot('#06B6D4')}{{ translations.cost_breakdown_packaging|default('Opakowanie') }}: ${money(packaging)} (${pPack.toFixed(1)}%)</span>` : '',
+                                    `<span class="fw-semibold">${dot('#10B981')}{{ translations.cost_breakdown_actual_margin|default('Marża') }}: <strong>${money(margin)} (${marginPct}%)</strong></span>`,
+                                    `<span class="text-muted" style="margin-left:2px;">| {{ translations.cost_breakdown_total_cost|default('Łączny koszt') }}: ${money(total)} &nbsp;/&nbsp; {{ translations.net|default('Netto') }}: ${money(priceNet)}</span>`,
+                                  ].filter(Boolean).join('');
+
+                            inner = `<div style="padding:4px 0 6px;">
+                                <div style="height:10px;border-radius:5px;overflow:hidden;display:flex;">${barSegments}</div>
+                                <div style="display:flex;gap:6px 14px;margin-top:4px;font-size:11px;flex-wrap:wrap;align-items:center;color:#6c757d;">${legendItems}</div>
+                            </div>`;
+                        }
+                    }
+                }
+
+                return `<tr class="cost-insight-row" data-product-id="${pid}" data-sale-status="${saleStatus}">
+                    <td colspan="6" style="padding:0 16px 4px 56px;background:#f8fafc;border-top:0;">${inner}</td>
+                </tr>`;
+            }
+
+            function getProductBadgeProps(p) {
+                const pid      = String(p.product_id);
+                const recipe   = RECIPE_MAP[pid] || null;
+                const pnl      = recipe?.pnl || null;
+                const isComp   = !!pnl?.is_complete;
+                const list     = state.grouped.get(pid) || [];
+                const cur      = getCurrentItem(list);
+                const fut      = getFutureItems(list);
+
+                const recipeState   = !recipe ? 'none' : (!isComp ? 'incomplete' : 'has');
+                const scheduleState = fut.length > 0 ? 'has' : 'none';
+
+                let marginState = null;
+                if (isComp && cur) {
+                    const rawMat    = Number(pnl.raw_materials_per_packaging) || 0;
+                    const labor     = Number(pnl.labor_per_packaging)         || 0;
+                    const overhead  = Number(pnl.overhead_per_packaging)      || 0;
+                    const packaging = Number(pnl.packaging_per_packaging)     || 0;
+                    const total     = rawMat + labor + overhead + packaging;
+                    const priceNet  = Number(cur.price_net) || 0;
+                    if (priceNet > 0) {
+                        const actualMar = (priceNet - total) / priceNet * 100;
+                        const targetMar = (recipe.target_margin !== null && recipe.target_margin !== undefined)
+                            ? Number(recipe.target_margin) : null;
+                        if (targetMar !== null) {
+                            if (actualMar >= targetMar)          marginState = 'above';
+                            else if (actualMar >= targetMar - 5) marginState = 'at';
+                            else                                 marginState = 'below';
+                        } else {
+                            marginState = actualMar >= 0 ? 'above' : 'below';
+                        }
+                    }
+                }
+                return { recipeState, scheduleState, marginState };
+            }
+
+            function updateBadgeFilterUI() {
+                const bf = state.badgeFilters;
+                document.querySelectorAll('.badge-filter-btn').forEach(btn => {
+                    const active = bf[btn.dataset.filterGroup] === btn.dataset.filterValue;
+                    btn.classList.toggle('active', active);
+                });
+                const hasAny = bf.margin !== null || bf.recipe !== null || bf.schedule !== null;
+                el('btnClearBadgeFilters')?.classList.toggle('d-none', !hasAny);
+            }
+
+            function renderTable() {
+                const tbody = el("priceListTbody");
+                const q = (state.q || "").trim().toLowerCase();
+
+                const products = Array.from(state.productsIndex.values())
+                    .filter(p => {
+                        if (!q) return true;
+                        return String(p.name||"").toLowerCase().includes(q) || String(p.sku||"").toLowerCase().includes(q);
+                    })
+                    .filter(p => {
+                        const bf = state.badgeFilters;
+                        if (bf.margin === null && bf.recipe === null && bf.schedule === null) return true;
+                        const props = getProductBadgeProps(p);
+                        if (bf.margin   !== null && props.marginState   !== bf.margin)   return false;
+                        if (bf.recipe   !== null && props.recipeState   !== bf.recipe)   return false;
+                        if (bf.schedule !== null && props.scheduleState !== bf.schedule) return false;
+                        return true;
+                    })
+                    .sort((a,b) => String(a.name||"").localeCompare(String(b.name||"")));
+
+                if (!products.length) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="text-muted">{{ translations.no_products }}</td></tr>`;
+                    el("tableMeta").textContent = `0`;
+                    return;
+                }
+
+                const badgeTextForSale    = escapeHtml({{ translations.for_sale|json_encode|raw }});
+                const badgeTextNotForSale = escapeHtml({{ translations.not_for_sale|json_encode|raw }});
+
+                const rows = [];
+                products.forEach((p, idx) => {
+                    const saleStatusRaw = String(p.is_active_to_sale ?? '');
+                    const list = state.grouped.get(String(p.product_id)) || [];
+                    const cur  = getCurrentItem(list);
+                    const fut  = getFutureItems(list);
+
+                    const vatTxt  = `${money(p.vat_rate)}%`;
+                    const packTxt = `${String(p.package_size || '')} ${String(p.package_unit || '')}`.trim();
+
+                        // ── Margin column ──────────────────────────────────────────
+                        const recipe      = RECIPE_MAP[String(p.product_id)] || null;
+                        const pnl         = recipe?.pnl || null;
+                        const isComplete  = !!pnl?.is_complete;
+                        const targetMar   = (recipe && recipe.target_margin !== null && recipe.target_margin !== undefined)
+                                            ? Number(recipe.target_margin) : null;
+
+                        let marginHtml = '';
+                        if (!recipe || !isComplete) {
+                            marginHtml = `<span class="text-muted small">—</span>`;
+                        } else {
+                            const rawMat    = Number(pnl.raw_materials_per_packaging) || 0;
+                            const labor     = Number(pnl.labor_per_packaging)         || 0;
+                            const overhead  = Number(pnl.overhead_per_packaging)      || 0;
+                            const packaging = Number(pnl.packaging_per_packaging)     || 0;
+                            const totalCost = rawMat + labor + overhead + packaging;
+                            const priceNet  = cur ? Number(cur.price_net) : 0;
+
+                            if (priceNet <= 0) {
+                                const tgt = targetMar !== null ? `<div style="font-size:10px;color:#9ca3af;">{{ translations.margin_target|default('cel') }}: ${targetMar.toFixed(1)}%</div>` : '';
+                                marginHtml = `<div style="text-align:center;">${tgt}<div style="font-size:11px;color:#9ca3af;">—</div></div>`;
+                            } else {
+                                const actualMar = (priceNet - totalCost) / priceNet * 100;
+                                let color, bg;
+                                if (targetMar === null) {
+                                    color = actualMar >= 0 ? '#059669' : '#EF4444';
+                                    bg    = actualMar >= 0 ? '#d1fae5'  : '#fee2e2';
+                                } else if (actualMar >= targetMar) {
+                                    color = '#059669'; bg = '#d1fae5';
+                                } else if (actualMar >= targetMar - 5) {
+                                    color = '#D97706'; bg = '#fef3c7';
+                                } else {
+                                    color = '#EF4444'; bg = '#fee2e2';
+                                }
+                                const tgtLine = targetMar !== null
+                                    ? `<div style="font-size:10px;color:#6c757d;">/ ${targetMar.toFixed(1)}%</div>` : '';
+                                marginHtml = `
+                                    <div style="text-align:center;">
+                                        <div style="display:inline-flex;flex-direction:column;align-items:center;padding:3px 10px;border-radius:6px;background:${bg};gap:0px;">
+                                            <span style="color:${color};font-weight:600;font-size:13px;line-height:1.3;">${actualMar.toFixed(1)}%</span>
+                                            ${tgtLine}
+                                        </div>
+                                    </div>`;
+                            }
+                        }
+
+                    // ── Per-portion selling price (embedded in price cell) ─────────────────
+                    let perPortionChip = '';
+                    if (isComplete && pnl && Number(pnl.portions_per_packaging) > 0) {
+                        const _ppp = Number(pnl.portions_per_packaging);
+                        if (cur && Number(cur.price_net) > 0) {
+                            const pprice = money(Number(cur.price_net) / _ppp);
+                            perPortionChip = `<div class="text-muted mt-1" style="font-size:11px;">
+                                <i class="bi bi-egg-fried" style="opacity:.6;"></i> ${pprice} <span style="opacity:.7;">/ {{ translations.margin_calc_per_portion_unit|default('porcja') }}</span>
+                            </div>`;
+                        }
+                    }
+
+                    let currentHtml = "";
+                    if (!cur || Number(cur.price_net) <= 0) {
+                        currentHtml = `
+                            <div class="alert alert-light-danger py-2 px-2 mb-0">
+                                <div class="small fw-bold">{{ translations.missing_price_short }}</div>
+                                <div class="small text-muted">{{ translations.price_required }}</div>
+                            </div>`;
+                    } else {
+                        const gross = netToGross(cur.price_net, p.vat_rate);
+                        currentHtml = `
+                            <div class="small">
+                                <div><span class="text-muted">{{ translations.net }}:</span> <span class="fw-semibold">${money(cur.price_net)}</span></div>
+                                <div><span class="text-muted">{{ translations.gross }}:</span> <span class="fw-semibold">${gross}</span></div>
+                                <div class="text-muted">{{ translations.valid_from }}: ${escapeHtml(cur.valid_from || "")}</div>
+                                ${perPortionChip}
+                            </div>`;
+                    }
+
+                    const badgeSale = isSaleActive(saleStatusRaw)
+                        ? `<span class="badge bg-success text-white" style="font-size:.65rem;padding:.12rem .35rem;border-radius:.25rem;line-height:1;">${badgeTextForSale}</span>`
+                        : `<span class="badge bg-secondary text-white" style="font-size:.65rem;padding:.12rem .35rem;border-radius:.25rem;line-height:1;">${badgeTextNotForSale}</span>`;
+
+                    const _addBtn = `<button class="btn btn-sm btn-outline-primary btn-add-price-inline p-1" type="button"
+                        data-product-id="${escapeHtml(p.product_id)}" title="{{ translations.add_price }}"
+                        style="line-height:1;"><i class="bi bi-plus-circle"></i></button>`;
+                    let scheduleHtml = "";
+                    if (!fut.length) {
+                        scheduleHtml = `<div class="d-flex align-items-center justify-content-between gap-1">
+                            <span class="text-muted small">—</span>
+                            ${_addBtn}
+                        </div>`;
+                    } else {
+                        const first       = fut[0];
+                        const canDelFirst = isFutureDate(first.valid_from);
+                        const firstDelBtn = canDelFirst
+                            ? `<button class="btn btn-sm btn-outline-danger btn-delete-price p-1" type="button"
+                                data-product-id="${escapeHtml(p.product_id)}"
+                                data-valid-from="${escapeHtml(first.valid_from)}"
+                                style="line-height:1;"><i class="bi bi-trash" style="font-size:11px;"></i></button>`
+                            : `<button class="btn btn-sm btn-outline-secondary p-1" type="button" disabled
+                                title="{{ translations.delete_only_future }}"
+                                style="line-height:1;"><i class="bi bi-lock" style="font-size:11px;"></i></button>`;
+                        const moreLink = fut.length > 1
+                            ? `<button class="btn btn-link btn-sm p-0 btn-schedule-more text-muted d-block" type="button"
+                                data-product-id="${escapeHtml(p.product_id)}"
+                                style="font-size:11px;text-decoration:none;margin-top:2px;">
+                                <i class="bi bi-calendar3 me-1"></i>+${fut.length - 1} {{ translations.schedule_more|default('więcej') }}
+                              </button>`
+                            : '';
+                        scheduleHtml = `<div class="d-flex align-items-start justify-content-between gap-1">
+                            <div class="small lh-sm">
+                                <span class="fw-semibold">${money(first.price_net)}</span>
+                                <span class="text-muted d-block" style="font-size:11px;">${escapeHtml(first.valid_from || "")}</span>
+                                ${moreLink}
+                            </div>
+                            <div class="d-flex gap-1 flex-shrink-0">
+                                ${firstDelBtn}
+                                ${_addBtn}
+                            </div>
+                        </div>`;
+                    }
+
+                    rows.push(`
+                        <tr data-product-id="${escapeHtml(p.product_id)}" data-sale-status="${escapeHtml(saleStatusRaw)}">
+                            <td class="text-muted">${idx + 1}</td>
+                            <td>
+                                <div class="fw-semibold">${escapeHtml(p.name || "")}</div>
+                                <div class="small text-muted">
+                                    <span class="me-2">SKU: ${escapeHtml(p.sku || "—")}</span>
+                                    <span class="me-2">{{ translations.package }}: ${escapeHtml(packTxt || "—")}</span>
+                                    <span>{{ translations.vat_rate }}: ${escapeHtml(vatTxt)}</span>
+                                </div>
+                                <button class="btn btn-sm btn-link text-muted p-0 mt-1 btn-margin-calc"
+                                    type="button" data-product-id="${escapeHtml(p.product_id)}"
+                                    style="font-size:12px;text-decoration:none;">
+                                    <i class="bi bi-calculator me-1"></i>{{ translations.margin_calc_btn|default('Kalkulator marży') }}
+                                </button>
+                            </td>
+                            <td>${currentHtml}</td>
+                            <td class="align-middle">${marginHtml}</td>
+                            <td class="text-center align-middle">${badgeSale}</td>
+                            <td>${scheduleHtml}</td>
+                        </tr>`);
+                    rows.push(buildCostInsightRow(p, RECIPE_MAP[String(p.product_id)] || null, cur ? Number(cur.price_net) : 0, saleStatusRaw));
+                });
+
+                tbody.innerHTML = rows.join("");
+                el("tableMeta").textContent = `${products.length}`;
+
+                const saleFilter = el("filterSaleStatus") ? el("filterSaleStatus").value : 'for_sale';
+                if (saleFilter && saleFilter !== 'all') {
+                    Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
+                        const sRaw   = String(tr.getAttribute('data-sale-status') || '').toLowerCase();
+                        const active = isSaleActive(sRaw);
+                        if (saleFilter === 'for_sale'     && !active) tr.style.display = 'none';
+                        if (saleFilter === 'not_for_sale' &&  active) tr.style.display = 'none';
+                    });
+                }
+            }
+
+            function upsertLocalPrice(productId, validFrom, priceNet) {
+                const pid = Number(productId);
+                if (!Number.isFinite(pid)) return;
+                const p = getProductById(pid);
+                state.items.push({
+                    product_id:    pid,
+                    price_id:      null,
+                    name:          p?.name,
+                    sku:           p?.sku,
+                    package_size:  p?.package_size,
+                    package_unit:  p?.package_unit,
+                    vat_rate:      p?.vat_rate,
+                    price_net:     Number(priceNet),
+                    valid_from:    validFrom
+                });
+                state.grouped = groupByProduct(state.items);
+                buildProductsIndex();
+                renderTable();
+            }
+
+            async function addPrice() {
+                clearModalErrors();
+                syncVatDisplay();
+
+                const pid       = el("priceProductId").value || findProductIdFromSearch();
+                const validFrom = el("priceValidFrom").value || "";
+                const vat       = getVatRateSelected();
+                const netVal    = (el("priceNet").value || "").trim();
+                const grossVal  = (el("priceGross").value || "").trim();
+
+                let priceNet = netVal ? Number(netVal) : null;
+                if (!priceNet && grossVal) priceNet = Number(grossToNet(grossVal, vat));
+
+                const errors = {};
+                if (!pid)       errors.product_id = `{{ translations.select_product_required }}`;
+                if (!validFrom) errors.valid_from  = `{{ translations.valid_from_required }}`;
+
+                const today = isoToday();
+                if (validFrom && String(validFrom) <= String(today)) {
+                    errors.valid_from = `{{ translations.valid_from_must_be_future }}`;
+                }
+                if (!priceNet || !Number.isFinite(priceNet) || priceNet <= 0) {
+                    errors.price_net = `{{ translations.price_required }}`;
+                }
+
+                if (Object.keys(errors).length) {
+                    if (errors.product_id) { el("priceProductSearch").classList.add("is-invalid"); el("errProduct").textContent = errors.product_id; }
+                    if (errors.valid_from) {
+                        el("priceValidFrom").classList.add("is-invalid");
+                        el("errValidFrom").textContent = errors.valid_from;
+                        if (validFrom && String(validFrom) <= String(today)) {
+                            Swal.fire({ icon: 'warning', title: `{{ translations.attention|default('Uwaga') }}`, text: `{{ translations.valid_from_must_be_future }}` });
+                        }
+                    }
+                    if (errors.price_net) { el("priceNet").classList.add("is-invalid"); el("errPrice").textContent = errors.price_net; }
+                    return;
+                }
+
+                el("btnSavePrice").disabled = true;
+                try {
+                    const resp = await api(`/ajax/products/${pid}/prices/all-shops`, {
+                        method: "POST",
+                        data: { valid_from: validFrom, price_net: priceNet }
+                    });
+
+                    if (resp.success || resp.ok) {
+                        upsertLocalPrice(pid, validFrom, priceNet);
+                        priceModal.hide();
+                        Swal.fire({
+                            icon: 'success',
+                            title: `{{ translations.success|default('Sukces') }}`,
+                            text: `{{ translations.operation_successful|default('Operacja zakończona powodzeniem') }}`,
+                            timer: 900, showConfirmButton: false
+                        });
+                    } else {
+                        Swal.fire({ icon: 'error', title: `{{ translations.error|default('Błąd') }}`, text: resp.message || `{{ translations.undefined_error_occurred|default('Wystąpił nieoczekiwany błąd') }}` });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({ icon: 'error', title: `{{ translations.error|default('Błąd') }}`, text: `{{ translations.no_api_connection|default('Brak połączenia z API') }}` });
+                } finally {
+                    el("btnSavePrice").disabled = false;
+                }
+            }
+
+            async function deletePrice(productId, validFrom) {
+                if (!isFutureDate(validFrom)) return;
+
+                const result = await Swal.fire({
+                    title: `{{ translations.delete_future_price_confirm }}`,
+                    text: `(${validFrom})`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: `{{ translations.yes_delete_it|default('Tak, usuń') }}`,
+                    cancelButtonText: `{{ translations.cancel|default('Anuluj') }}`
+                });
+
+                if (!result.isConfirmed) return;
+
+                try {
+                    const resp = await api(`/ajax/products/${productId}/prices/scheduled/${validFrom}/all-shops`, {
+                        method: "DELETE",
+                        data: {}
+                    });
+
+                    if (resp.success || resp.ok) {
+                        // usuń ze state lokalnie
+                        state.items = state.items.filter(it =>
+                            !(String(it.product_id) === String(productId) && String(it.valid_from) === String(validFrom))
+                        );
+                        state.grouped = groupByProduct(state.items);
+                        buildProductsIndex();
+                        renderDatalist();
+                        renderTable();
+                        if (scheduleModalCurrentPid === String(productId)) {
+                            const updFut = getFutureItems(state.grouped.get(scheduleModalCurrentPid) || []);
+                            if (!updFut.length) { scheduleModal.hide(); scheduleModalCurrentPid = null; }
+                            else renderScheduleModalBody(scheduleModalCurrentPid);
+                        }
+                        Swal.fire({ icon: 'success', title: `{{ translations.success|default('Sukces') }}`, text: `{{ translations.operation_successful|default('Operacja zakończona powodzeniem') }}`, timer: 900, showConfirmButton: false });
+                    } else {
+                        Swal.fire({ icon: 'error', title: `{{ translations.error|default('Błąd') }}`, text: resp.message || `{{ translations.undefined_error_occurred|default('Wystąpił nieoczekiwany błąd') }}` });
+                    }
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire({ icon: 'error', title: `{{ translations.error|default('Błąd') }}`, text: `{{ translations.no_api_connection|default('Brak połączenia z API') }}` });
+                }
+            }
+
+            // =========================
+            // IMPORT PRICE LIST
+            // =========================
+            const importPriceListModal = new bootstrap.Modal(el("importPriceListModal"));
+            let selectedImportPriceListFile = null;
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+            }
+
+            function openImportPriceListModal() {
+                el("importPriceListFileInput").value = "";
+                selectedImportPriceListFile = null;
+                el("btnStartImportPriceList").disabled = true;
+                el("importPriceListFileInfo").classList.add("d-none");
+                el("importPriceListProgress").classList.add("d-none");
+                el("importValidFrom").value = isoToday();
+                el("importValidFrom").classList.remove("is-invalid");
+                el("errImportValidFrom").textContent = "";
+                el("importPriceListFileInput").classList.remove("is-invalid");
+                el("errImportPriceListFile").textContent = "";
+                importPriceListModal.show();
+            }
+
+            function handleImportPriceListFileSelect(event) {
+                const file = event.target.files[0];
+                el("importPriceListFileInput").classList.remove("is-invalid");
+                el("errImportPriceListFile").textContent = "";
+                el("importPriceListFileInfo").classList.add("d-none");
+
+                if (!file) { selectedImportPriceListFile = null; el("btnStartImportPriceList").disabled = true; return; }
+
+                if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+                    el("importPriceListFileInput").classList.add("is-invalid");
+                    el("errImportPriceListFile").textContent = `{{ translations.invalid_file_format|default('Nieprawidłowy format pliku. Wybierz plik JSON.') }}`;
+                    selectedImportPriceListFile = null;
+                    el("btnStartImportPriceList").disabled = true;
+                    return;
+                }
+
+                if (file.size > 10 * 1024 * 1024) {
+                    el("importPriceListFileInput").classList.add("is-invalid");
+                    el("errImportPriceListFile").textContent = `{{ translations.file_too_large|default('Plik jest za duży. Maksymalny rozmiar to 10MB.') }}`;
+                    selectedImportPriceListFile = null;
+                    el("btnStartImportPriceList").disabled = true;
+                    return;
+                }
+
+                selectedImportPriceListFile = file;
+                el("importPriceListFileName").textContent = file.name;
+                el("importPriceListFileSize").textContent = formatFileSize(file.size);
+                el("importPriceListFileInfo").classList.remove("d-none");
+                el("btnStartImportPriceList").disabled = false;
+            }
+
+            async function startImportPriceList() {
+                if (!selectedImportPriceListFile) {
+                    Swal.fire({ icon: 'warning', title: `{{ translations.warning|default('Ostrzeżenie') }}`, text: `{{ translations.no_file_selected|default('Najpierw wybierz plik.') }}` });
+                    return;
+                }
+
+                const importValidFromValue = (el("importValidFrom")?.value || "").trim();
+                el("importValidFrom")?.classList.remove("is-invalid");
+                if (el("errImportValidFrom")) el("errImportValidFrom").textContent = "";
+
+                if (!importValidFromValue) {
+                    el("importValidFrom")?.classList.add("is-invalid");
+                    if (el("errImportValidFrom")) el("errImportValidFrom").textContent = `{{ translations.import_valid_from_required }}`;
+                    return;
+                }
+
+                if (importValidFromValue < isoToday()) {
+                    el("importValidFrom")?.classList.add("is-invalid");
+                    if (el("errImportValidFrom")) el("errImportValidFrom").textContent = `{{ translations.import_valid_from_must_be_future }}`;
+                    Swal.fire({ icon: 'warning', title: `{{ translations.attention|default('Uwaga') }}`, text: `{{ translations.import_valid_from_must_be_future }}` });
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+                        jsonData.valid_from = importValidFromValue;
+
+                        el("btnStartImportPriceList").disabled = true;
+                        el("btnCancelImportPriceList").disabled = true;
+                        el("importPriceListProgress").classList.remove("d-none");
+
+                        const resp = await api(`/ajax/price-list/import/all-shops`, {
+                            method: 'POST',
+                            data: jsonData
+                        });
+
+                        if (resp.success || resp.ok) {
+                            importPriceListModal.hide();
+                            const stats   = resp.data || {};
+                            const message = stats.inserted
+                                ? `{{ translations.import_price_list_success }}: ${stats.inserted} {{ translations.price_items }}`
+                                : `{{ translations.import_price_list_success }}`;
+                            Swal.fire({ icon: 'success', title: `{{ translations.success|default('Sukces') }}`, html: message, timer: 3000, showConfirmButton: true });
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            Swal.fire({ icon: 'error', title: `{{ translations.error|default('Błąd') }}`, text: resp.message || `{{ translations.import_price_list_failed }}` });
+                        }
+                    } catch (parseErr) {
+                        console.error('JSON parse error:', parseErr);
+                        Swal.fire({ icon: 'error', title: `{{ translations.error|default('Błąd') }}`, text: `{{ translations.invalid_json_file|default('Nieprawidłowy plik JSON. Sprawdź zawartość pliku.') }}` });
+                    } finally {
+                        el("btnStartImportPriceList").disabled = false;
+                        el("btnCancelImportPriceList").disabled = false;
+                        el("importPriceListProgress").classList.add("d-none");
+                    }
+                };
+
+                reader.onerror = function() {
+                    Swal.fire({ icon: 'error', title: `{{ translations.error|default('Błąd') }}`, text: `{{ translations.file_read_error|default('Błąd odczytu pliku. Spróbuj ponownie.') }}` });
+                };
+
+                reader.readAsText(selectedImportPriceListFile);
+            }
+
+            // =========================
+            // Init + events
+            // =========================
+            function init() {
+                state.grouped = groupByProduct(state.items);
+                buildProductsIndex();
+                renderDatalist();
+                el("priceListTbody").innerHTML = "";
+                renderTable();
+                syncVatDisplay();
+                renderMissingAlert();
+                if (el("filterSaleStatus")) el("filterSaleStatus").value = 'for_sale';
+            }
+
+            el("btnAddPrice")?.addEventListener("click", () => openAddPriceModal(""));
+            el("btnImportPriceList")?.addEventListener("click", openImportPriceListModal);
+            el("importPriceListFileInput")?.addEventListener("change", handleImportPriceListFileSelect);
+            el("btnStartImportPriceList")?.addEventListener("click", startImportPriceList);
+
+            el("btnClearFilters")?.addEventListener("click", () => {
+                state.q = "";
+                el("filterSearch").value = "";
+                if (el("filterSaleStatus")) el("filterSaleStatus").value = 'for_sale';
+                state.badgeFilters = { margin: null, recipe: null, schedule: null };
+                updateBadgeFilterUI();
+                renderTable();
+            });
+            el("filterSearch")?.addEventListener("input", () => {
+                state.q = el("filterSearch").value || "";
+                renderTable();
+            });
+            el("filterSaleStatus")?.addEventListener("change", () => renderTable());
+
+            document.querySelectorAll('.badge-filter-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const group = this.dataset.filterGroup;
+                    const val   = this.dataset.filterValue;
+                    state.badgeFilters[group] = state.badgeFilters[group] === val ? null : val;
+                    updateBadgeFilterUI();
+                    renderTable();
+                });
+            });
+
+            el('btnClearBadgeFilters')?.addEventListener('click', () => {
+                state.badgeFilters = { margin: null, recipe: null, schedule: null };
+                updateBadgeFilterUI();
+                renderTable();
+            });
+
+            el("priceProductSearch")?.addEventListener("input", () => {
+                el("priceProductId").value = "";
+                syncVatDisplay();
+            });
+
+            let lock = null;
+            el("priceNet")?.addEventListener("input", () => {
+                if (lock === 'gross') return;
+                lock = 'net';
+                const vat = getVatRateSelected();
+                el("priceGross").value = el("priceNet").value ? netToGross(el("priceNet").value, vat) : "";
+                lock = null;
+            });
+            el("priceGross")?.addEventListener("input", () => {
+                if (lock === 'net') return;
+                lock = 'gross';
+                const vat = getVatRateSelected();
+                el("priceNet").value = el("priceGross").value ? grossToNet(el("priceGross").value, vat) : "";
+                lock = null;
+            });
+
+            el("btnSavePrice")?.addEventListener("click", addPrice);
+
+            el("marginCalcBody")?.addEventListener("click", (ev) => {
+                const btn = ev.target.closest(".btn-set-calc-price");
+                if (!btn) return;
+                const net = parseFloat(btn.dataset.netPrice);
+                const pid = btn.dataset.productId;
+                if (!isFinite(net) || net <= 0) return;
+                marginCalcModal.hide();
+                setTimeout(() => openAddPriceModal(pid, net), 320);
+            });
+
+            el("priceListTbody")?.addEventListener("click", (ev) => {
+                const addBtn = ev.target.closest(".btn-add-price-inline");
+                if (addBtn) return openAddPriceModal(addBtn.dataset.productId);
+
+                const del = ev.target.closest(".btn-delete-price");
+                if (del) return deletePrice(del.dataset.productId, del.dataset.validFrom);
+
+                const calcBtn = ev.target.closest(".btn-margin-calc");
+                if (calcBtn) return openMarginCalcModal(calcBtn.dataset.productId);
+
+                const moreBtn = ev.target.closest(".btn-schedule-more");
+                if (moreBtn) return openScheduleModal(moreBtn.dataset.productId);
+            });
+
+            el("scheduleModalBody")?.addEventListener("click", (ev) => {
+                const del = ev.target.closest(".btn-delete-price");
+                if (del) return deletePrice(del.dataset.productId, del.dataset.validFrom);
+            });
+
+            el("scheduleModalAddBtn")?.addEventListener("click", function () {
+                const pid = this.dataset.productId;
+                scheduleModal.hide();
+                setTimeout(() => openAddPriceModal(pid), 320);
+            });
+
+            init();
+        });
+    </script>
+{% endblock %}

@@ -213,8 +213,8 @@
                             type="date"
                             class="form-control"
                             id="importValidFrom"
-                            min="{{ "tomorrow"|date("Y-m-d") }}"
-                            value="{{ "tomorrow"|date("Y-m-d") }}"
+                            min="{{ "now"|date("Y-m-d") }}"
+                            value="{{ "now"|date("Y-m-d") }}"
                             required
                         >
                         <div class="invalid-feedback" id="errImportValidFrom"></div>
@@ -812,7 +812,7 @@
                 el("importPriceListProgress").classList.add("d-none");
 
                 // Reset date field to tomorrow
-                el("importValidFrom").value = isoTomorrow();
+                el("importValidFrom").value = isoToday();
                 el("importValidFrom").classList.remove("is-invalid");
                 el("errImportValidFrom").textContent = "";
 
@@ -885,7 +885,7 @@
                     return;
                 }
 
-                if (importValidFromValue <= isoToday()) {
+                if (importValidFromValue < isoToday()) {
                     el("importValidFrom")?.classList.add("is-invalid");
                     if (el("errImportValidFrom")) el("errImportValidFrom").textContent = `{{ translations.import_valid_from_must_be_future }}`;
                     Swal.fire({

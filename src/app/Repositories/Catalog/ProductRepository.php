@@ -68,4 +68,19 @@ class ProductRepository
     {
         return $this->apiClient->delete("/material-suppliers/catalog/products/$productId/allergens/{$allergenId}");
     }
+
+    public function uploadPhoto($productId, array $file): array
+    {
+
+        return $this->apiClient->postMultipart(
+            "/material-suppliers/catalog/products/{$productId}/photo",
+            [],
+            ['photo' => $file]
+        );
+    }
+
+    public function deletePhoto($productId): array
+    {
+        return $this->apiClient->delete("/material-suppliers/catalog/products/{$productId}/photo");
+    }
 }

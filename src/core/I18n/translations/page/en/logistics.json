@@ -1,0 +1,20 @@
+{
+    "logistics_title": "Logistics",
+    "logistics_heading": "Logistics",
+    "logistics_subtitle": "Upcoming deliveries based on expected delivery date",
+    "logistics_empty": "No upcoming deliveries. All orders with status NEW or IN_TRANSIT will appear here.",
+    "logistics_empty_group": "No orders in this group.",
+    "logistics_total_label": "deliveries",
+    "logistics_group_today": "Today",
+    "logistics_group_tomorrow": "Tomorrow",
+    "logistics_group_this_week": "This week",
+    "logistics_group_later": "Later / no date",
+    "logistics_col_order_key": "Order no.",
+    "logistics_col_shop": "Shop",
+    "logistics_col_expected_date": "Expected delivery",
+    "logistics_col_order_date": "Order date",
+    "logistics_col_value_net": "Value (net)",
+    "logistics_col_status": "Status",
+    "logistics_status_new": "New",
+    "logistics_status_in_transit": "In transit"
+}

@@ -30,10 +30,75 @@
                     </a>
                 </li>
 
+                <li class="sidebar-item {{ p starts with '/raw-materials' ? 'active' : '' }}">
+                    <a href="{{ ROOT }}/raw-materials" class="sidebar-link">
+                        <i class="bi bi-egg-fried"></i>
+                        <span>{{ translations.raw_materials }}</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ p starts with '/recipes' ? 'active' : '' }}">
+                    <a href="{{ ROOT }}/recipes" class="sidebar-link">
+                        <i class="bi bi-journal-text"></i>
+                        <span>{{ translations.recipes }}</span>
+                    </a>
+                </li>
+
                 <li class="sidebar-item {{ p starts with '/clients' ? 'active' : '' }}">
                     <a href="{{ ROOT }}/clients" class="sidebar-link">
                         <i class="bi bi-people"></i>
                         <span>{{ translations.client }}</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ p starts with '/price-list' ? 'active' : '' }}">
+                    <a href="{{ ROOT }}/price-list" class="sidebar-link">
+                        <i class="bi bi-tag"></i>
+                        <span>{{ translations.global_price_list_menu|default('Cennik') }}</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ p starts with '/orders' ? 'active' : '' }}">
+                    <a href="{{ ROOT }}/orders" class="sidebar-link">
+                        <i class="bi bi-receipt"></i>
+                        <span>{{ translations.orders }}</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ p starts with '/complaints' ? 'active' : '' }}">
+                    <a href="{{ ROOT }}/complaints" class="sidebar-link">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span>{{ translations.complaints }}</span>
+                        {% if open_complaints_count is defined and open_complaints_count > 0 %}
+                            <span class="badge bg-warning ms-auto">{{ open_complaints_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ p == '/analytics' ? 'active' : '' }}">
+                    <a href="{{ ROOT }}/analytics" class="sidebar-link">
+                        <i class="bi bi-bar-chart-line"></i>
+                        <span>{{ translations.analytics }}</span>
+                    </a>
+                </li>
+
+                <li class="sidebar-item {{ p starts with '/analytics/raw-material-sales-all-shops' ? 'active' : '' }}" style="padding-left: 1rem;">
+                    <a href="{{ ROOT }}/analytics/raw-material-sales-all-shops" class="sidebar-link">
+                        <i class="bi bi-shop-window"></i>
+                        <span>{{ translations.rms_all_menu ?? 'All Shops Sales' }}</span>
+                    </a>
+{#                </li>#}
+{#                <li class="sidebar-item {{ p starts with '/analytics/raw-material-sales' and not (p starts with '/analytics/raw-material-sales-all') ? 'active' : '' }}" style="padding-left: 1rem;">#}
+{#                    <a href="{{ ROOT }}/analytics/raw-material-sales" class="sidebar-link">#}
+{#                        <i class="bi bi-boxes"></i>#}
+{#                        <span>{{ translations.rms_menu ?? 'Raw Material Sales' }}</span>#}
+{#                    </a>#}
+{#                </li>#}
+
+                <li class="sidebar-item {{ p starts with '/logistics' ? 'active' : '' }}">
+                    <a href="{{ ROOT }}/logistics" class="sidebar-link">
+                        <i class="bi bi-truck"></i>
+                        <span>{{ translations.logistics }}</span>
                     </a>
                 </li>
 

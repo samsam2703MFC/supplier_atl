@@ -73,4 +73,37 @@ class PriceListRepository
     {
         return $this->apiClient->post("/material-suppliers/$supplierId/shops/$clientId/price-lists/import", $data);
     }
+
+    // -----------------------------------------------------------------------
+    // Global (all-shops) operations
+    // -----------------------------------------------------------------------
+
+    public function getPriceListScheduleGlobal($supplierId): array
+    {
+        $response = $this->apiClient->get("/material-suppliers/$supplierId/price-lists/global/schedule");
+
+        $objects = [];
+        if (isset($response['data'])) {
+            foreach ($response['data'] as $object) {
+                $objects[] = new PriceListItemModel($object);
+            }
+        }
+
+        return $objects;
+    }
+
+    public function insertNewPriceAllShops($supplierId, $productId, $data): array
+    {
+        return $this->apiClient->post("/material-suppliers/$supplierId/products/$productId/price/all-shops", $data);
+    }
+
+    public function deletePriceAllShops($supplierId, $productId, $validFrom): array
+    {
+        return $this->apiClient->delete("/material-suppliers/$supplierId/products/$productId/price-lists/scheduled/$validFrom");
+    }
+
+    public function importPriceListAllShops($supplierId, $data): array
+    {
+        return $this->apiClient->post("/material-suppliers/$supplierId/price-lists/import/all-shops", $data);
+    }
 }

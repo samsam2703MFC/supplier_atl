@@ -1,0 +1,164 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.rms_title }}{% endblock %}
+
+{% block head %}
+<style>
+.dash-sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#64748B;margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
+.dash-sec::after{content:'';flex:1;height:1px;background:#E2E8F0;}
+.qty-bar-wrap{flex:1;height:5px;background:#F1F5F9;border-radius:4px;overflow:hidden;min-width:60px;}
+.qty-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#6366F1,#818CF8);}
+</style>
+{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h3>{{ translations.rms_heading }}</h3>
+                <p class="text-subtitle text-muted">{{ translations.rms_subtitle }}</p>
+            </div>
+            <a href="{{ ROOT }}/analytics/raw-material-sales-all-shops" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-shop-window"></i> {{ translations.rms_all_menu ?? 'All Shops' }}
+            </a>
+            <a href="{{ ROOT }}/analytics" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-bar-chart"></i> {{ translations.analytics_heading }}
+            </a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/messages.twig" %}
+
+    {# Filter form #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ ROOT }}/analytics/raw-material-sales"
+                  class="d-flex align-items-end gap-3 flex-wrap">
+
+                <div>
+                    <label class="form-label form-label-sm mb-1">{{ translations.rms_filter_shop }}</label>
+                    <select name="shop" class="form-select form-select-sm" style="min-width:200px;" required>
+                        <option value="">— {{ translations.rms_filter_shop_placeholder }} —</option>
+                        {% for shop in shops %}
+                            <option value="{{ shop.id }}"
+                                {{ params.shop == shop.id ? 'selected' : '' }}>
+                                {{ shop.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label form-label-sm mb-1">{{ translations.rms_filter_from }}</label>
+                    <input type="date" name="from" class="form-control form-control-sm"
+                           value="{{ params.from }}" style="width:140px">
+                </div>
+
+                <div>
+                    <label class="form-label form-label-sm mb-1">{{ translations.rms_filter_to }}</label>
+                    <input type="date" name="to" class="form-control form-control-sm"
+                           value="{{ params.to }}" style="width:140px">
+                </div>
+
+                <div class="pb-1">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-funnel"></i> {{ translations.rms_filter_apply }}
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    {% if params.shop is not empty %}
+
+        {% if sales is empty %}
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                    <p class="text-muted mb-0">{{ translations.rms_no_data }}</p>
+                </div>
+            </div>
+        {% else %}
+
+            {# KPI summary #}
+            {% set totalQty = 0 %}
+            {% set productCount = sales|length %}
+            {% for row in sales %}
+                {% set totalQty = totalQty + row.total_sold_quantity %}
+            {% endfor %}
+
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-lg-3">
+                    <div class="kpi-card border rounded p-3 bg-white">
+                        <div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                            {{ translations.rms_kpi_products }}
+                        </div>
+                        <div style="font-size:26px;font-weight:700;color:#0F172A;line-height:1.1;">{{ productCount }}</div>
+                        <div style="font-size:11px;color:#94A3B8;margin-top:4px;">{{ params.from }} → {{ params.to }}</div>
+                    </div>
+                </div>
+            </div>
+
+            {# Results table #}
+            <div class="dash-sec">{{ translations.rms_table_title }}</div>
+
+            <div class="card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3" style="width:40%">{{ translations.rms_col_product }}</th>
+                                    <th>{{ translations.rms_col_sku }}</th>
+                                    <th>{{ translations.rms_col_material }}</th>
+                                    <th class="text-end pe-3">{{ translations.rms_col_qty }}</th>
+                                    <th style="width:160px"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set maxQty = sales[0].total_sold_quantity %}
+                                {% for row in sales %}
+                                    <tr>
+                                        <td class="ps-3 fw-semibold">{{ row.catalog_product_name }}</td>
+                                        <td class="text-muted" style="font-size:12px;">{{ row.catalog_product_sku }}</td>
+                                        <td style="font-size:13px;">{{ row.material_name }}</td>
+                                        <td class="text-end pe-3">
+                                            <span class="fw-bold">
+                                                {{ row.total_sold_quantity|number_format(3, '.', ' ')|replace({'.000': '', ',000': ''}) }}
+                                            </span>
+                                            <span class="text-muted ms-1" style="font-size:11px;">{{ row.unit_name }}</span>
+                                        </td>
+                                        <td class="pe-3">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="qty-bar-wrap">
+                                                    <div class="qty-bar" style="width:{{ maxQty > 0 ? ((row.total_sold_quantity / maxQty) * 100)|round : 0 }}%"></div>
+                                                </div>
+                                                <span style="font-size:10px;color:#94A3B8;min-width:32px;text-align:right;">
+                                                    {{ maxQty > 0 ? ((row.total_sold_quantity / maxQty) * 100)|round : 0 }}%
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        {% endif %}
+
+    {% else %}
+        <div class="card">
+            <div class="card-body text-center py-5 text-muted">
+                <i class="bi bi-shop fs-1 d-block mb-2"></i>
+                <p class="mb-0">{{ translations.rms_select_shop_prompt }}</p>
+            </div>
+        </div>
+    {% endif %}
+
+{% endblock %}

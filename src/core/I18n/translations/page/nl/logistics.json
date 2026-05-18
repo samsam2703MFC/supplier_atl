@@ -1,0 +1,20 @@
+{
+    "logistics_title": "Logistiek",
+    "logistics_heading": "Logistiek",
+    "logistics_subtitle": "Aankomende leveringen op basis van de verwachte leverdatum",
+    "logistics_empty": "Geen aankomende leveringen. Bestellingen met status NIEUW of IN TRANSIT verschijnen hier.",
+    "logistics_empty_group": "Geen bestellingen in deze groep.",
+    "logistics_total_label": "leveringen",
+    "logistics_group_today": "Vandaag",
+    "logistics_group_tomorrow": "Morgen",
+    "logistics_group_this_week": "Deze week",
+    "logistics_group_later": "Later / geen datum",
+    "logistics_col_order_key": "Bestelnr.",
+    "logistics_col_shop": "Winkel",
+    "logistics_col_expected_date": "Verwachte levering",
+    "logistics_col_order_date": "Besteldatum",
+    "logistics_col_value_net": "Waarde (excl. btw)",
+    "logistics_col_status": "Status",
+    "logistics_status_new": "Nieuw",
+    "logistics_status_in_transit": "In transit"
+}

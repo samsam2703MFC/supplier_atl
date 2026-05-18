@@ -116,6 +116,9 @@
   "no_file_selected": "Please select a file first.",
   "invalid_json_file": "Invalid JSON file. Please check the file content.",
   "file_read_error": "Error reading file. Please try again.",
-  "loading": "Loading..."
+  "loading": "Loading...",
+
+  "attention": "Attention",
+  "yes_delete_it": "Yes, delete it"
 }
 

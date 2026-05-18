@@ -2,6 +2,39 @@
 
 {% block title %}{{ translations.catalog_products }}{% endblock %}
 
+{% block head %}
+<link rel="stylesheet" href="{{ ROOT }}/assets/css/cropper/cropper.min.css">
+<style>
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:8px;}
+.product-card{background:#fff;border-radius:10px;border:1.5px solid #E2E8F0;overflow:hidden;transition:all .2s;position:relative;}
+.product-card:hover{box-shadow:0 8px 24px rgba(15,23,42,.1);transform:translateY(-2px);border-color:#6366F1;}
+.product-img{height:140px;background:#F8FAFC;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.product-img .no-img{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#94A3B8;font-size:11px;width:100%;height:100%;}
+.pc-overlay{position:absolute;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;gap:8px;opacity:0;transition:opacity .18s;}
+.product-card:hover .pc-overlay{opacity:1;}
+.pc-act-btn{width:36px;height:36px;border-radius:8px;border:none;background:rgba(255,255,255,.92);color:#0F172A;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+.pc-act-btn:hover{background:#fff;transform:scale(1.1);}
+.product-info{padding:12px;}
+.product-name{font-size:13px;font-weight:600;color:#0F172A;margin-bottom:2px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.35;}
+.product-ref{font-size:11px;color:#64748B;margin-bottom:2px;}
+.product-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px;}
+.pc-badge{display:inline-block;padding:1px 7px;border-radius:4px;font-size:10.5px;background:#F1F5F9;color:#475569;}
+.pc-pill{flex-shrink:0;display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap;}
+.pc-pill-active{background:#DCFCE7;color:#15803D;}
+.pc-pill-inactive{background:#F1F5F9;color:#94A3B8;}
+.pc-allergens{margin-top:6px;}
+.pg-empty{grid-column:1/-1;text-align:center;padding:48px 16px;color:#94A3B8;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:13px;}
+.pg-empty i{font-size:32px;opacity:.4;}
+/* Photo modal */
+#photoModal .photo-preview-wrap{background:#F8FAFC;border-radius:8px;min-height:200px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-bottom:12px;}
+#photoModal .photo-preview-wrap img{max-width:100%;max-height:300px;object-fit:contain;}
+#photoModal .photo-no-img{display:flex;flex-direction:column;align-items:center;gap:8px;color:#94A3B8;padding:40px 0;}
+#photoModal .photo-no-img i{font-size:40px;opacity:.35;}
+#crop-container-photo{max-height:340px;overflow:hidden;}
+#crop-container-photo img{display:block;max-width:100%;}
+</style>
+{% endblock %}
+
 {% block page_heading %}
     <div class="page-heading">
         <h3>{{ translations.catalog_products }}</h3>
@@ -23,6 +56,17 @@
                     <div class="fw-bold">{{ translations.catalog_help_title }}</div>
                     <div class="small">
                         {{ translations.catalog_help_body }}
+                    </div>
+                </div>
+            </div>
+
+            {# INACTIVE MAPPED PRODUCTS INFO #}
+            <div class="alert alert-warning d-flex align-items-start gap-2">
+                <i class="bi bi-exclamation-triangle mt-1"></i>
+                <div>
+                    <div class="fw-bold">{{ translations.catalog_inactive_mapped_info_title }}</div>
+                    <div class="small">
+                        {{ translations.catalog_inactive_mapped_info_body }}
                     </div>
                 </div>
             </div>
@@ -80,25 +124,11 @@
                         </div>
                     </div>
 
-                    <div>
-                        <table class="table table-hover align-middle" id="productsTable">
-                            <thead>
-                            <tr>
-                                <th style="width:56px;">#</th>
-                                <th>{{ translations.product }}</th>
-                                <th style="width:260px;">{{ translations.allergens }}</th>
-                                <th class="text-end" style="width:64px;">{{ translations.actions }}</th>
-                            </tr>
-                            </thead>
-                            <tbody id="productsTbody">
-                            <tr>
-                                <td colspan="7" class="text-muted">{{ translations.loading }}</td>
-                            </tr>
-                            </tbody>
-                        </table>
+                    <div id="productsGrid" class="products-grid">
+                        <div class="pg-empty"><i class="bi bi-hourglass-split"></i><span>{{ translations.loading }}</span></div>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center mt-2">
+                    <div class="d-flex justify-content-between align-items-center mt-3">
                         <div class="small text-muted" id="tableMeta">{{ translations.table_meta_default }}</div>
                         <div class="small text-muted">
                             {{ translations.ajax_hint }}
@@ -122,6 +152,67 @@
 
     {# MODAL: IMPORT PRODUCTS #}
     {% include "catalog/modals/product_import.twig" %}
+
+    {# MODAL: PHOTO MANAGEMENT #}
+    <div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-camera me-2"></i>
+                        <span id="photoModalTitle">{{ translations.catalog_photo_manage|default('Zdjęcie produktu') }}</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+
+                    {# -- Widok: podgląd obecnego zdjęcia -- #}
+                    <div id="photoViewMode">
+                        <div class="photo-preview-wrap" id="photoPreviewWrap">
+                            <img id="photoCurrentImg" src="" alt="" style="display:none;">
+                            <div class="photo-no-img" id="photoNoImgPlaceholder">
+                                <i class="bi bi-image"></i>
+                                <span class="small text-muted">{{ translations.catalog_no_photo|default('Brak zdjęcia') }}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <label class="btn btn-primary mb-0">
+                                <i class="bi bi-upload me-1"></i>
+                                {{ translations.catalog_photo_upload_new|default('Wgraj zdjęcie') }}
+                                <input type="file" id="photoFileInput" accept="image/*" style="display:none">
+                            </label>
+                            <button type="button" class="btn btn-outline-danger" id="btnDeletePhoto" style="display:none">
+                                <i class="bi bi-trash me-1"></i>
+                                {{ translations.catalog_photo_delete|default('Usuń zdjęcie') }}
+                            </button>
+                        </div>
+                    </div>
+
+                    {# -- Widok: kadrowanie -- #}
+                    <div id="photoCropMode" style="display:none;">
+                        <div id="crop-container-photo">
+                            <img id="photoCropImg" style="max-width:100%;">
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <button type="button" class="btn btn-success" id="btnCropSave">
+                                <i class="bi bi-check-lg me-1"></i>
+                                {{ translations.catalog_photo_crop_save|default('Przytnij i zapisz') }}
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="btnCropCancel">
+                                {{ translations.cancel|default('Anuluj') }}
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer" id="photoModalFooter">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                        {{ translations.close|default('Zamknij') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 {% endblock %}
 
@@ -171,6 +262,8 @@
 
             // Lista alergenów z backendu (przekazana do widoku)
             window.ALLERGENS = {{ allergens|json_encode|raw }};
+            // Nazwa dostawcy do generowania sugestii SKU
+            window.SUPPLIER_NAME = {{ supplierName|default('')|json_encode|raw }};
             // =========================
             // State + modale
             // =========================
@@ -249,123 +342,78 @@
                 });
             }
 
-            function renderTable() {
-                const tbody = el("productsTbody");
+            function renderGrid() {
+                const grid = el("productsGrid");
                 const rows = getFilteredProducts();
 
+                const tLoading   = {{ translations.loading|json_encode|raw }};
+                const tNoResults = {{ translations.no_results|json_encode|raw }};
+                const tNoPhoto   = {{ translations.catalog_no_photo|default('Brak zdjęcia')|json_encode|raw }};
+                const tActive    = {{ translations.active|json_encode|raw }};
+                const tInactive  = {{ translations.inactive|json_encode|raw }};
+                const tEdit      = {{ translations.edit|json_encode|raw }};
+                const tAllergens = {{ translations.allergens|json_encode|raw }};
+                const tSpec      = {{ translations.specification|default('Specification')|json_encode|raw }};
+                const tUploadPhoto = {{ translations.catalog_upload_photo|default('Dodaj zdjęcie')|json_encode|raw }};
+
                 if (state.loading) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-muted">${escapeHtml({{ translations.loading|json_encode|raw }})}</td></tr>`;
+                    grid.innerHTML = `<div class="pg-empty"><i class="bi bi-hourglass-split"></i><span>${escapeHtml(tLoading)}</span></div>`;
                     return;
                 }
 
                 if (!rows.length) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="text-muted">${escapeHtml({{ translations.no_results|json_encode|raw }})}</td></tr>`;
+                    grid.innerHTML = `<div class="pg-empty"><i class="bi bi-box"></i><span>${escapeHtml(tNoResults)}</span></div>`;
                     el("tableMeta").textContent = {{ translations.table_meta_empty|json_encode|raw }};
                     return;
                 }
 
-                tbody.innerHTML = rows.map((p, idx) => {
-                    const pkgQty = (p.package_size ?? "");
-                    const pkgUnit = (p.package_unit ?? "");
-
-                    const sku = (p.sku || "").trim();
-                    const name = (p.name || "").trim();
-
+                grid.innerHTML = rows.map(p => {
+                    const sku    = (p.sku || "").trim();
+                    const name   = (p.name || "").trim();
+                    const active = !(p.active === 0 || p.active === false || p.active === null);
+                    const pkgQty  = p.package_size ?? "";
+                    const pkgUnit = p.package_unit ?? "";
                     const pkgText = (pkgQty || pkgUnit) ? `${pkgQty} ${pkgUnit}`.trim() : "";
-                    const pkgBadge = pkgText ? badge(pkgText, "bg-light-info text-dark") : "";
+                    const hasAllergens = Array.isArray(p.allergens) && p.allergens.length > 0;
 
-                    const skuBadge = sku ? badge(sku, "bg-light-secondary text-dark") : "";
-                    const idBadge  = badge(`#${p.id}`, "bg-light text-muted");
-
-                    // NOWE: Status badge (aktywny/nieaktywny)
-                    const statusBadge = (p.active === 0 || p.active === false || p.active === null)
-                        ? badge("{{ translations.inactive }}", "bg-secondary text-white")
-                        : badge("{{ translations.active }}", "bg-success text-white");
-
-                    // NOWE: Waga badge
-                    const weightBadge = (p.weight_grams && p.weight_grams > 0)
-                        ? badge(`${p.weight_grams}${p.weight_unit || 'g'}`, "bg-light-warning text-dark")
-                        : "";
-
-                    // NOWE: Termin przydatności badge
-                    const shelfLifeBadge = (p.shelf_life_days && p.shelf_life_days > 0)
-                        ? badge(`${p.shelf_life_days}d`, "bg-light-primary text-dark")
-                        : "";
-
-                    // Actions dropdown (bootstrap)
-                    const ddId = `act_${p.id}_${idx}`;
-
-                    return `
-    <tr data-id="${escapeHtml(p.id)}">
-      <td class="text-muted">${idx + 1}</td>
-
-      <td>
-        <div class="d-flex flex-column">
-          <div class="fw-bold text-truncate" style="max-width: 560px;">
-            ${escapeHtml(name)}
-          </div>
-
-          <div class="d-flex flex-wrap align-items-center gap-1 mt-1">
-            ${statusBadge}
-            ${skuBadge}
-            ${idBadge}
-            ${pkgBadge}
-            ${weightBadge}
-            ${shelfLifeBadge}
-          </div>
-        </div>
-      </td>
-
-
-      <td>
-        <div class="d-flex flex-wrap">
-          ${renderAllergensBadges(p.allergens)}
-        </div>
-      </td>
-
-      <td class="text-end">
-        <div class="dropdown">
-          <button class="btn btn-sm btn-light" type="button" id="${ddId}" data-bs-toggle="dropdown" aria-expanded="false" title="${escapeHtml({{ translations.actions|json_encode|raw }})}">
-            <i class="bi bi-three-dots-vertical"></i>
-          </button>
-          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="${ddId}">
-            <li>
-              <button class="dropdown-item btn-edit" type="button">
-                <i class="bi bi-pencil me-2"></i>${escapeHtml({{ translations.edit|json_encode|raw }})}
-              </button>
-            </li>
-            <li>
-              <button class="dropdown-item btn-allergens" type="button">
-                <i class="bi bi-shield-check me-2"></i>${escapeHtml({{ translations.allergens|json_encode|raw }})}
-              </button>
-            </li>
-            <li>
-              <button class="dropdown-item btn-specification" type="button">
-                <i class="bi bi-list-check me-2"></i>${escapeHtml({{ translations.specification|default('Specification')|json_encode|raw }})}
-              </button>
-            </li>
-            {#<li><hr class="dropdown-divider"></li>#}
-            {#<li>#}
-            {#  <button class="dropdown-item text-danger btn-delete" type="button">#}
-            {#    <i class="bi bi-trash me-2"></i>${escapeHtml({{ translations.delete|json_encode|raw }})}#}
-            {#  </button>#}
-            {#</li>#}
-          </ul>
-        </div>
-      </td>
-    </tr>
-  `;
+                    const hasPhoto = p.photo_url ? true : false;
+    return `<div class="product-card" data-id="${escapeHtml(String(p.id))}">
+  <div class="product-img">
+    ${hasPhoto ? `<img src="${escapeHtml(p.photo_url)}" alt="${escapeHtml(name)}" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : ''}
+    <div class="no-img" style="${hasPhoto ? 'display:none' : ''}">
+      <i class="bi bi-camera fs-2 opacity-25"></i>
+      <small>${escapeHtml(tNoPhoto)}</small>
+    </div>
+    <div class="pc-overlay">
+      <button class="pc-act-btn btn-upload-photo" title="${escapeHtml(tUploadPhoto)}" type="button"><i class="bi bi-camera-fill"></i></button>
+      <button class="pc-act-btn btn-edit" title="${escapeHtml(tEdit)}" type="button"><i class="bi bi-pencil-fill"></i></button>
+      <button class="pc-act-btn btn-allergens" title="${escapeHtml(tAllergens)}" type="button"><i class="bi bi-shield-check"></i></button>
+      <button class="pc-act-btn btn-specification" title="${escapeHtml(tSpec)}" type="button"><i class="bi bi-list-check"></i></button>
+    </div>
+  </div>
+  <div class="product-info">
+    <div class="d-flex align-items-start justify-content-between gap-1 mb-1">
+      <div class="product-name">${escapeHtml(name)}</div>
+      <span class="pc-pill ${active ? 'pc-pill-active' : 'pc-pill-inactive'}">${active ? escapeHtml(tActive) : escapeHtml(tInactive)}</span>
+    </div>
+    ${sku ? `<div class="product-ref"><code style="font-size:10px">${escapeHtml(sku)}</code></div>` : ''}
+    ${(pkgText || p.weight_grams || p.shelf_life_days) ? `<div class="product-meta">
+      ${pkgText ? `<span class="pc-badge">${escapeHtml(pkgText)}</span>` : ''}
+      ${p.weight_grams ? `<span class="pc-badge">${escapeHtml(String(p.weight_grams) + (p.weight_unit || 'g'))}</span>` : ''}
+      ${p.shelf_life_days ? `<span class="pc-badge">${escapeHtml(String(p.shelf_life_days) + 'd')}</span>` : ''}
+    </div>` : ''}
+    ${hasAllergens ? `<div class="pc-allergens">${renderAllergensBadges(p.allergens)}</div>` : ''}
+  </div>
+</div>`;
                 }).join("");
-
 
                 const singular = {{ translations.item_singular|json_encode|raw }};
                 const plural   = {{ translations.item_plural|json_encode|raw }};
                 el("tableMeta").textContent = `${rows.length} ${rows.length === 1 ? singular : plural}`;
             }
 
-
-            function getProductByRow(tr) {
-                const id = tr?.getAttribute("data-id");
+            function getProductByCard(card) {
+                const id = card?.getAttribute("data-id");
                 return state.products.find(p => String(p.id) === String(id));
             }
 
@@ -374,7 +422,7 @@
             // =========================
             async function loadProducts() {
                 setLoading(true);
-                renderTable();
+                renderGrid();
 
                 try {
                     const params = new URLSearchParams("include=allergens,specification_multilingual,preparation_info");
@@ -401,13 +449,24 @@
                     });
                 } finally {
                     setLoading(false);
-                    renderTable();
+                    renderGrid();
                 }
             }
 
             // =========================
             // Modal open / fill
             // =========================
+            function generateSkuSuggestion() {
+                const name = (window.SUPPLIER_NAME || '').trim();
+                // Wyodrębnij inicjały z nazwy: bierz pierwsze litery słów o długości > 1,
+                // pomijając typowe człony prawne (sp, z, o.o., ltd, sa, bv itp.)
+                const skipWords = new Set(['sp', 'z', 'oo', 'o.o.', 'ltd', 'sa', 's.a.', 'srl', 'gmbh', 'bv', 'nv', 'inc', 'co', 'spolka', 'spółka']);
+                const words = name.split(/[\s.,&/\\]+/).filter(w => w.length > 1 && !skipWords.has(w.toLowerCase()));
+                const prefix = words.slice(0, 3).map(w => w[0].toUpperCase()).join('') || 'P';
+                const num = String(state.products.length + 1).padStart(3, '0');
+                return prefix + '-' + num;
+            }
+
             function openCreateModal() {
                 state.modalMode = 'add';
                 state.editId = null;
@@ -419,7 +478,7 @@
 
 
                 // Podstawowe pola (STARE)
-                el("productSku").value = "";
+                el("productSku").value = generateSkuSuggestion();
                 el("productName").value = "";
                 el("productPackageSize").value = "";
                 el("productPackageUnit").value = "pcs";
@@ -1069,11 +1128,11 @@
                 el("btnClearFilters").addEventListener("click", async () => {
                     el("filterSearch").value = "";
                     el("filterStatus").value = "all";
-                    renderTable();
+                    renderGrid();
                 });
 
-                el("filterSearch").addEventListener("input", () => renderTable());
-                el("filterStatus").addEventListener("change", () => renderTable());
+                el("filterSearch").addEventListener("input", () => renderGrid());
+                el("filterStatus").addEventListener("change", () => renderGrid());
 
                 el("btnSaveProduct").addEventListener("click", saveProduct);
 
@@ -1081,14 +1140,168 @@
                 el("importFileInput").addEventListener("change", handleFileSelect);
                 el("btnStartImport").addEventListener("click", startImport);
 
-                // akcje w tabeli
-                el("productsTbody").addEventListener("click", (ev) => {
-                    const tr = ev.target.closest("tr");
-                    if (!tr) return;
+                // ==========================
+                // Photo modal
+                // ==========================
+                const photoModal     = new bootstrap.Modal(el('photoModal'));
+                const SwalToast = Swal.mixin({
+                    toast: true, position: 'top-end',
+                    showConfirmButton: false, timer: 3000, timerProgressBar: true,
+                });
 
-                    const product = getProductByRow(tr);
+                let _photoProductId  = null;   // ID produktu otwartego w modalu
+                let _photoCropper    = null;    // aktywna instancja Croppera
+
+                function openPhotoModal(product) {
+                    _photoProductId = product.id;
+                    el('photoModalTitle').textContent = product.name || {{ translations.catalog_photo_manage|default('Zdjęcie produktu')|json_encode|raw }};
+
+                    // reset — pokaż widok podglądu
+                    _showPhotoViewMode();
+
+                    const hasPhoto = !!product.photo_url;
+                    const img      = el('photoCurrentImg');
+                    const noImg    = el('photoNoImgPlaceholder');
+                    const delBtn   = el('btnDeletePhoto');
+
+                    if (hasPhoto) {
+                        img.src = product.photo_url;
+                        img.style.display = '';
+                        noImg.style.display = 'none';
+                        delBtn.style.display = '';
+                    } else {
+                        img.src = '';
+                        img.style.display = 'none';
+                        noImg.style.display = '';
+                        delBtn.style.display = 'none';
+                    }
+
+                    photoModal.show();
+                }
+
+                function _showPhotoViewMode() {
+                    el('photoViewMode').style.display  = '';
+                    el('photoCropMode').style.display  = 'none';
+                    if (_photoCropper) { _photoCropper.destroy(); _photoCropper = null; }
+                }
+
+                function _showPhotoCropMode(dataUrl) {
+                    el('photoViewMode').style.display = 'none';
+                    el('photoCropMode').style.display = '';
+
+                    const cropImg = el('photoCropImg');
+                    cropImg.src   = dataUrl;
+
+                    // Inicjalizuj Cropper po wyrenderowaniu obrazu
+                    if (_photoCropper) { _photoCropper.destroy(); _photoCropper = null; }
+                    _photoCropper = new Cropper(cropImg, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        autoCropArea: 1,
+                        responsive: true,
+                    });
+                }
+
+                // Wybór pliku → podgląd w cropperze
+                el('photoFileInput').addEventListener('change', (ev) => {
+                    const file = ev.target.files[0];
+                    ev.target.value = '';
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => _showPhotoCropMode(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+
+                // Anuluj kadrowanie
+                el('btnCropCancel').addEventListener('click', _showPhotoViewMode);
+
+                // Zapisz po kadrowania → upload na serwer
+                el('btnCropSave').addEventListener('click', () => {
+                    if (!_photoCropper) return;
+
+                    _photoCropper.getCroppedCanvas({ maxWidth: 1200, maxHeight: 1200 }).toBlob((blob) => {
+                        const productId = _photoProductId;
+
+                        Swal.fire({
+                            title: {{ translations.catalog_photo_uploading|default('Przesyłanie zdjęcia...')|json_encode|raw }},
+                            allowOutsideClick: false, allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                                const formData = new FormData();
+                                formData.append('photo', blob, 'photo.jpg');
+
+                                api(`/ajax/catalog/products/${productId}/photo`, { method: 'POST', data: formData })
+                                    .then(resp => {
+                                        Swal.close();
+                                        if (resp.success && resp.photo_url) {
+                                            const p = state.products.find(x => String(x.id) === String(productId));
+                                            if (p) p.photo_url = resp.photo_url;
+                                            renderGrid();
+                                            photoModal.hide();
+                                            SwalToast.fire({ icon: 'success', title: {{ translations.catalog_photo_uploaded|default('Zdjęcie zostało zapisane')|json_encode|raw }} });
+                                        } else {
+                                            SwalToast.fire({ icon: 'error', title: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }} });
+                                        }
+                                    })
+                                    .catch(err => {
+                                        console.error(err);
+                                        Swal.close();
+                                        SwalToast.fire({ icon: 'error', title: {{ translations.no_api_connection|json_encode|raw }} });
+                                    });
+                            },
+                        });
+                    }, 'image/jpeg', 0.92);
+                });
+
+                // Usuń zdjęcie
+                el('btnDeletePhoto').addEventListener('click', async () => {
+                    const productId = _photoProductId;
+
+                    const confirmed = await Swal.fire({
+                        icon: 'warning',
+                        title: {{ translations.catalog_photo_delete_confirm|default('Usunąć zdjęcie?')|json_encode|raw }},
+                        showCancelButton: true,
+                        confirmButtonColor: '#EF4444',
+                        confirmButtonText: {{ translations.delete|default('Usuń')|json_encode|raw }},
+                        cancelButtonText: {{ translations.cancel|default('Anuluj')|json_encode|raw }},
+                    });
+                    if (!confirmed.isConfirmed) return;
+
+                    try {
+                        const resp = await api(`/ajax/catalog/products/${productId}/photo`, { method: 'DELETE' });
+                        if (resp.success) {
+                            const p = state.products.find(x => String(x.id) === String(productId));
+                            if (p) p.photo_url = null;
+                            renderGrid();
+                            photoModal.hide();
+                            SwalToast.fire({ icon: 'success', title: {{ translations.catalog_photo_deleted|default('Zdjęcie zostało usunięte')|json_encode|raw }} });
+                        } else {
+                            SwalToast.fire({ icon: 'error', title: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }} });
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        SwalToast.fire({ icon: 'error', title: {{ translations.no_api_connection|json_encode|raw }} });
+                    }
+                });
+
+                // Wyczyść cropper przy zamknięciu modala
+                el('photoModal').addEventListener('hidden.bs.modal', () => {
+                    if (_photoCropper) { _photoCropper.destroy(); _photoCropper = null; }
+                    el('photoFileInput').value = '';
+                    _showPhotoViewMode();
+                });
+
+                // akcje w tabeli
+                el("productsGrid").addEventListener("click", (ev) => {
+                    const card = ev.target.closest(".product-card");
+                    if (!card) return;
+
+                    const product = getProductByCard(card);
                     if (!product) return;
 
+                    if (ev.target.closest(".btn-upload-photo")) { openPhotoModal(product); return; }
                     if (ev.target.closest(".btn-edit")) return openEditModal(product);
                     if (ev.target.closest(".btn-delete")) return confirmDelete(product);
                     if (ev.target.closest(".btn-allergens")) return openAllergensModal(product);
@@ -1139,7 +1352,7 @@
                                 renderAllergensList(p);
 
                                 // odśwież tabelę, żeby badge’e się zaktualizowały
-                                renderTable();
+                                renderGrid();
                             }
                         } else {
                             chk.checked = !chk.checked;
@@ -1183,4 +1396,5 @@
             init().catch(console.error);
         });
     </script>
+    <script src="{{ ROOT }}/assets/js/cropper/cropper.min.js"></script>
 {% endblock %}

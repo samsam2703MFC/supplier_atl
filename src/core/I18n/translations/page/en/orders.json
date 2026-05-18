@@ -1,0 +1,22 @@
+{
+    "orders_title": "Orders",
+    "orders_heading": "Orders",
+    "orders_subtitle": "All orders placed with your company",
+    "orders_empty": "No orders found.",
+    "orders_filter_status": "Status",
+    "orders_filter_from": "From date",
+    "orders_filter_to": "To date",
+    "orders_filter_apply": "Apply",
+    "orders_status_all": "All statuses",
+    "orders_status_new": "New",
+    "orders_status_in_transit": "In transit",
+    "orders_status_delivered": "Delivered",
+    "orders_status_cancelled": "Cancelled",
+    "orders_status_archived": "Archived",
+    "orders_col_order_key": "Order number",
+    "orders_col_shop": "Shop",
+    "orders_col_order_date": "Order date",
+    "orders_col_expected_date": "Expected date",
+    "orders_col_value_net": "Net value",
+    "orders_col_status": "Status"
+}

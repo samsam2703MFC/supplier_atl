@@ -25,6 +25,28 @@
   "not_available": "Nessun dato",
 
   "catalog": "Catalogo",
-  "price_lists": "Listini"
+  "price_lists": "Listini",
+
+  "dashboard_kpi_revenue": "Fatturato questo mese",
+  "dashboard_kpi_orders": "Ordini attivi",
+  "dashboard_kpi_open_complaints": "Reclami aperti",
+  "dashboard_kpi_current_month": "Mese corrente",
+  "dashboard_kpi_requires_action": "Richiede azione",
+  "dashboard_top_products": "Top 5 prodotti (anno)",
+  "dashboard_open_complaints": "Reclami aperti",
+  "dashboard_see_analytics": "Analisi →",
+  "dashboard_see_all": "Tutti →",
+  "dashboard_no_data": "Nessun dato.",
+  "dashboard_no_open_complaints": "Nessun reclamo aperto.",
+  "dashboard_col_product": "Prodotto",
+  "dashboard_col_qty": "Quantità",
+  "dashboard_col_revenue": "Fatturato",
+  "dashboard_col_shop": "Negozio",
+  "dashboard_col_status": "Stato",
+  "dashboard_kpi_shops": "Negozi attivi",
+  "dashboard_revenue_by_shop": "Fatturato per negozio (anno)",
+  "dashboard_shop_breakdown": "Dettaglio negozi",
+  "dashboard_col_orders_count": "Ordini",
+  "dashboard_col_date": "Data"
 }
 

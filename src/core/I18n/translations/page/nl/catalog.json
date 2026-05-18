@@ -158,6 +158,20 @@
   "import_completed": "Import succesvol voltooid.",
   "import_failed": "Import mislukt. Controleer het bestandsformaat.",
   "invalid_json_file": "Ongeldig JSON-bestand. Controleer de bestandsinhoud.",
-  "file_read_error": "Fout bij het lezen van bestand. Probeer het opnieuw."
+  "file_read_error": "Fout bij het lezen van bestand. Probeer het opnieuw.",
+
+  "catalog_photo_manage": "Productfoto",
+  "catalog_no_photo": "Geen foto",
+  "catalog_photo_upload_new": "Foto uploaden",
+  "catalog_photo_delete": "Foto verwijderen",
+  "catalog_photo_crop_save": "Bijsnijden en opslaan",
+  "catalog_upload_photo": "Foto toevoegen",
+  "catalog_photo_uploading": "Foto uploaden...",
+  "catalog_photo_uploaded": "Foto succesvol opgeslagen",
+  "catalog_photo_delete_confirm": "Foto verwijderen?",
+  "catalog_photo_deleted": "Foto verwijderd",
+
+  "catalog_inactive_mapped_info_title": "Inactieve producten zichtbaar voor klanten",
+  "catalog_inactive_mapped_info_body": "Producten die als inactief zijn gemarkeerd en gekoppeld zijn aan grondstoffen van klanten, blijven zichtbaar in de bestelweergave. Klanten zien een waarschuwingspictogram dat aangeeft dat het product mogelijk niet geleverd wordt."
 }
 

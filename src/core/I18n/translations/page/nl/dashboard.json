@@ -25,6 +25,28 @@
   "not_available": "Geen gegevens",
 
   "catalog": "Catalogus",
-  "price_lists": "Prijslijsten"
+  "price_lists": "Prijslijsten",
+
+  "dashboard_kpi_revenue": "Omzet deze maand",
+  "dashboard_kpi_orders": "Actieve bestellingen",
+  "dashboard_kpi_open_complaints": "Openstaande klachten",
+  "dashboard_kpi_current_month": "Huidige maand",
+  "dashboard_kpi_requires_action": "Vereist actie",
+  "dashboard_top_products": "Top 5 producten (jaar)",
+  "dashboard_open_complaints": "Openstaande klachten",
+  "dashboard_see_analytics": "Analyse →",
+  "dashboard_see_all": "Alle →",
+  "dashboard_no_data": "Geen gegevens.",
+  "dashboard_no_open_complaints": "Geen openstaande klachten.",
+  "dashboard_col_product": "Product",
+  "dashboard_col_qty": "Aantal",
+  "dashboard_col_revenue": "Omzet",
+  "dashboard_col_shop": "Winkel",
+  "dashboard_col_status": "Status",
+  "dashboard_kpi_shops": "Actieve winkels",
+  "dashboard_revenue_by_shop": "Omzet per winkel (jaar)",
+  "dashboard_shop_breakdown": "Winkel overzicht",
+  "dashboard_col_orders_count": "Bestellingen",
+  "dashboard_col_date": "Datum"
 }
 

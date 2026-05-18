@@ -1,0 +1,20 @@
+{
+    "logistics_title": "Logistyka",
+    "logistics_heading": "Logistyka",
+    "logistics_subtitle": "Nadchodzące dostawy na podstawie oczekiwanej daty dostarczenia",
+    "logistics_empty": "Brak nadchodzących dostaw. Tutaj pojawią się zamówienia ze statusem NOWE lub W TRANSPORCIE.",
+    "logistics_empty_group": "Brak zamówień w tej grupie.",
+    "logistics_total_label": "dostaw",
+    "logistics_group_today": "Dzisiaj",
+    "logistics_group_tomorrow": "Jutro",
+    "logistics_group_this_week": "W tym tygodniu",
+    "logistics_group_later": "Później / brak daty",
+    "logistics_col_order_key": "Nr zamówienia",
+    "logistics_col_shop": "Sklep",
+    "logistics_col_expected_date": "Oczekiwana dostawa",
+    "logistics_col_order_date": "Data zamówienia",
+    "logistics_col_value_net": "Wartość (netto)",
+    "logistics_col_status": "Status",
+    "logistics_status_new": "Nowe",
+    "logistics_status_in_transit": "W transporcie"
+}

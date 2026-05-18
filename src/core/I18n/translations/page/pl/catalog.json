@@ -158,5 +158,19 @@
   "import_completed": "Import zakończony pomyślnie.",
   "import_failed": "Import nie powiódł się. Sprawdź format pliku.",
   "invalid_json_file": "Nieprawidłowy plik JSON. Sprawdź zawartość pliku.",
-  "file_read_error": "Błąd odczytu pliku. Spróbuj ponownie."
+  "file_read_error": "Błąd odczytu pliku. Spróbuj ponownie.",
+
+  "catalog_photo_manage": "Zdjęcie produktu",
+  "catalog_no_photo": "Brak zdjęcia",
+  "catalog_photo_upload_new": "Wgraj zdjęcie",
+  "catalog_photo_delete": "Usuń zdjęcie",
+  "catalog_photo_crop_save": "Przytnij i zapisz",
+  "catalog_upload_photo": "Dodaj zdjęcie",
+  "catalog_photo_uploading": "Przesyłanie zdjęcia...",
+  "catalog_photo_uploaded": "Zdjęcie zostało zapisane",
+  "catalog_photo_delete_confirm": "Usunąć zdjęcie?",
+  "catalog_photo_deleted": "Zdjęcie zostało usunięte",
+
+  "catalog_inactive_mapped_info_title": "Nieaktywne produkty widoczne u klienta",
+  "catalog_inactive_mapped_info_body": "Produkty oznaczone jako nieaktywne, które są zmapowane do surowców klienta, nadal są wyświetlane w widoku zamawiania. Klient widzi przy nich symbol ostrzegawczy informujący, że produkt może nie zostać dostarczony."
 }

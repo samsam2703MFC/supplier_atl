@@ -25,7 +25,21 @@
   "not_available": "No data",
 
   "catalog": "Catalog",
+  "raw_materials": "Raw materials",
+  "recipes": "Recipes",
   "price_lists": "Price lists",
-  "client": "Client"
+  "global_price_list_menu": "Price List",
+  "client": "Client",
+  "orders": "Orders",
+  "complaints": "Complaints",
+  "analytics": "Analytics",
+  "rms_menu": "Raw Material Sales",
+  "logistics": "Logistics",
+
+  "back": "Back",
+  "hello": "Hello",
+  "notifications": "Notifications",
+  "no_new_notifications": "No new notifications",
+  "settings": "Settings"
 }
 

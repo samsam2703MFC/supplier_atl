@@ -25,6 +25,28 @@
   "not_available": "No data",
 
   "catalog": "Catalog",
-  "price_lists": "Price lists"
+  "price_lists": "Price lists",
+
+  "dashboard_kpi_revenue": "Revenue this month",
+  "dashboard_kpi_orders": "Active orders",
+  "dashboard_kpi_open_complaints": "Open complaints",
+  "dashboard_kpi_current_month": "Current month",
+  "dashboard_kpi_requires_action": "Requires action",
+  "dashboard_top_products": "Top 5 products (YTD)",
+  "dashboard_open_complaints": "Open complaints",
+  "dashboard_see_analytics": "Analytics →",
+  "dashboard_see_all": "All →",
+  "dashboard_no_data": "No data.",
+  "dashboard_no_open_complaints": "No open complaints.",
+  "dashboard_col_product": "Product",
+  "dashboard_col_qty": "Qty",
+  "dashboard_col_revenue": "Revenue",
+  "dashboard_col_shop": "Shop",
+  "dashboard_col_status": "Status",
+  "dashboard_kpi_shops": "Active shops",
+  "dashboard_revenue_by_shop": "Revenue by shop (YTD)",
+  "dashboard_shop_breakdown": "Shop breakdown",
+  "dashboard_col_orders_count": "Orders",
+  "dashboard_col_date": "Date"
 }
 

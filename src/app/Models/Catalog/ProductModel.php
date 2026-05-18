@@ -18,6 +18,7 @@ class ProductModel implements \JsonSerializable
     private $shelf_life_days;
     private $specification = [];
     private $allergens = [];
+    private $photo_url;
 
     public function __construct($data)
     {
@@ -33,6 +34,7 @@ class ProductModel implements \JsonSerializable
         $this->weight_grams     = $data['weight_grams'] ?? null;
         $this->weight_unit      = $data['weight_unit'] ?? 'g';
         $this->shelf_life_days  = $data['shelf_life_days'] ?? null;
+        $this->photo_url        = $data['photo_url'] ?? null;
 
         if (isset($data['allergens'])) {
             foreach ($data['allergens'] as $allergen) {
@@ -61,6 +63,7 @@ class ProductModel implements \JsonSerializable
     public function getWeightGrams()     { return $this->weight_grams; }
     public function getWeightUnit()      { return $this->weight_unit; }
     public function getShelfLifeDays()   { return $this->shelf_life_days; }
+    public function getPhotoUrl()         { return $this->photo_url; }
     public function getSpecification()     { return $this->specification; }
 
     public function jsonSerialize(): mixed
@@ -79,7 +82,8 @@ class ProductModel implements \JsonSerializable
             'weight_grams'     => $this->weight_grams,
             'weight_unit'      => $this->weight_unit,
             'shelf_life_days'  => $this->shelf_life_days,
-            'specification'      => $this->specification,
+            'photo_url'        => $this->photo_url,
+            'specification'    => $this->specification,
         ];
     }
 }

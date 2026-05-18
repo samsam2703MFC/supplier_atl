@@ -1,0 +1,22 @@
+{
+    "orders_title": "Zamówienia",
+    "orders_heading": "Zamówienia",
+    "orders_subtitle": "Wszystkie zamówienia złożone w Twojej firmie",
+    "orders_empty": "Brak zamówień.",
+    "orders_filter_status": "Status",
+    "orders_filter_from": "Data od",
+    "orders_filter_to": "Data do",
+    "orders_filter_apply": "Filtruj",
+    "orders_status_all": "Wszystkie statusy",
+    "orders_status_new": "Nowe",
+    "orders_status_in_transit": "W drodze",
+    "orders_status_delivered": "Dostarczone",
+    "orders_status_cancelled": "Anulowane",
+    "orders_status_archived": "Zarchiwizowane",
+    "orders_col_order_key": "Numer zamówienia",
+    "orders_col_shop": "Lokal",
+    "orders_col_order_date": "Data zamówienia",
+    "orders_col_expected_date": "Oczekiwana dostawa",
+    "orders_col_value_net": "Wartość netto",
+    "orders_col_status": "Status"
+}

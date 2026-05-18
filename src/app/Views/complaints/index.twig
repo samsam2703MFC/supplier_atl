@@ -1,0 +1,807 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.complaints_title }}{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <h3>{{ translations.complaints_heading }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.complaints_subtitle }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/messages.twig" %}
+
+    {# Filtry jako badge #}
+    <div class="card mb-3">
+        <div class="card-body py-3">
+            <div class="d-flex flex-wrap align-items-center gap-1 mb-2">
+                <span class="text-muted small fw-semibold me-2" style="min-width:4rem;">{{ translations.complaints_filter_status }}:</span>
+                <span class="badge rounded-pill filter-badge status-badge bg-secondary text-white active" data-value="all">{{ translations.complaints_status_all }}</span>
+                <span class="badge rounded-pill filter-badge status-badge bg-secondary" data-value="NEW">{{ translations.complaints_status_new }}</span>
+                <span class="badge rounded-pill filter-badge status-badge bg-info text-dark" data-value="IN_REVIEW">{{ translations.complaints_status_in_review }}</span>
+                <span class="badge rounded-pill filter-badge status-badge bg-success" data-value="ACCEPTED">{{ translations.complaints_status_accepted }}</span>
+                <span class="badge rounded-pill filter-badge status-badge bg-danger" data-value="REJECTED">{{ translations.complaints_status_rejected }}</span>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-1 mb-2">
+                <span class="text-muted small fw-semibold me-2" style="min-width:4rem;">{{ translations.complaints_col_shop }}:</span>
+                <span class="badge rounded-pill filter-badge shop-badge bg-secondary text-white active" data-value="all">{{ translations.complaints_status_all }}</span>
+                {% set seenShops = [] %}
+                {% for complaint in complaints %}
+                    {% if complaint.shop_name is not empty and complaint.shop_name not in seenShops %}
+                        {% set seenShops = seenShops|merge([complaint.shop_name]) %}
+                        <span class="badge rounded-pill filter-badge shop-badge bg-light text-dark border"
+                              data-value="{{ complaint.shop_name }}">{{ complaint.shop_name }}</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-1">
+                <span class="text-muted small fw-semibold me-2" style="min-width:4rem;">Tryb:</span>
+                <span class="badge rounded-pill filter-badge mode-badge bg-secondary text-white active" data-value="all">{{ translations.complaints_status_all }}</span>
+                <span class="badge rounded-pill filter-badge mode-badge bg-primary" data-value="portal">
+                    <i class="bi bi-pencil-square me-1"></i>{{ translations.complaints_portal_managed }}
+                </span>
+                <span class="badge rounded-pill filter-badge mode-badge" data-value="integration"
+                      style="background-color:#6f42c1; color:#fff;">
+                    <i class="bi bi-plug me-1"></i>{{ translations.complaints_integration_managed }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {# Tabela reklamacji #}
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{ translations.complaints_heading }}</h5>
+            <span class="badge bg-secondary" id="complaintsCount"></span>
+        </div>
+        <div class="card-body p-0">
+            {% if complaints is empty %}
+                <p class="text-muted text-center py-5">{{ translations.complaints_empty }}</p>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0" id="complaintsTable" style="font-size:.82rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3" style="width:13%;">{{ translations.complaints_col_key_date }}</th>
+                                <th style="width:20%;">{{ translations.complaints_col_shop_product }}</th>
+                                <th style="width:18%;">{{ translations.complaints_col_order_reason }}</th>
+                                <th class="text-center" style="width:7%;">{{ translations.complaints_col_qty }}</th>
+                                <th class="text-center" style="width:12%;">{{ translations.complaints_col_status_updated }}</th>
+                                <th class="text-center" style="width:8%;">Tryb</th>
+                                <th class="text-end pe-3" style="width:8%;">{{ translations.complaints_col_actions }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for complaint in complaints %}
+                                {% set portalManaged = complaint.is_portal_managed is defined and complaint.is_portal_managed %}
+                                <tr class="complaint-row {% if not portalManaged %}table-row-integration{% endif %}"
+                                    data-status="{{ complaint.status }}"
+                                    data-shop="{{ complaint.shop_name ?? '' }}"
+                                    data-mode="{{ portalManaged ? 'portal' : 'integration' }}">
+
+                                    {# Klucz + data zgłoszenia #}
+                                    <td class="ps-3 align-middle">
+                                        {% if complaint.complaint_key %}
+                                            <code class="text-primary fw-semibold" style="font-size:.78rem;">{{ complaint.complaint_key }}</code>
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                        <div class="text-muted" style="font-size:.75rem;">
+                                            {{ complaint.reported_at ? complaint.reported_at|date('Y-m-d H:i') : '—' }}
+                                        </div>
+                                    </td>
+
+                                    {# Lokal + produkt + SKU #}
+                                    <td class="align-middle">
+                                        <span class="fw-semibold d-block">{{ complaint.shop_name ?? '—' }}</span>
+                                        <span class="text-muted d-block text-truncate" style="max-width:15rem; font-size:.78rem;"
+                                              title="{{ complaint.material_name ?? '' }}">{{ complaint.material_name ?? '—' }}</span>
+                                        {% if complaint.supplier_sku %}
+                                            <span class="text-muted" style="font-size:.72rem;">SKU: {{ complaint.supplier_sku }}</span>
+                                        {% endif %}
+                                    </td>
+
+                                    {# Klucz zamówienia + powód #}
+                                    <td class="align-middle">
+                                        {% if complaint.order_key %}
+                                            <span class="font-monospace d-block">{{ complaint.order_key }}</span>
+                                        {% else %}
+                                            <span class="text-muted d-block">—</span>
+                                        {% endif %}
+                                        <span class="text-muted" style="font-size:.78rem;">{{ complaint.reason_name ?? complaint.reason_code ?? '—' }}</span>
+                                    </td>
+
+                                    {# Ilość #}
+                                    <td class="text-center align-middle">
+                                        {% if complaint.qty is not null %}
+                                            {% set unitLower = (complaint.unit_name ?? '')|lower %}
+                                            <span class="fw-semibold">
+                                                {% if unitLower in ['pcs', 'g', 'ml'] %}{{ complaint.qty|round(0, 'common') }}{% else %}{{ complaint.qty }}{% endif %}
+                                            </span>
+                                            {% if complaint.unit_name %}
+                                                <div class="text-muted" style="font-size:.75rem;">{{ complaint.unit_name }}</div>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+
+                                    {# Status + data aktualizacji #}
+                                    <td class="text-center align-middle">
+                                        {% set statusMap = {'NEW':'secondary','IN_REVIEW':'info','ACCEPTED':'success','REJECTED':'danger'} %}
+                                        {% set badgeColor = statusMap[complaint.status] ?? 'secondary' %}
+                                        {% set darkText = complaint.status in ['IN_REVIEW'] %}
+                                        <span class="badge bg-{{ badgeColor }}{% if darkText %} text-dark{% endif %}">
+                                            {{ translations['complaints_status_' ~ complaint.status|lower] ?? complaint.status }}
+                                        </span>
+                                        <div style="font-size:.72rem;" class="text-muted">
+                                            {% if complaint.updated_at and complaint.updated_at != complaint.created_at %}
+                                                {{ complaint.updated_at|date('Y-m-d H:i') }}
+                                            {% else %}—{% endif %}
+                                        </div>
+                                    </td>
+
+                                    {# Tryb zarządzania #}
+                                    <td class="text-center align-middle">
+                                        {% if portalManaged %}
+                                            <span class="badge bg-primary"
+                                                  title="{{ translations.complaints_portal_managed }}">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </span>
+                                        {% else %}
+                                            <span class="badge text-white"
+                                                  style="background-color:#6f42c1;"
+                                                  title="{{ translations.complaints_integration_managed_tooltip }}">
+                                                <i class="bi bi-plug"></i>
+                                            </span>
+                                        {% endif %}
+                                    </td>
+
+                                    {# Załączniki + akcja #}
+                                    <td class="text-end pe-3 align-middle">
+                                        {% if complaint.attachments is defined and complaint.attachments|length > 0 %}
+                                            <span class="badge bg-light text-dark border me-1">
+                                                <i class="bi bi-paperclip"></i> {{ complaint.attachments|length }}
+                                            </span>
+                                        {% endif %}
+                                        <button class="btn btn-sm btn-outline-primary"
+                                                onclick="openComplaintDetails('{{ loop.index0 }}')">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            <tr id="noResultsRow" style="display:none">
+                                <td colspan="7" class="text-center py-4 text-muted">{{ translations.complaints_empty }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Modal szczegółów #}
+    <div class="modal fade" id="complaintDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-clipboard2-x me-2"></i>{{ translations.complaints_details }}
+                        <code class="ms-2 text-primary fw-semibold" id="modalComplaintKey" style="font-size:.85rem;"></code>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                {# Pasek informacyjny o trybie — wstrzykiwany przez JS #}
+                <div id="modalModeAlert" style="display:none;"></div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_col_shop }}</label>
+                                <div class="fw-semibold" id="modalShopName"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_col_product }}</label>
+                                <div id="modalMaterialName"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_col_order_key }}</label>
+                                <div class="font-monospace" id="modalOrderKey"></div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_col_reason }}</label>
+                                <div id="modalReasonName"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_complained_qty }}</label>
+                                <div id="modalQty"></div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_col_status }}</label>
+                                <div id="modalStatus"></div>
+                            </div>
+                            {# Ilość uznana — widoczna gdy status ACCEPTED #}
+                            <div class="mb-3" id="modalAcceptedQtySection" style="display:none;">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_col_accepted_qty }}</label>
+                                <div id="modalAcceptedQty" class="fw-semibold text-success"></div>
+                            </div>
+                            {# Żądana rekompensata — przekazana przez sklep #}
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_requested_action }}</label>
+                                <div id="modalRequestedAction"></div>
+                            </div>
+                            {# Sposób rekompensaty — wybrany przez dostawcę, widoczny po rozpatrzeniu #}
+                            <div class="mb-3" id="modalCompensationMethodSection" style="display:none;">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_compensation_method_label }}</label>
+                                <div id="modalCompensationMethod" class="fw-semibold"></div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">{{ translations.complaints_description }}</label>
+                                <div class="border rounded p-2 bg-light" id="modalDescription" style="min-height:3rem; white-space:pre-wrap;"></div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label class="form-label text-muted small mb-1">
+                                    <i class="bi bi-chat-left-dots me-1"></i>{{ translations.complaints_production_response }}
+                                </label>
+                                <div class="border rounded p-2 bg-light" id="modalProductionResponse" style="min-height:3rem; white-space:pre-wrap;"></div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label text-muted small mb-2">
+                                <i class="bi bi-paperclip me-1"></i>{{ translations.complaints_attachments }}
+                            </label>
+                            <div id="modalAttachmentsList"></div>
+                        </div>
+
+                        {# Panel akcji — wstrzykiwany przez JS dla portal-managed + edytowalnych statusów #}
+                        <div class="col-12" id="modalActionsSection" style="display:none;"></div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="text-muted small me-auto" id="modalDates"></div>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ translations.complaints_back }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const complaintsData = [
+        {% for complaint in complaints %}
+        {
+            id:                  {{ complaint.id is defined ? complaint.id|json_encode|raw : 'null' }},
+            complaint_key:       {{ complaint.complaint_key ? complaint.complaint_key|json_encode|raw : 'null' }},
+            shop_name:           {{ (complaint.shop_name ?? '')|json_encode|raw }},
+            material_name:       {{ (complaint.material_name ?? '')|json_encode|raw }},
+            supplier_sku:        {{ (complaint.supplier_sku ?? null)|json_encode|raw }},
+            order_key:           {{ (complaint.order_key ?? null)|json_encode|raw }},
+            reason_name:         {{ (complaint.reason_name ?? complaint.reason_code ?? '')|json_encode|raw }},
+            qty:                 {{ complaint.qty is not null ? complaint.qty : 'null' }},
+            unit_name:           {{ (complaint.unit_name ?? null)|json_encode|raw }},
+            status:              {{ complaint.status|json_encode|raw }},
+            description:         {{ (complaint.description ?? null)|json_encode|raw }},
+            production_response: {{ (complaint.production_response ?? null)|json_encode|raw }},
+            accepted_qty:        {{ complaint.accepted_qty is defined and complaint.accepted_qty is not null ? complaint.accepted_qty : 'null' }},
+            requested_action:    {{ (complaint.requested_action ?? null)|json_encode|raw }},
+            compensation_method: {{ (complaint.compensation_method ?? null)|json_encode|raw }},
+            reported_at:         {{ (complaint.reported_at ? complaint.reported_at|date('Y-m-d H:i') : null)|json_encode|raw }},
+            created_at:          {{ (complaint.created_at ? complaint.created_at|date('Y-m-d H:i') : null)|json_encode|raw }},
+            updated_at:          {{ (complaint.updated_at ? complaint.updated_at|date('Y-m-d H:i') : null)|json_encode|raw }},
+            is_portal_managed:   {{ (complaint.is_portal_managed is defined and complaint.is_portal_managed) ? 'true' : 'false' }},
+            attachments: [
+                {% if complaint.attachments is defined %}
+                {% for file in complaint.attachments %}
+                {
+                    id:   {{ file.id is defined ? file.id|json_encode|raw : 'null' }},
+                    name: {{ (file.original_name ?? '')|json_encode|raw }},
+                    mime: {{ (file.mime_type ?? '')|json_encode|raw }},
+                    size: {{ file.size_bytes ?? 0 }}
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+                {% endif %}
+            ]
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const t = {
+        status_new:                    {{ translations.complaints_status_new|json_encode|raw }},
+        status_ready:                  {{ translations.complaints_status_ready|json_encode|raw }},
+        status_in_review:              {{ translations.complaints_status_in_review|json_encode|raw }},
+        status_accepted:               {{ translations.complaints_status_accepted|json_encode|raw }},
+        status_rejected:               {{ translations.complaints_status_rejected|json_encode|raw }},
+        no_description:                {{ translations.complaints_no_description|json_encode|raw }},
+        no_response:                   {{ translations.complaints_no_response|json_encode|raw }},
+        date_of_report:                {{ translations.complaints_col_date_of_report|json_encode|raw }},
+        last_update:                   {{ translations.complaints_col_last_update|json_encode|raw }},
+        attachment:                    {{ translations.complaints_attachment|json_encode|raw }},
+        portal_managed:                {{ translations.complaints_portal_managed|json_encode|raw }},
+        integration_managed:           {{ translations.complaints_integration_managed|json_encode|raw }},
+        integration_managed_tooltip:   {{ translations.complaints_integration_managed_tooltip|json_encode|raw }},
+        read_only:                     {{ translations.complaints_read_only|json_encode|raw }},
+        actions:                       {{ translations.complaints_actions|json_encode|raw }},
+        action_take_review:            {{ translations.complaints_action_take_review|json_encode|raw }},
+        action_accept:                 {{ translations.complaints_action_accept|json_encode|raw }},
+        action_reject:                 {{ translations.complaints_action_reject|json_encode|raw }},
+        accepted_qty:                  {{ translations.complaints_accepted_qty|json_encode|raw }},
+        accepted_qty_hint:             {{ translations.complaints_accepted_qty_hint|json_encode|raw }},
+        response_label:                {{ translations.complaints_response_label|json_encode|raw }},
+        response_placeholder:          {{ translations.complaints_response_placeholder|json_encode|raw }},
+        response_required:             {{ translations.complaints_response_required|json_encode|raw }},
+        invalid_qty:                   {{ translations.complaints_invalid_qty|json_encode|raw }},
+        qty_exceeds:                   {{ translations.complaints_qty_exceeds|json_encode|raw }},
+        update_success:                {{ translations.complaints_update_success|json_encode|raw }},
+        update_error:                  {{ translations.complaints_update_error|json_encode|raw }},
+        archived_notice:               {{ translations.complaints_archived_notice|json_encode|raw }},
+        col_accepted_qty:              {{ translations.complaints_col_accepted_qty|json_encode|raw }},
+        confirm_take_review:           {{ translations.complaints_confirm_take_review|json_encode|raw }},
+        requested_action:              {{ translations.complaints_requested_action|json_encode|raw }},
+        requested_action_refund:       {{ translations.complaints_requested_action_refund|json_encode|raw }},
+        requested_action_replacement:  {{ translations.complaints_requested_action_replacement|json_encode|raw }},
+        requested_action_credit:       {{ translations.complaints_requested_action_credit|json_encode|raw }},
+        compensation_method_label:     {{ translations.complaints_compensation_method_label|json_encode|raw }},
+        compensation_method_replacement: {{ translations.complaints_compensation_method_replacement|json_encode|raw }},
+        compensation_method_credit_note: {{ translations.complaints_compensation_method_credit_note|json_encode|raw }},
+        compensation_method_refund:    {{ translations.complaints_compensation_method_refund|json_encode|raw }},
+        compensation_method_other:     {{ translations.complaints_compensation_method_other|json_encode|raw }},
+        compensation_method_select:    {{ translations.complaints_compensation_method_select|json_encode|raw }},
+        not_specified:                 {{ translations.complaints_not_specified|json_encode|raw }},
+        root:                          {{ (ROOT ?? '')|json_encode|raw }}
+    };
+
+    let activeStatus = 'all';
+    let activeShop   = 'all';
+    let activeMode   = 'all';
+
+    function getStatusBadge(status) {
+        const map = {
+            NEW:       `<span class="badge bg-secondary">${t.status_new}</span>`,
+            IN_REVIEW: `<span class="badge bg-info text-dark">${t.status_in_review}</span>`,
+            ACCEPTED:  `<span class="badge bg-success">${t.status_accepted}</span>`,
+            REJECTED:  `<span class="badge bg-danger">${t.status_rejected}</span>`,
+        };
+        return map[status] ?? `<span class="badge bg-light text-dark">${status || '—'}</span>`;
+    }
+
+    function getMimeIcon(mime) {
+        if (!mime) return 'bi-paperclip';
+        if (mime.startsWith('image/')) return 'bi-file-image';
+        if (mime === 'application/pdf') return 'bi-file-earmark-pdf text-danger';
+        if (mime.includes('spreadsheet') || mime.includes('excel')) return 'bi-file-earmark-excel text-success';
+        if (mime.includes('word') || mime.includes('document')) return 'bi-file-earmark-word text-primary';
+        return 'bi-file-earmark';
+    }
+
+    function formatQty(qty, unit) {
+        if (qty === null || qty === undefined) return '—';
+        const whole = ['pcs', 'g', 'ml'];
+        return whole.includes((unit ?? '').toLowerCase().trim()) ? Math.round(qty) : qty;
+    }
+
+    function formatBytes(bytes) {
+        if (!bytes) return '';
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / 1048576).toFixed(1)} MB`;
+    }
+
+    /** Tłumaczy kod requested_action (przyjęty od sklepu) na czytelną etykietę */
+    function labelRequestedAction(code) {
+        if (!code) return t.not_specified;
+        const map = {
+            REFUND:      t.requested_action_refund,
+            REPLACEMENT: t.requested_action_replacement,
+            CREDIT:      t.requested_action_credit
+        };
+        return map[String(code).toUpperCase()] ?? code;
+    }
+
+    /** Tłumaczy kod compensation_method (wybrany przez dostawcę) na czytelną etykietę */
+    function labelCompensationMethod(code) {
+        if (!code) return t.not_specified;
+        const map = {
+            REPLACEMENT: t.compensation_method_replacement,
+            CREDIT_NOTE: t.compensation_method_credit_note,
+            REFUND:      t.compensation_method_refund,
+            OTHER:       t.compensation_method_other
+        };
+        return map[String(code).toUpperCase()] ?? code;
+    }
+
+    function applyFilters() {
+        const rows = document.querySelectorAll('#complaintsTable tbody .complaint-row');
+        let visible = 0;
+        rows.forEach(row => {
+            const sm  = activeStatus === 'all' || row.dataset.status === activeStatus;
+            const shm = activeShop   === 'all' || row.dataset.shop   === activeShop;
+            const mm  = activeMode   === 'all' || row.dataset.mode   === activeMode;
+            row.style.display = (sm && shm && mm) ? '' : 'none';
+            if (sm && shm && mm) visible++;
+        });
+        const nr = document.getElementById('noResultsRow');
+        if (nr) nr.style.display = visible === 0 ? '' : 'none';
+        const badge = document.getElementById('complaintsCount');
+        if (badge) badge.textContent = visible;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.status-badge').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelectorAll('.status-badge').forEach(b => b.classList.remove('active'));
+                el.classList.add('active');
+                activeStatus = el.dataset.value;
+                applyFilters();
+            });
+        });
+        document.querySelectorAll('.shop-badge').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelectorAll('.shop-badge').forEach(b => b.classList.remove('active'));
+                el.classList.add('active');
+                activeShop = el.dataset.value;
+                applyFilters();
+            });
+        });
+        document.querySelectorAll('.mode-badge').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelectorAll('.mode-badge').forEach(b => b.classList.remove('active'));
+                el.classList.add('active');
+                activeMode = el.dataset.value;
+                applyFilters();
+            });
+        });
+        applyFilters();
+    });
+
+    function openComplaintDetails(idx) {
+        const c = complaintsData[idx];
+        if (!c) return;
+
+        document.getElementById('modalComplaintKey').textContent = c.complaint_key ?? '';
+        document.getElementById('modalShopName').textContent     = c.shop_name || '—';
+        document.getElementById('modalMaterialName').textContent = c.material_name || '—';
+        document.getElementById('modalOrderKey').textContent     = c.order_key || '—';
+        document.getElementById('modalReasonName').textContent   = c.reason_name || '—';
+        document.getElementById('modalQty').textContent =
+            c.qty !== null ? `${formatQty(c.qty, c.unit_name)}${c.unit_name ? ' ' + c.unit_name : ''}` : '—';
+        document.getElementById('modalStatus').innerHTML = getStatusBadge(c.status);
+
+        // Ilość uznana
+        const acceptedQtySection = document.getElementById('modalAcceptedQtySection');
+        const acceptedQtyEl      = document.getElementById('modalAcceptedQty');
+        if (c.status === 'ACCEPTED' && c.accepted_qty !== null && c.accepted_qty !== undefined) {
+            acceptedQtyEl.textContent = `${c.accepted_qty}${c.unit_name ? ' ' + c.unit_name : ''}`;
+            acceptedQtySection.style.display = '';
+        } else {
+            acceptedQtySection.style.display = 'none';
+        }
+
+        // Żądana rekompensata — informacja od sklepu (zawsze widoczna)
+        document.getElementById('modalRequestedAction').innerHTML = c.requested_action
+            ? `<span class="badge bg-secondary">${escHtml(labelRequestedAction(c.requested_action))}</span>`
+            : `<span class="text-muted fst-italic">${t.not_specified}</span>`;
+
+        // Sposób rekompensaty — wybór dostawcy, widoczny dopiero po rozpatrzeniu
+        const compMethodSection = document.getElementById('modalCompensationMethodSection');
+        const compMethodEl      = document.getElementById('modalCompensationMethod');
+        if ((c.status === 'ACCEPTED' || c.status === 'REJECTED') && c.compensation_method) {
+            compMethodEl.textContent = labelCompensationMethod(c.compensation_method);
+            compMethodSection.style.display = '';
+        } else {
+            compMethodSection.style.display = 'none';
+        }
+
+        // Pasek trybu zarządzania
+        const modeAlert = document.getElementById('modalModeAlert');
+        if (c.is_portal_managed) {
+            modeAlert.style.display = 'none';
+            modeAlert.innerHTML = '';
+        } else {
+            modeAlert.style.display = 'block';
+            modeAlert.innerHTML = `
+                <div class="alert alert-warning d-flex align-items-center gap-2 mb-0 rounded-0 border-0 border-bottom py-2 px-4" style="font-size:.85rem;">
+                    <i class="bi bi-plug-fill fs-5 flex-shrink-0" style="color:#6f42c1;"></i>
+                    <span>
+                        <strong>${t.integration_managed}</strong> — ${t.integration_managed_tooltip}
+                    </span>
+                    <span class="badge ms-auto" style="background-color:#6f42c1;">${t.read_only}</span>
+                </div>`;
+        }
+
+        const descEl = document.getElementById('modalDescription');
+        descEl.innerHTML = c.description
+            ? escHtml(c.description)
+            : `<span class="text-muted fst-italic">${t.no_description}</span>`;
+
+        const respEl = document.getElementById('modalProductionResponse');
+        respEl.innerHTML = c.production_response
+            ? escHtml(c.production_response)
+            : `<span class="text-muted fst-italic">${t.no_response}</span>`;
+
+        let dates = `${t.date_of_report}: <strong>${c.reported_at ?? '—'}</strong>`;
+        if (c.updated_at && c.updated_at !== c.reported_at && c.updated_at !== c.created_at) {
+            dates += `\u00A0\u00A0|\u00A0\u00A0${t.last_update}: <strong>${c.updated_at}</strong>`;
+        }
+        document.getElementById('modalDates').innerHTML = dates;
+
+        const attachEl = document.getElementById('modalAttachmentsList');
+        if (c.attachments && c.attachments.length > 0) {
+            let html = '<div class="list-group list-group-flush border rounded">';
+            c.attachments.forEach(file => {
+                const icon = getMimeIcon(file.mime);
+                const size = formatBytes(file.size);
+                html += `<div class="list-group-item px-3 py-2 d-flex align-items-center gap-2">
+                    <i class="bi ${icon} fs-5 flex-shrink-0"></i>
+                    <span class="flex-grow-1 text-truncate" title="${escAttr(file.name)}">${escHtml(file.name)}</span>
+                    ${size ? `<small class="text-muted text-nowrap">${size}</small>` : ''}
+                    <button class="btn btn-sm btn-outline-primary ms-2 flex-shrink-0"
+                            onclick="downloadAttachment('${escAttr(file.id)}')">
+                        <i class="bi bi-download me-1"></i>${t.attachment}
+                    </button>
+                </div>`;
+            });
+            html += '</div>';
+            attachEl.innerHTML = html;
+        } else {
+            attachEl.innerHTML = '<span class="text-muted fst-italic small">—</span>';
+        }
+
+        // Panel akcji
+        renderActionsSection(c);
+
+        new bootstrap.Modal(document.getElementById('complaintDetailsModal')).show();
+    }
+
+    /**
+     * Renderuje panel akcji w modalu w zależności od statusu i trybu zarządzania reklamacją.
+     * Wyświetla odpowiednie przyciski/formularz tylko dla portal-managed + edytowalnych statusów.
+     */
+    function renderActionsSection(c) {
+        const section = document.getElementById('modalActionsSection');
+        if (!section) return;
+
+        // Reklamacje integracyjne, NEW lub już zamknięte (ACCEPTED/REJECTED) — brak akcji
+        if (!c.is_portal_managed) {
+            section.style.display = 'none';
+            section.innerHTML = '';
+            return;
+        }
+
+        if (c.status === 'ACCEPTED' || c.status === 'REJECTED') {
+            section.style.display = '';
+            section.innerHTML = `
+                <div class="alert alert-light border mb-0">
+                    <i class="bi bi-archive me-2 text-muted"></i>
+                    <span class="text-muted">${t.archived_notice}</span>
+                </div>`;
+            return;
+        }
+
+        if (c.status === 'NEW') {
+            section.style.display = '';
+            section.innerHTML = `
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="mb-3"><i class="bi bi-lightning me-2 text-primary"></i>${t.actions}</h6>
+                        <div class="d-grid">
+                            <button class="btn btn-success" onclick="takeReview(${c.id})">
+                                <i class="bi bi-check2-circle me-1"></i>${t.action_take_review}
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        if (c.status === 'IN_REVIEW') {
+            const maxQty   = c.qty ?? 0;
+            // Domyślny wybór compensation_method — bazujemy na requested_action zgłoszonej przez sklep
+            const reqAct   = (c.requested_action || '').toUpperCase();
+            const defaultMethod = reqAct === 'REFUND'      ? 'REFUND'
+                                : reqAct === 'CREDIT'      ? 'CREDIT_NOTE'
+                                : reqAct === 'REPLACEMENT' ? 'REPLACEMENT'
+                                : '';
+            const sel = (v) => defaultMethod === v ? 'selected' : '';
+            const reqHint = c.requested_action
+                ? `<div class="form-text">${t.requested_action}: <strong>${escHtml(labelRequestedAction(c.requested_action))}</strong></div>`
+                : '';
+
+            section.style.display = '';
+            section.innerHTML = `
+                <div class="card border-0 bg-light">
+                    <div class="card-body">
+                        <h6 class="mb-3"><i class="bi bi-lightning me-2 text-primary"></i>${t.actions}</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">${t.accepted_qty}</label>
+                            <input type="number" id="actionAcceptedQty" class="form-control"
+                                   min="0" max="${maxQty}" step="0.001" value="${maxQty}">
+                            <div class="form-text">${t.accepted_qty_hint}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">${t.compensation_method_label}</label>
+                            <select id="actionCompensationMethod" class="form-select">
+                                <option value="" ${defaultMethod === '' ? 'selected' : ''}>${t.compensation_method_select}</option>
+                                <option value="REPLACEMENT" ${sel('REPLACEMENT')}>${t.compensation_method_replacement}</option>
+                                <option value="CREDIT_NOTE" ${sel('CREDIT_NOTE')}>${t.compensation_method_credit_note}</option>
+                                <option value="REFUND"      ${sel('REFUND')}>${t.compensation_method_refund}</option>
+                                <option value="OTHER">${t.compensation_method_other}</option>
+                            </select>
+                            ${reqHint}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small text-muted mb-1">${t.response_label}</label>
+                            <textarea id="actionResponse" class="form-control" rows="3"
+                                      placeholder="${t.response_placeholder}"></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary flex-grow-1" onclick="acceptComplaint(${c.id}, ${maxQty})">
+                                <i class="bi bi-check2-square me-1"></i>${t.action_accept}
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="rejectComplaint(${c.id})">
+                                <i class="bi bi-x-circle me-1"></i>${t.action_reject}
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        // status NEW lub inne — brak akcji, ale nie blokujemy widoku
+        section.style.display = 'none';
+        section.innerHTML = '';
+    }
+
+    // ── Akcje dostawcy ──────────────────────────────────────────────────────────
+
+    function takeReview(id) {
+        Swal.fire({
+            title: t.action_take_review,
+            text: t.confirm_take_review,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: t.action_take_review,
+            cancelButtonText: '{{ translations.complaints_back }}'
+        }).then(result => {
+            if (!result.isConfirmed) return;
+            updateComplaint(id, { status: 'IN_REVIEW' });
+        });
+    }
+
+    function acceptComplaint(id, maxQty) {
+        const qtyInput     = document.getElementById('actionAcceptedQty');
+        const qty          = parseFloat(qtyInput?.value ?? maxQty);
+        const response     = document.getElementById('actionResponse')?.value?.trim() ?? '';
+        const compensation = document.getElementById('actionCompensationMethod')?.value ?? '';
+
+        if (isNaN(qty) || qty < 0) {
+            showSnack(false, t.invalid_qty);
+            return;
+        }
+        if (qty > maxQty) {
+            showSnack(false, t.qty_exceeds);
+            return;
+        }
+
+        const payload = {
+            status:              'ACCEPTED',
+            accepted_qty:        qty,
+            production_response: response
+        };
+        if (compensation) {
+            payload.compensation_method = compensation;
+        }
+
+        updateComplaint(id, payload);
+    }
+
+    function rejectComplaint(id) {
+        const response = document.getElementById('actionResponse')?.value?.trim() ?? '';
+        if (response.length < 3) {
+            showSnack(false, t.response_required);
+            return;
+        }
+        if (response.length > 2000) {
+            showSnack(false, 'Komentarz jest za długi (max 2000 znaków).');
+            return;
+        }
+
+        updateComplaint(id, {
+            status:              'REJECTED',
+            production_response: response
+        });
+    }
+
+    function updateComplaint(id, payload) {
+        // Zablokuj wszystkie przyciski w modalu
+        document.querySelectorAll('#modalActionsSection button').forEach(b => b.disabled = true);
+
+        fetch(`${t.root}/ajax/complaints/${encodeURIComponent(id)}`, {
+            method:  'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(result => {
+            if (result.ok) {
+                showSnack(true, result.description || t.update_success);
+                bootstrap.Modal.getInstance(document.getElementById('complaintDetailsModal'))?.hide();
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showSnack(false, result.description || t.update_error);
+                document.querySelectorAll('#modalActionsSection button').forEach(b => b.disabled = false);
+            }
+        })
+        .catch(() => {
+            showSnack(false, t.update_error);
+            document.querySelectorAll('#modalActionsSection button').forEach(b => b.disabled = false);
+        });
+    }
+
+    // ── Pobieranie załączników ──────────────────────────────────────────────────
+
+    function downloadAttachment(uuid) {
+        fetch(`${t.root}/ajax/complaints/attachment/${encodeURIComponent(uuid)}`)
+            .then(r => r.json())
+            .then(result => {
+                const url = result?.data?.url ?? result?.url;
+                if (url) {
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.target = '_blank';
+                    a.download = '';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            })
+            .catch(err => console.error('Błąd pobierania załącznika', err));
+    }
+
+    // ── Helpers ─────────────────────────────────────────────────────────────────
+
+    function escHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function escAttr(s) {
+        return String(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+</script>
+<style>
+    .filter-badge {
+        cursor: pointer;
+        opacity: .5;
+        transition: opacity .15s ease, box-shadow .15s ease;
+        user-select: none;
+    }
+    .filter-badge:hover { opacity: .8; }
+    .filter-badge.active {
+        opacity: 1;
+        box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(0,0,0,.35);
+    }
+    .shop-badge.bg-light.active {
+        box-shadow: 0 0 0 2px #fff, 0 0 0 4px #6c757d;
+    }
+    /* Subtelne przyciemnienie wierszy integracji */
+    .table-row-integration {
+        opacity: .82;
+    }
+    .table-row-integration:hover {
+        opacity: 1;
+    }
+</style>
+{% endblock %}

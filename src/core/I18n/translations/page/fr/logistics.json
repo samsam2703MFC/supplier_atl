@@ -1,0 +1,20 @@
+{
+    "logistics_title": "Logistique",
+    "logistics_heading": "Logistique",
+    "logistics_subtitle": "Livraisons à venir basées sur la date de livraison prévue",
+    "logistics_empty": "Aucune livraison à venir. Les commandes avec le statut NOUVEAU ou EN TRANSIT apparaîtront ici.",
+    "logistics_empty_group": "Aucune commande dans ce groupe.",
+    "logistics_total_label": "livraisons",
+    "logistics_group_today": "Aujourd'hui",
+    "logistics_group_tomorrow": "Demain",
+    "logistics_group_this_week": "Cette semaine",
+    "logistics_group_later": "Plus tard / sans date",
+    "logistics_col_order_key": "N° commande",
+    "logistics_col_shop": "Magasin",
+    "logistics_col_expected_date": "Livraison prévue",
+    "logistics_col_order_date": "Date de commande",
+    "logistics_col_value_net": "Valeur (HT)",
+    "logistics_col_status": "Statut",
+    "logistics_status_new": "Nouveau",
+    "logistics_status_in_transit": "En transit"
+}

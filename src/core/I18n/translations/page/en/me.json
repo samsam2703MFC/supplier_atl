@@ -24,7 +24,30 @@
   "supplier_email_label": "E-mail",
 
   "not_provided": "Not provided",
-  "read_only_hint": "This is an informational view (no editing).",
-  "contact_hint": "Contact details are used for communication within the franchise network integration."
+  "read_only_hint": "Identification and address data can only be changed by the network administrator.",
+  "contact_hint": "Contact details are used for communication within the franchise network integration.",
+
+  "supplier_logo_section": "Company logo",
+  "supplier_logo_hint": "JPG, PNG or WebP, max 2 MB.",
+  "supplier_logo_upload_btn": "Upload logo",
+  "supplier_logo_alt": "Company logo",
+
+  "supplier_profile_edit_title": "Profile details",
+  "supplier_profile_edit_hint": "This information is visible within the platform.",
+
+  "supplier_iban_label": "IBAN",
+  "supplier_iban_placeholder": "e.g. GB29 NWBK 6016 1331 9268 19",
+  "supplier_website_label": "Website",
+  "supplier_website_placeholder": "https://",
+  "supplier_notes_label": "Notes",
+  "supplier_notes_placeholder": "Internal notes about this supplier account...",
+
+  "save_btn": "Save",
+  "cancel_btn": "Cancel",
+
+  "profile_saved": "Profile saved successfully.",
+  "profile_save_failed": "An error occurred while saving the profile.",
+  "logo_uploaded": "Logo uploaded successfully.",
+  "logo_upload_failed": "An error occurred while uploading the logo."
 }
 

@@ -7,26 +7,32 @@ class CookieManager {
 
     public function setAuthCookie($accessToken, $expiryTokenDate)
     {
+        $expires = strtotime($expiryTokenDate);
 
         $res_access = setcookie('supplier_access_token', $accessToken, [
-            'expires' => strtotime($expiryTokenDate), // Poprawiony timestamp
+            'expires' => $expires,
             'path' => '/',
             'secure' => true,
             'httponly' => true,
             'samesite' => 'Strict',
         ]);
 
-        if(!$res_access) return false;
+        if (!$res_access) return false;
+
+        // Update superglobal so the new token is available in the current request
+        $_COOKIE['supplier_access_token'] = $accessToken;
 
         $res_expiry = setcookie('supplier_access_token_expiry', $expiryTokenDate, [
-            'expires' => strtotime($expiryTokenDate), // Poprawiony timestamp
+            'expires' => $expires,
             'path' => '/',
             'secure' => true,
             'httponly' => true,
             'samesite' => 'Strict',
         ]);
 
-        if(!$res_expiry) return false;
+        if (!$res_expiry) return false;
+
+        $_COOKIE['supplier_access_token_expiry'] = $expiryTokenDate;
 
         return true;
     }
@@ -44,6 +50,9 @@ class CookieManager {
             'httponly' => true,
             'samesite' => 'Strict',
         ]);
+
+        // Update superglobal so the new refresh token is available in the current request
+        $_COOKIE['supplier_refresh_token'] = $refreshToken;
 
         // to cookie z datą jest opcjonalne — i tak możesz policzyć time()+TTL
         setcookie('supplier_refresh_token_expiry', date('Y-m-d H:i:s', $expiresAt), [

@@ -23,6 +23,29 @@
   "supplier_phone_label": "Telefoon",
   "supplier_email_label": "E-mail",
 
+  "supplier_logo_section": "Bedrijfslogo",
+  "supplier_logo_hint": "JPG, PNG of WebP, max. 2 MB.",
+  "supplier_logo_upload_btn": "Logo uploaden",
+  "supplier_logo_alt": "Bedrijfslogo",
+
+  "supplier_profile_edit_title": "Profielgegevens",
+  "supplier_profile_edit_hint": "Deze informatie is zichtbaar op het platform.",
+
+  "supplier_iban_label": "IBAN",
+  "supplier_iban_placeholder": "bijv. NL91 ABNA 0417 1643 00",
+  "supplier_website_label": "Website",
+  "supplier_website_placeholder": "https://",
+  "supplier_notes_label": "Notities",
+  "supplier_notes_placeholder": "Interne notities over dit leveranciersaccount...",
+
+  "save_btn": "Opslaan",
+  "cancel_btn": "Annuleren",
+
+  "profile_saved": "Profiel succesvol opgeslagen.",
+  "profile_save_failed": "Er is een fout opgetreden bij het opslaan van het profiel.",
+  "logo_uploaded": "Logo succesvol geüpload.",
+  "logo_upload_failed": "Er is een fout opgetreden bij het uploaden van het logo.",
+
   "not_provided": "Niet opgegeven",
   "read_only_hint": "Dit is een informatief weergave (niet bewerkbaar).",
   "contact_hint": "Contactgegevens worden gebruikt voor communicatie binnen de franchise-integratie."

@@ -54,4 +54,14 @@ class ProductService
     {
         return $this->catalogProductRepository->unassignAllergen($productId, $allergenId);
     }
+
+    public function uploadPhoto($productId, array $file): array
+    {
+        return $this->catalogProductRepository->uploadPhoto($productId, $file);
+    }
+
+    public function deletePhoto($productId): array
+    {
+        return $this->catalogProductRepository->deletePhoto($productId);
+    }
 }

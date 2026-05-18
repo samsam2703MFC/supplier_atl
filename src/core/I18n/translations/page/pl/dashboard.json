@@ -25,5 +25,27 @@
   "not_available": "Brak danych",
 
   "catalog": "Katalog",
-  "price_lists": "Cenniki"
+  "price_lists": "Cenniki",
+
+  "dashboard_kpi_revenue": "Przychód w tym miesiącu",
+  "dashboard_kpi_orders": "Aktywne zamówienia",
+  "dashboard_kpi_open_complaints": "Otwarte reklamacje",
+  "dashboard_kpi_current_month": "Bieżący miesiąc",
+  "dashboard_kpi_requires_action": "Wymaga działania",
+  "dashboard_top_products": "Top 5 produktów (rok)",
+  "dashboard_open_complaints": "Otwarte reklamacje",
+  "dashboard_see_analytics": "Analityki →",
+  "dashboard_see_all": "Wszystkie →",
+  "dashboard_no_data": "Brak danych.",
+  "dashboard_no_open_complaints": "Brak otwartych reklamacji.",
+  "dashboard_col_product": "Produkt",
+  "dashboard_col_qty": "Ilość",
+  "dashboard_col_revenue": "Przychód",
+  "dashboard_col_shop": "Sklep",
+  "dashboard_col_status": "Status",
+  "dashboard_kpi_shops": "Aktywne sklepy",
+  "dashboard_revenue_by_shop": "Przychód wg sklepu (rok)",
+  "dashboard_shop_breakdown": "Zestawienie sklepów",
+  "dashboard_col_orders_count": "Zamówienia",
+  "dashboard_col_date": "Data"
 }

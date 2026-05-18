@@ -1,0 +1,390 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.recipes_title }}{% endblock %}
+
+{% block head %}
+<style>
+.rec-table th,.rec-table td{vertical-align:middle;}
+.rec-empty{text-align:center;padding:48px 16px;color:#94A3B8;}
+.rec-empty i{font-size:32px;opacity:.4;display:block;margin-bottom:8px;}
+.rec-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
+.rec-pill-active{background:#DCFCE7;color:#15803D;}
+.rec-pill-archived{background:#F1F5F9;color:#94A3B8;}
+.rec-action-btn{width:32px;height:32px;border-radius:6px;border:1px solid #E2E8F0;background:#fff;color:#475569;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.rec-action-btn:hover{background:#6366F1;color:#fff;border-color:#6366F1;}
+.rec-allergen-badge{display:inline-flex;align-items:center;gap:4px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;margin:2px;}
+.rec-detail-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed #E2E8F0;}
+.rec-detail-row:last-child{border-bottom:none;}
+.rec-detail-label{color:#64748B;font-size:12px;text-transform:uppercase;letter-spacing:.04em;}
+.rec-detail-value{font-weight:600;color:#0F172A;text-align:right;}
+.rec-ingredient-table th,.rec-ingredient-table td{vertical-align:middle;}
+.rec-ingredient-table .num{font-variant-numeric:tabular-nums;text-align:right;}
+.rec-no-price{color:#EF4444;font-size:10px;font-weight:600;}
+.rec-summary-bar{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px 16px;}
+.rec-summary-item{display:flex;flex-direction:column;align-items:center;}
+.rec-summary-value{font-size:20px;font-weight:700;color:#0F172A;font-variant-numeric:tabular-nums;}
+.rec-summary-label{font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.04em;}
+.rec-cost-incomplete{font-size:11px;color:#EF4444;margin-top:2px;}
+.rec-add-ingredient-form{background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:8px;padding:12px;}
+</style>
+{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <h3>{{ translations.recipes_title }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.recipes_subtitle }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/alerts.twig" %}
+
+    <div class="row">
+        <div class="col-12">
+
+            <div class="alert alert-light-primary d-flex align-items-start gap-2">
+                <i class="bi bi-info-circle mt-1"></i>
+                <div>
+                    <div class="fw-bold">{{ translations.recipes_help_title }}</div>
+                    <div class="small">{{ translations.recipes_help_body }}</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <h4 class="card-title mb-0">{{ translations.recipes_table }}</h4>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" id="btnAddRecipe">
+                            <i class="bi bi-plus-lg me-1"></i>{{ translations.add_recipe }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-2 align-items-end mb-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.filter_and_search }}</label>
+                            <input id="filterSearch" type="text" class="form-control"
+                                   placeholder="{{ translations.search_placeholder }}">
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.filter_product }}</label>
+                            <select id="filterProduct" class="form-select">
+                                <option value="">{{ translations.all_products }}</option>
+                                {% for p in products %}
+                                    <option value="{{ p.id }}">{{ p.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">{{ translations.filter_status }}</label>
+                            <select id="filterStatus" class="form-select">
+                                <option value="active">{{ translations.filter_active }}</option>
+                                <option value="archived">{{ translations.filter_archived }}</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-1 d-flex align-items-end">
+                            <button class="btn btn-light w-100" id="btnClearFilters" type="button">
+                                <i class="bi bi-x-circle"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover rec-table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>{{ translations.name }}</th>
+                                    <th style="width:220px;">{{ translations.product }}</th>
+                                    <th style="width:110px;">{{ translations.status }}</th>
+                                    <th style="width:110px;" class="text-end">{{ translations.actions }}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recipesTbody">
+                                <tr><td colspan="4" class="rec-empty">
+                                    <i class="bi bi-hourglass-split"></i>{{ translations.loading }}
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="small text-muted" id="tableMeta"></div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {# ====== MODAL: ADD / EDIT RECIPE ====== #}
+    <div class="modal fade" id="recipeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-journal-text me-2"></i>
+                        <span id="recipeModalTitle">{{ translations.add_recipe }}</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="recId">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">{{ translations.recipe_product }} <span class="text-danger">*</span></label>
+                            <select class="form-select" id="recProductId">
+                                <option value="">{{ translations.recipe_select_product }}</option>
+                            </select>
+                            <div class="form-text">{{ translations.recipe_product_new_hint }}</div>
+                            <div class="invalid-feedback" id="errRecProduct"></div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ translations.technical_notes }}</label>
+                            <textarea class="form-control" id="recTechnicalNotes" rows="4" maxlength="5000"
+                                      placeholder="{{ translations.technical_notes_placeholder }}"></textarea>
+                            <div class="form-text">{{ translations.technical_notes_hint }}</div>
+                            <div class="invalid-feedback" id="errRecNotes"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <small class="text-muted" id="recModalMeta">{{ translations.modal_meta_new }}</small>
+                    <div>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel }}</button>
+                        <button type="button" class="btn btn-primary" id="btnSaveRecipe">
+                            <i class="bi bi-check-lg me-1"></i>{{ translations.save }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Details modal usunięty — kalkulator dostępny pod /recipes/{id} #}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const el = (id) => document.getElementById(id);
+    const ROOT     = {{ (ROOT ?? '')|json_encode|raw }};
+    const PRODUCTS = {{ products|json_encode|raw }};
+
+    function escapeHtml(s) {
+        return String(s ?? '').replace(/[&<>"']/g, m => ({
+            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+        }[m]));
+    }
+
+    const recipeModal = new bootstrap.Modal(el('recipeModal'));
+
+    // ---------------------------------------------------------------
+    //  Errors helpers
+    // ---------------------------------------------------------------
+    function clearFieldErrors() {
+        document.querySelectorAll('.is-invalid').forEach(e => e.classList.remove('is-invalid'));
+        document.querySelectorAll('.invalid-feedback').forEach(e => e.textContent = '');
+    }
+
+    function showErrors(errors) {
+        const fieldMap = {
+            name:            ['recProductId',     'errRecProduct'],
+            product_id:      ['recProductId',     'errRecProduct'],
+            technical_notes: ['recTechnicalNotes','errRecNotes'],
+        };
+        for (const [field, msg] of Object.entries(errors || {})) {
+            if (fieldMap[field]) {
+                const [inputId, errId] = fieldMap[field];
+                const inputEl = el(inputId);
+                if (inputEl) inputEl.classList.add('is-invalid');
+                const errEl = el(errId);
+                if (errEl) errEl.textContent = msg;
+            }
+        }
+    }
+
+    // ---------------------------------------------------------------
+    //  State + product-select helpers
+    // ---------------------------------------------------------------
+    const state = { items: [] };
+
+    function getUsedProductIds() {
+        return new Set(
+            state.items
+                .map(r => r.product_id)
+                .filter(id => id != null)
+                .map(id => String(id))
+        );
+    }
+
+    function rebuildProductSelect(currentProductId = null) {
+        const used = getUsedProductIds();
+        const sel  = el('recProductId');
+        sel.innerHTML = `<option value="">{{ translations.recipe_select_product }}</option>`;
+        PRODUCTS.forEach(p => {
+            const pid = String(p.id);
+            if (!used.has(pid) || pid === String(currentProductId)) {
+                const opt = document.createElement('option');
+                opt.value       = p.id;
+                opt.textContent = p.name;
+                sel.appendChild(opt);
+            }
+        });
+    }
+
+    // ---------------------------------------------------------------
+    //  Render list
+    // ---------------------------------------------------------------
+    function renderRecipes(items) {
+        state.items = items || [];
+        const tbody = el('recipesTbody');
+        if (!items || items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="rec-empty">
+                <i class="bi bi-journal-x"></i>{{ translations.no_results }}
+            </td></tr>`;
+            el('tableMeta').textContent = '';
+            return;
+        }
+
+        tbody.innerHTML = items.map(r => {
+            const productName = r.product_name
+                ? escapeHtml(r.product_name)
+                : '<span class="text-muted small">{{ translations.recipe_no_product }}</span>';
+            const statusHtml = r.is_archived
+                ? `<span class="rec-pill rec-pill-archived">{{ translations.archived }}</span>`
+                : `<span class="rec-pill rec-pill-active">{{ translations.active }}</span>`;
+
+            return `<tr>
+                <td>
+                    <a href="${ROOT}/recipes/${r.id}" class="fw-semibold text-decoration-none text-dark">
+                        ${escapeHtml(r.name)}
+                    </a>
+                </td>
+                <td>${productName}</td>
+                <td>${statusHtml}</td>
+                <td class="text-end">
+                    <a href="${ROOT}/recipes/${r.id}" class="rec-action-btn" title="{{ translations.edit_recipe }}">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="${ROOT}/recipes/${r.id}/steps" class="rec-action-btn" title="{{ translations.steps_page_title|default('Kroki przygotowania') }}">
+                        <i class="bi bi-list-ol"></i>
+                    </a>
+                </td>
+            </tr>`;
+        }).join('');
+
+        el('tableMeta').textContent = items.length + ' ' + '{{ translations.recipes_table|lower }}';
+
+    }
+
+    async function loadRecipes() {
+        const search    = el('filterSearch').value.trim();
+        const productId = el('filterProduct').value;
+        const statusVal = el('filterStatus').value;
+
+        const params = new URLSearchParams();
+        if (search) params.set('name', search);
+        if (productId) params.set('product_id', productId);
+        if (statusVal === 'archived') params.set('is_archived', '1');
+        else if (statusVal === 'active') params.set('is_archived', '0');
+
+        const qs = params.toString();
+        const resp = await api('/ajax/recipes' + (qs ? '?' + qs : ''));
+        renderRecipes(resp.data ?? []);
+    }
+
+    // ---------------------------------------------------------------
+    //  Add / Edit modal
+    // ---------------------------------------------------------------
+    function resetRecipeForm() {
+        clearFieldErrors();
+        el('recProductId').value      = '';
+        el('recTechnicalNotes').value = '';
+    }
+
+    function openCreateModal() {
+        resetRecipeForm();
+        rebuildProductSelect(null);
+        el('recipeModalTitle').textContent = '{{ translations.add_recipe }}';
+        el('recModalMeta').textContent     = '{{ translations.modal_meta_new }}';
+        recipeModal.show();
+    }
+
+    el('btnAddRecipe').addEventListener('click', openCreateModal);
+
+    el('btnSaveRecipe').addEventListener('click', async () => {
+        clearFieldErrors();
+
+        const productId = el('recProductId').value;
+
+        if (!productId) {
+            el('recProductId').classList.add('is-invalid');
+            el('errRecProduct').textContent = {{ translations.field_required|json_encode|raw }};
+            return;
+        }
+
+        const selectedOpt = el('recProductId').options[el('recProductId').selectedIndex];
+        const derivedName = selectedOpt?.textContent?.trim() ?? '';
+
+        const data = {
+            name:            derivedName || '{{ translations.add_recipe }}',
+            product_id:      productId,
+            technical_notes: el('recTechnicalNotes').value.trim() || null,
+        };
+
+        const resp = await api('/ajax/recipes', { method: 'POST', data });
+
+        if (!resp.ok) {
+            const errors = resp.data?.errors ?? {};
+            if (Object.keys(errors).length > 0) {
+                showErrors(errors);
+            } else {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            }
+            return;
+        }
+
+        recipeModal.hide();
+
+        const newId = resp.data?.inserted_id ?? resp.inserted_id ?? null;
+        if (newId) {
+            window.location.href = ROOT + '/recipes/' + newId;
+        }
+    });
+
+    // ---------------------------------------------------------------
+    //  Filters
+    // ---------------------------------------------------------------
+    let filterTimer = null;
+    el('filterSearch').addEventListener('input', () => {
+        clearTimeout(filterTimer);
+        filterTimer = setTimeout(loadRecipes, 350);
+    });
+    el('filterProduct').addEventListener('change', loadRecipes);
+    el('filterStatus').addEventListener('change', loadRecipes);
+
+    el('btnClearFilters').addEventListener('click', () => {
+        el('filterSearch').value  = '';
+        el('filterProduct').value = '';
+        el('filterStatus').value  = 'active';
+        loadRecipes();
+    });
+
+    // ---------------------------------------------------------------
+    //  Initial load
+    // ---------------------------------------------------------------
+    loadRecipes();
+});
+</script>
+{% endblock %}

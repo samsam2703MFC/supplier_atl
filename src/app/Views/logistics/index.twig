@@ -1,0 +1,143 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.logistics_title }}{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3>{{ translations.logistics_heading }}</h3>
+                <p class="text-subtitle text-muted">{{ translations.logistics_subtitle }}</p>
+            </div>
+            {% if total > 0 %}
+                <span class="badge bg-primary fs-6">{{ total }} {{ translations.logistics_total_label }}</span>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/messages.twig" %}
+
+    {% set statusMap = {
+        'NEW':        'primary',
+        'IN_TRANSIT': 'info'
+    } %}
+
+    {% macro deliveries_table(orders, translations, statusMap) %}
+        {% if orders is empty %}
+            <p class="text-muted text-center py-3">{{ translations.logistics_empty_group }}</p>
+        {% else %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>{{ translations.logistics_col_order_key }}</th>
+                            <th>{{ translations.logistics_col_shop }}</th>
+                            <th>{{ translations.logistics_col_expected_date }}</th>
+                            <th>{{ translations.logistics_col_order_date }}</th>
+                            <th class="text-end">{{ translations.logistics_col_value_net }}</th>
+                            <th>{{ translations.logistics_col_status }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                            <tr>
+                                <td><code>{{ order.order_key }}</code></td>
+                                <td>{{ order.shop_name ?? '—' }}</td>
+                                <td>
+                                    {% if order.expected_date %}
+                                        <strong>{{ order.expected_date|date('d.m.Y') }}</strong>
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ order.order_date ? order.order_date|date('d.m.Y') : '—' }}</td>
+                                <td class="text-end">
+                                    {{ order.approximate_value_net is not null
+                                        ? order.approximate_value_net|number_format(2, '.', ' ')
+                                        : '—' }}
+                                </td>
+                                <td>
+                                    {% set badgeColor = statusMap[order.status] ?? 'secondary' %}
+                                    {% set statusKey = 'logistics_status_' ~ order.status|lower %}
+                                    {% set statusLabel = attribute(translations, statusKey) ?? order.status %}
+                                    <span class="badge bg-{{ badgeColor }}">{{ statusLabel }}</span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    {% endmacro %}
+
+    {% if total == 0 %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-truck fs-1 text-muted d-block mb-3"></i>
+                <p class="text-muted">{{ translations.logistics_empty }}</p>
+            </div>
+        </div>
+    {% else %}
+
+        {# Today #}
+        {% if grouped.today is not empty %}
+            <div class="card mb-4 border-success">
+                <div class="card-header bg-success text-white d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar-check"></i>
+                    <strong>{{ translations.logistics_group_today }}</strong>
+                    <span class="badge bg-white text-success ms-auto">{{ grouped.today|length }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {{ _self.deliveries_table(grouped.today, translations, statusMap) }}
+                </div>
+            </div>
+        {% endif %}
+
+        {# Tomorrow #}
+        {% if grouped.tomorrow is not empty %}
+            <div class="card mb-4 border-warning">
+                <div class="card-header bg-warning text-dark d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar-event"></i>
+                    <strong>{{ translations.logistics_group_tomorrow }}</strong>
+                    <span class="badge bg-white text-dark ms-auto">{{ grouped.tomorrow|length }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {{ _self.deliveries_table(grouped.tomorrow, translations, statusMap) }}
+                </div>
+            </div>
+        {% endif %}
+
+        {# This week #}
+        {% if grouped.week is not empty %}
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar-week"></i>
+                    <strong>{{ translations.logistics_group_this_week }}</strong>
+                    <span class="badge bg-secondary ms-auto">{{ grouped.week|length }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {{ _self.deliveries_table(grouped.week, translations, statusMap) }}
+                </div>
+            </div>
+        {% endif %}
+
+        {# Later / no date #}
+        {% if grouped.later is not empty %}
+            <div class="card mb-4">
+                <div class="card-header d-flex align-items-center gap-2">
+                    <i class="bi bi-calendar3"></i>
+                    <strong>{{ translations.logistics_group_later }}</strong>
+                    <span class="badge bg-secondary ms-auto">{{ grouped.later|length }}</span>
+                </div>
+                <div class="card-body p-0">
+                    {{ _self.deliveries_table(grouped.later, translations, statusMap) }}
+                </div>
+            </div>
+        {% endif %}
+
+    {% endif %}
+
+{% endblock %}

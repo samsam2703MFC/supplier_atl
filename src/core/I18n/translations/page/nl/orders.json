@@ -1,0 +1,22 @@
+{
+    "orders_title": "Bestellingen",
+    "orders_heading": "Bestellingen",
+    "orders_subtitle": "Alle bestellingen geplaatst bij uw bedrijf",
+    "orders_empty": "Geen bestellingen gevonden.",
+    "orders_filter_status": "Status",
+    "orders_filter_from": "Datum van",
+    "orders_filter_to": "Datum tot",
+    "orders_filter_apply": "Toepassen",
+    "orders_status_all": "Alle statussen",
+    "orders_status_new": "Nieuw",
+    "orders_status_in_transit": "Onderweg",
+    "orders_status_delivered": "Geleverd",
+    "orders_status_cancelled": "Geannuleerd",
+    "orders_status_archived": "Gearchiveerd",
+    "orders_col_order_key": "Bestelnummer",
+    "orders_col_shop": "Vestiging",
+    "orders_col_order_date": "Besteldatum",
+    "orders_col_expected_date": "Verwachte datum",
+    "orders_col_value_net": "Nettowaarde",
+    "orders_col_status": "Status"
+}

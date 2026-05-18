@@ -25,6 +25,20 @@
   "not_available": "Brak danych",
 
   "catalog": "Katalog",
+  "raw_materials": "Baza surowcw",
+  "recipes": "Receptury",
   "price_lists": "Cenniki",
-  "client" : "Klient"
+  "global_price_list_menu": "Cennik",
+  "client" : "Klient",
+  "orders": "Zamówienia",
+  "complaints": "Reklamacje",
+  "analytics": "Analityki",
+  "rms_menu": "Sprzedaż surowców",
+  "logistics": "Logistyka",
+
+  "back": "Wróć",
+  "hello": "Hej",
+  "notifications": "Powiadomienia",
+  "no_new_notifications": "Brak nowych powiadomień",
+  "settings": "Ustawienia"
 }

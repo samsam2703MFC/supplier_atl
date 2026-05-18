@@ -1,0 +1,22 @@
+{
+    "orders_title": "Commandes",
+    "orders_heading": "Commandes",
+    "orders_subtitle": "Toutes les commandes passées auprès de votre entreprise",
+    "orders_empty": "Aucune commande trouvée.",
+    "orders_filter_status": "Statut",
+    "orders_filter_from": "Date de début",
+    "orders_filter_to": "Date de fin",
+    "orders_filter_apply": "Appliquer",
+    "orders_status_all": "Tous les statuts",
+    "orders_status_new": "Nouvelle",
+    "orders_status_in_transit": "En transit",
+    "orders_status_delivered": "Livrée",
+    "orders_status_cancelled": "Annulée",
+    "orders_status_archived": "Archivée",
+    "orders_col_order_key": "Numéro de commande",
+    "orders_col_shop": "Restaurant",
+    "orders_col_order_date": "Date de commande",
+    "orders_col_expected_date": "Date prévue",
+    "orders_col_value_net": "Valeur nette",
+    "orders_col_status": "Statut"
+}

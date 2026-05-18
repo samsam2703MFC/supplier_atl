@@ -2,126 +2,293 @@
 
 {% block title %}{{ translations.supplier_dashboard }}{% endblock %}
 
+{% block head %}
+<style>
+.dash-sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#64748B;margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
+.dash-sec::after{content:'';flex:1;height:1px;background:#E2E8F0;}
+.kpi-card{border-radius:10px;border:1px solid #E2E8F0;padding:18px 20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05);position:relative;overflow:hidden;}
+.kpi-card .kpi-accent{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:10px 0 0 10px;}
+.kpi-label{font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.kpi-value{font-size:26px;font-weight:700;color:#0F172A;line-height:1.1;}
+.kpi-meta{font-size:11px;margin-top:5px;font-weight:500;color:#94A3B8;}
+.t5-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F1F5F9;}
+.t5-item:last-child{border-bottom:none;}
+.t5-rank{width:22px;height:22px;border-radius:5px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.t5-bar-wrap{flex:1;height:5px;background:#F1F5F9;border-radius:4px;overflow:hidden;}
+.t5-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#6366F1,#818CF8);}
+.t5-val{font-size:12px;font-weight:700;color:#0F172A;min-width:60px;text-align:right;}
+.ri-item{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid #F1F5F9;}
+.ri-item:last-child{border-bottom:none;}
+.rdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.rdot.op{background:#8D1D2C;}
+.rdot.pe{background:#B45309;}
+.ri-shop{font-size:12px;font-weight:600;color:#0F172A;}
+.ri-msg{font-size:11.5px;color:#64748B;margin-top:1px;}
+.ri-date{font-size:11px;color:#94A3B8;white-space:nowrap;}
+</style>
+{% endblock %}
+
 {% block page_heading %}
     <div class="page-heading">
-        <h3>{{ translations.supplier_dashboard }}</h3>
-        <p class="text-subtitle text-muted">{{ translations.supplier_dashboard_subtitle }}</p>
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h3>{{ translations.supplier_dashboard }}</h3>
+                <p class="text-subtitle text-muted">{{ translations.supplier_dashboard_subtitle }}</p>
+            </div>
+            <a href="{{ ROOT }}/analytics" class="btn btn-sm btn-outline-primary">
+                {{ translations.dashboard_see_analytics }}
+            </a>
+        </div>
     </div>
 {% endblock %}
 
 {% block content %}
 
-    {# alerty globalne (wg Twojego wzorca) #}
     {% include "page_components/alerts.twig" %}
 
-    <div class="row">
+    {# KPI CARDS #}
+    <div class="dash-sec">{{ translations.dashboard_kpi_current_month }}</div>
+    <div class="row g-3 mb-2">
 
-        {# QUICK ACTIONS #}
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h4 class="card-title">{{ translations.quick_actions }}</h4>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-accent" style="background:#6366F1;"></div>
+                <div class="kpi-label">{{ translations.dashboard_kpi_revenue }}</div>
+                <div class="kpi-value">
+                    {{ kpi.revenue_net is not null ? kpi.revenue_net|number_format(0, '.', ' ') : '0' }}
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
-
-                        <div class="col-12 col-md-4">
-                            <a href="{{ ROOT }}/catalog" class="card border shadow-sm h-100 text-decoration-none">
-                                <div class="card-body d-flex gap-3 align-items-start">
-                                    <div class="avatar avatar-lg">
-                                        <span class="avatar-content bg-light-primary">
-                                            <i class="bi bi-box-seam"></i>
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-1 text-dark">{{ translations.manage_catalog }}</h5>
-                                        <div class="text-muted small">{{ translations.manage_catalog_subtitle }}</div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-
-                        <div class="col-12 col-md-4">
-                            <a href="{{ ROOT }}/clients" class="card border shadow-sm h-100 text-decoration-none">
-                                <div class="card-body d-flex gap-3 align-items-start">
-                                    <div class="avatar avatar-lg">
-                                        <span class="avatar-content bg-light-success">
-                                            <i class="bi bi-tags"></i>
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-1 text-dark">{{ translations.manage_price_lists }}</h5>
-                                        <div class="text-muted small">{{ translations.manage_price_lists_subtitle }}</div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-
-                        <div class="col-12 col-md-4">
-                            <a href="{{ ROOT }}/me" class="card border shadow-sm h-100 text-decoration-none">
-                                <div class="card-body d-flex gap-3 align-items-start">
-                                    <div class="avatar avatar-lg">
-                                        <span class="avatar-content bg-light-warning">
-                                            <i class="bi bi-person"></i>
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <h5 class="mb-1 text-dark">{{ translations.view_profile }}</h5>
-                                        <div class="text-muted small">{{ translations.view_profile_subtitle }}</div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-
-                    </div>
-                </div>
+                <div class="kpi-meta"><i class="bi bi-currency-euro"></i> net</div>
             </div>
         </div>
 
-        {# STATS #}
-        <div class="col-12">
-            <div class="row g-3">
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-accent" style="background:#22C55E;"></div>
+                <div class="kpi-label">{{ translations.dashboard_kpi_orders }}</div>
+                <div class="kpi-value">{{ kpi.orders_active|default(0) }}</div>
+                <div class="kpi-meta"><i class="bi bi-receipt"></i> {{ translations.dashboard_kpi_current_month }}</div>
+            </div>
+        </div>
 
-                <div class="col-12 col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body d-flex align-items-center justify-content-between">
-                            <div>
-                                <div class="text-muted small">{{ translations.products_in_catalog }}</div>
-                                <div class="fs-3 fw-bold">{{ stats.catalog_products_count|default(0) }}</div>
-                            </div>
-                            <i class="bi bi-box-seam fs-2 text-muted"></i>
-                        </div>
-                    </div>
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-accent" style="background:#14B8A6;"></div>
+                <div class="kpi-label">{{ translations.dashboard_kpi_shops ?? 'Shops' }}</div>
+                <div class="kpi-value">{{ kpi.shops_count|default(0) }}</div>
+                <div class="kpi-meta"><i class="bi bi-shop"></i> {{ translations.dashboard_kpi_current_month }}</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+                <div class="kpi-accent" style="background:{{ open_complaints|length > 0 ? '#EF4444' : '#94A3B8' }};"></div>
+                <div class="kpi-label">{{ translations.dashboard_kpi_open_complaints }}</div>
+                <div class="kpi-value">{{ open_complaints|length }}</div>
+                <div class="kpi-meta {{ open_complaints|length > 0 ? 'text-danger' : '' }}">
+                    {% if open_complaints|length > 0 %}
+                        <i class="bi bi-exclamation-triangle"></i> {{ translations.dashboard_kpi_requires_action }}
+                    {% else %}
+                        <i class="bi bi-check-circle text-success"></i> OK
+                    {% endif %}
                 </div>
-
-                <div class="col-12 col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body d-flex align-items-center justify-content-between">
-                            <div>
-                                <div class="text-muted small">{{ translations.active_price_lists }}</div>
-                                <div class="fs-3 fw-bold">{{ stats.price_lists_count|default(0) }}</div>
-                            </div>
-                            <i class="bi bi-tags fs-2 text-muted"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body d-flex align-items-center justify-content-between">
-                            <div>
-                                <div class="text-muted small">{{ translations.last_update }}</div>
-                                <div class="fw-bold">
-                                    {{ stats.last_update|default(translations.not_available) }}
-                                </div>
-                            </div>
-                            <i class="bi bi-clock-history fs-2 text-muted"></i>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
 
     </div>
+
+    {# TOP 5 + COMPLAINTS #}
+    <div class="dash-sec">{{ translations.dashboard_top_products }}</div>
+    <div class="row g-3 mb-2">
+
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">{{ translations.dashboard_top_products }}</h6>
+                    <a href="{{ ROOT }}/analytics" class="btn btn-sm btn-ghost" style="font-size:12px;color:#6366F1;">{{ translations.dashboard_see_analytics }}</a>
+                </div>
+                <div class="card-body">
+                    {% if top_products is empty %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-bar-chart fs-2 text-muted d-block mb-2"></i>
+                            <p class="text-muted small">{{ translations.dashboard_no_data }}</p>
+                        </div>
+                    {% else %}
+                        {% set maxQty = top_products[0].total_qty %}
+                        {% for i, product in top_products %}
+                            <div class="t5-item">
+                                {% if i == 0 %}
+                                    <div class="t5-rank" style="background:#FEF3C7;color:#D97706;">1</div>
+                                {% elseif i == 1 %}
+                                    <div class="t5-rank" style="background:#F1F5F9;color:#475569;">2</div>
+                                {% elseif i == 2 %}
+                                    <div class="t5-rank" style="background:#FEF2E7;color:#92400E;">3</div>
+                                {% else %}
+                                    <div class="t5-rank" style="background:#EEF2FF;color:#6366F1;">{{ i + 1 }}</div>
+                                {% endif %}
+                                <div style="flex:1;min-width:0;">
+                                    <div class="fw-semibold text-truncate" style="font-size:13px;">{{ product.material_name ?? '—' }}</div>
+                                    <div class="t5-bar-wrap mt-1">
+                                        <div class="t5-bar" style="width:{{ maxQty > 0 ? ((product.total_qty / maxQty) * 100)|round : 0 }}%"></div>
+                                    </div>
+                                </div>
+                                <div class="t5-val">{{ product.total_qty|number_format(0, '.', ' ') }} u.</div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="card-title mb-0">{{ translations.dashboard_open_complaints }}</h6>
+                    <a href="{{ ROOT }}/complaints" class="btn btn-sm btn-ghost" style="font-size:12px;color:#EF4444;">{{ translations.dashboard_see_all }}</a>
+                </div>
+                <div class="card-body">
+                    {% if open_complaints is empty %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-check-circle fs-2 text-success d-block mb-2"></i>
+                            <p class="text-muted small">{{ translations.dashboard_no_open_complaints }}</p>
+                        </div>
+                    {% else %}
+                        {% for complaint in open_complaints|slice(0, 5) %}
+                            <div class="ri-item">
+                                <div class="d-flex gap-2">
+                                    <span class="rdot {{ complaint.status == 'NEW' ? 'op' : 'pe' }}"></span>
+                                    <div>
+                                        <div class="ri-shop">{{ complaint.shop_name ?? '—' }}</div>
+                                        <div class="ri-msg">{{ complaint.material_name ?? '—' }}</div>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{{ complaint.status == 'NEW' ? 'danger' : 'warning' }} bg-opacity-10" style="font-size:10px;color:{{ complaint.status == 'NEW' ? '#8D1D2C' : '#92400E' }};">
+                                        {{ complaint.status }}
+                                    </span>
+                                    <div class="ri-date">{{ complaint.reported_at ? complaint.reported_at|date('d.m') : '—' }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    {# CHARTS: revenue by shop #}
+    <div class="dash-sec">{{ translations.dashboard_revenue_by_shop }}</div>
+    <div class="row g-3">
+
+        <div class="col-12 col-lg-5">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">{{ translations.dashboard_revenue_by_shop }}</h6>
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    {% if shop_revenue is empty %}
+                        <p class="text-muted text-center py-4">{{ translations.dashboard_no_data }}</p>
+                    {% else %}
+                        <canvas id="shopDoughnut" style="max-height:220px;max-width:260px;"></canvas>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-7">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">{{ translations.dashboard_shop_breakdown ?? 'Shop breakdown' }}</h6>
+                </div>
+                <div class="card-body p-0">
+                    {% if shop_revenue is empty %}
+                        <p class="text-muted text-center py-4 px-3">{{ translations.dashboard_no_data }}</p>
+                    {% else %}
+                        {% set totalShopRev = shop_revenue|map(r => r.revenue_net)|reduce((carry, v) => carry + v, 0) %}
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="ps-3">{{ translations.dashboard_col_shop }}</th>
+                                        <th class="text-center">{{ translations.dashboard_col_orders_count ?? 'Orders' }}</th>
+                                        <th class="text-end pe-3">{{ translations.dashboard_col_revenue }}</th>
+                                        <th class="pe-3" style="width:80px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for shop in shop_revenue %}
+                                        {% set pct = totalShopRev > 0 ? ((shop.revenue_net / totalShopRev) * 100)|round(1) : 0 %}
+                                        <tr>
+                                            <td class="ps-3 fw-semibold" style="font-size:13px;">{{ shop.shop_name }}</td>
+                                            <td class="text-center">{{ shop.order_count }}</td>
+                                            <td class="text-end pe-3">{{ shop.revenue_net|number_format(2, '.', ' ') }}</td>
+                                            <td class="pe-3">
+                                                <div class="d-flex align-items-center gap-1">
+                                                    <div style="height:5px;flex:1;background:#F1F5F9;border-radius:4px;overflow:hidden;">
+                                                        <div style="height:100%;width:{{ pct }}%;background:#6366F1;border-radius:4px;"></div>
+                                                    </div>
+                                                    <span style="font-size:10px;color:#94A3B8;min-width:28px;">{{ pct }}%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+{% if shop_revenue is not empty %}
+<script src="{{ ROOT }}/assets/vendors/chartjs/Chart.bundle.min.js"></script>
+<script>
+(function () {
+    var labels = {{ shop_revenue|map(r => r.shop_name)|json_encode|raw }};
+    var values = {{ shop_revenue|map(r => r.revenue_net)|json_encode|raw }};
+    var colors = [
+        '#6366F1','#22C55E','#F59E0B','#EF4444','#14B8A6',
+        '#8B5CF6','#F97316','#06B6D4','#EC4899','#84CC16'
+    ];
+
+    new Chart(document.getElementById('shopDoughnut').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors.slice(0, labels.length),
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            cutoutPercentage: 62,
+            legend: {
+                position: 'bottom',
+                labels: { fontSize: 11, boxWidth: 12, padding: 10 }
+            },
+            tooltips: {
+                callbacks: {
+                    label: function(item, data) {
+                        var val = data.datasets[0].data[item.index];
+                        var total = data.datasets[0].data.reduce(function(a, b){ return a + b; }, 0);
+                        var pct = total > 0 ? Math.round((val / total) * 1000) / 10 : 0;
+                        return ' ' + data.labels[item.index] + ': ' + parseFloat(val).toLocaleString('fr-FR', {minimumFractionDigits:2}) + ' (' + pct + '%)';
+                    }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
 {% endblock %}

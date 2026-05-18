@@ -11,7 +11,33 @@
 
 {% block content %}
 
-    {% include "page_components/alerts.twig" %}
+    {% include "page_components/messages.twig" %}
+
+    {# Translate message keys to human-readable text #}
+    {% if successes is defined and successes|length %}
+        <div class="row justify-content-center mb-2">
+            <div class="col-12 col-md-8">
+                {% for key in successes %}
+                    <div class="alert alert-success d-flex align-items-center gap-2" role="alert">
+                        <i class="bi bi-check-circle-fill"></i>
+                        {{ translations[key] ?? key }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+    {% if errors is defined and errors|length %}
+        <div class="row justify-content-center mb-2">
+            <div class="col-12 col-md-8">
+                {% for key in errors %}
+                    <div class="alert alert-danger d-flex align-items-center gap-2" role="alert">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                        {{ translations[key] ?? key }}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
 
     <div class="row">
         <div class="col-12">
@@ -29,22 +55,34 @@
 
             <div class="row g-3">
 
-                {# SUMMARY CARD #}
+                {# SUMMARY + LOGO CARD #}
                 <div class="col-12 col-lg-4">
                     <div class="card h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="avatar avatar-lg bg-light-primary">
-                                    <i class="bi bi-building fs-4 text-primary"></i>
+                        <div class="card-body d-flex flex-column">
+
+                            {# Logo / avatar #}
+                            <div class="text-center mb-3">
+                                {% set logoSrc = supplier.getLogoSignedUrl() ?? supplier.getLogoUrl() ?? null %}
+                                {% if logoSrc %}
+                                    <img src="{{ logoSrc }}"
+                                         alt="{{ translations.supplier_logo_alt }}"
+                                         class="rounded img-fluid"
+                                         style="max-height:120px; max-width:200px; object-fit:contain;">
+                                {% else %}
+                                    <div class="avatar avatar-xl bg-light-primary mx-auto">
+                                        <i class="bi bi-building fs-2 text-primary"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            {# Company name + ID #}
+                            <div class="flex-grow-1">
+                                <div class="fw-bold fs-5 text-center">
+                                    {{ supplier.getName() ?? translations.not_provided }}
                                 </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-bold fs-5">
-                                        {{ supplier.getName() ?? supplier.name ?? translations.not_provided }}
-                                    </div>
-                                    <div class="text-muted small">
-                                        {{ translations.supplier_id_label }}:
-                                        <span class="fw-semibold">{{ supplier.getId() ?? supplier.id ?? translations.not_provided }}</span>
-                                    </div>
+                                <div class="text-muted small text-center">
+                                    {{ translations.supplier_id_label }}:
+                                    <span class="fw-semibold">{{ supplier.getId() ?? translations.not_provided }}</span>
                                 </div>
                             </div>
 
@@ -54,16 +92,38 @@
                                 <div class="d-flex justify-content-between gap-3">
                                     <div class="text-muted small">{{ translations.supplier_tax_number_label }}</div>
                                     <div class="fw-semibold text-end">
-                                        {{ supplier.getTaxNumber() ?? supplier.tax_number ?? translations.not_provided }}
+                                        {{ supplier.getTaxNumber() ?? translations.not_provided }}
                                     </div>
                                 </div>
-
                                 <div class="d-flex justify-content-between gap-3">
                                     <div class="text-muted small">{{ translations.supplier_country_code_label }}</div>
                                     <div class="fw-semibold text-end">
-                                        {{ supplier.getCountryCode() ?? supplier.country_code ?? translations.not_provided }}
+                                        {{ supplier.getCountryCode() ?? translations.not_provided }}
                                     </div>
                                 </div>
+                            </div>
+
+                            <hr class="my-3">
+
+                            {# Logo upload form #}
+                            <div>
+                                <div class="fw-bold small mb-2">{{ translations.supplier_logo_section }}</div>
+                                <form method="POST"
+                                      action="{{ ROOT }}/me/logo"
+                                      enctype="multipart/form-data">
+                                    <div class="mb-2">
+                                        <input type="file"
+                                               name="logo"
+                                               id="logoFile"
+                                               accept="image/jpeg,image/png,image/webp,image/gif"
+                                               class="form-control form-control-sm"
+                                               required>
+                                        <div class="form-text small text-muted">{{ translations.supplier_logo_hint }}</div>
+                                    </div>
+                                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                        <i class="bi bi-upload me-1"></i>{{ translations.supplier_logo_upload_btn }}
+                                    </button>
+                                </form>
                             </div>
 
                             <div class="mt-3 small text-muted">
@@ -73,9 +133,11 @@
                     </div>
                 </div>
 
-                {# DETAILS #}
-                <div class="col-12 col-lg-8">
-                    <div class="card h-100">
+                {# RIGHT COLUMN #}
+                <div class="col-12 col-lg-8 d-flex flex-column gap-3">
+
+                    {# READ-ONLY DETAILS #}
+                    <div class="card">
                         <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
                             <div>
                                 <h4 class="card-title mb-0">{{ translations.supplier_about_details_title }}</h4>
@@ -98,8 +160,8 @@
                                             <div class="col-12 col-md-6">
                                                 <div class="text-muted small">{{ translations.supplier_street_label }}</div>
                                                 <div class="fw-semibold">
-                                                    {% set street = supplier.getStreet() ?? supplier.street ?? '' %}
-                                                    {% set streetNo = supplier.getStreetNumber() ?? supplier.street_number ?? '' %}
+                                                    {% set street = supplier.getStreet() ?? '' %}
+                                                    {% set streetNo = supplier.getStreetNumber() ?? '' %}
                                                     {% if street or streetNo %}
                                                         {{ street }} {{ streetNo }}
                                                     {% else %}
@@ -111,8 +173,8 @@
                                             <div class="col-12 col-md-6">
                                                 <div class="text-muted small">{{ translations.supplier_city_zip_label }}</div>
                                                 <div class="fw-semibold">
-                                                    {% set city = supplier.getCity() ?? supplier.city ?? '' %}
-                                                    {% set zip = supplier.getZip() ?? supplier.zip ?? '' %}
+                                                    {% set city = supplier.getCity() ?? '' %}
+                                                    {% set zip = supplier.getZip() ?? '' %}
                                                     {% if city or zip %}
                                                         {{ zip }} {{ city }}
                                                     {% else %}
@@ -136,7 +198,7 @@
                                             <div class="col-12 col-md-6">
                                                 <div class="text-muted small">{{ translations.supplier_phone_label }}</div>
                                                 <div class="fw-semibold">
-                                                    {% set phone = supplier.getPhone() ?? supplier.phone ?? '' %}
+                                                    {% set phone = supplier.getPhone() ?? '' %}
                                                     {% if phone %}
                                                         <a href="tel:{{ phone }}" class="text-decoration-none">{{ phone }}</a>
                                                     {% else %}
@@ -148,7 +210,7 @@
                                             <div class="col-12 col-md-6">
                                                 <div class="text-muted small">{{ translations.supplier_email_label }}</div>
                                                 <div class="fw-semibold">
-                                                    {% set email = supplier.getEmail() ?? supplier.email ?? '' %}
+                                                    {% set email = supplier.getEmail() ?? '' %}
                                                     {% if email %}
                                                         <a href="mailto:{{ email }}" class="text-decoration-none">{{ email }}</a>
                                                     {% else %}
@@ -166,8 +228,76 @@
 
                             </div>
                         </div>
-
                     </div>
+
+                    {# EDITABLE PROFILE CARD #}
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="card-title mb-0">{{ translations.supplier_profile_edit_title }}</h4>
+                            <div class="text-muted small">{{ translations.supplier_profile_edit_hint }}</div>
+                        </div>
+
+                        <div class="card-body">
+                            <form method="POST" action="{{ ROOT }}/me" id="profileEditForm">
+
+                                <div class="row g-3">
+
+                                    {# IBAN #}
+                                    <div class="col-12 col-md-6">
+                                        <label for="iban" class="form-label small text-muted">
+                                            {{ translations.supplier_iban_label }}
+                                        </label>
+                                        <input type="text"
+                                               id="iban"
+                                               name="iban"
+                                               class="form-control"
+                                               maxlength="50"
+                                               value="{{ supplier.getIban() ?? '' }}"
+                                               placeholder="{{ translations.supplier_iban_placeholder }}">
+                                    </div>
+
+                                    {# Website URL #}
+                                    <div class="col-12 col-md-6">
+                                        <label for="website_url" class="form-label small text-muted">
+                                            {{ translations.supplier_website_label }}
+                                        </label>
+                                        <input type="url"
+                                               id="website_url"
+                                               name="website_url"
+                                               class="form-control"
+                                               maxlength="500"
+                                               value="{{ supplier.getWebsiteUrl() ?? '' }}"
+                                               placeholder="{{ translations.supplier_website_placeholder }}">
+                                    </div>
+
+                                    {# Notes #}
+                                    <div class="col-12">
+                                        <label for="notes" class="form-label small text-muted">
+                                            {{ translations.supplier_notes_label }}
+                                        </label>
+                                        <textarea id="notes"
+                                                  name="notes"
+                                                  class="form-control"
+                                                  rows="4"
+                                                  maxlength="2000"
+                                                  placeholder="{{ translations.supplier_notes_placeholder }}">{{ supplier.getNotes() ?? '' }}</textarea>
+                                    </div>
+
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 mt-3">
+                                    <a href="{{ ROOT }}/me" class="btn btn-outline-secondary">
+                                        {{ translations.cancel_btn }}
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-floppy me-1"></i>{{ translations.save_btn }}
+                                    </button>
+                                </div>
+
+                            </form>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>

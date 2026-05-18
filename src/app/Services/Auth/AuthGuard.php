@@ -20,7 +20,7 @@ class AuthGuard
         $refresh = $this->cookies->getRefreshToken();
 
         $now = time();
-        $leeway = 10;
+        $leeway = 60; // 60-second buffer to avoid edge cases from clock drift or slow requests
 
         // 1) Jeśli mamy access, sprawdź exp
         if ($access) {

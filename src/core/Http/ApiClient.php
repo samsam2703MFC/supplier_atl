@@ -9,20 +9,22 @@ use CURLFile;
 class ApiClient
 {
     private $baseUrl;
-    private $jwtToken;
+    private $cookieManager;
     private $userHeaderProvider;
 
     public function __construct($baseUrl, CookieManager $cookieManager, UserHeaderProvider $userHeaderProvider)
     {
         $this->baseUrl = $baseUrl;
-        $this->jwtToken = $cookieManager->getAccessToken();
+        $this->cookieManager = $cookieManager;
         $this->userHeaderProvider = $userHeaderProvider;
     }
 
     private function getHeaders() {
         $headers = [];
-        if ($this->jwtToken) {
-            $headers[] = 'Authorization: Bearer ' . $this->jwtToken;
+        // Read token lazily so we always get the latest value (e.g. after a mid-request refresh)
+        $token = $this->cookieManager->getAccessToken();
+        if ($token) {
+            $headers[] = 'Authorization: Bearer ' . $token;
         }
 
         $language = $this->userHeaderProvider->getLanguage();
@@ -133,13 +135,19 @@ class ApiClient
 
     public function login($endpoint, $data) {
         $url = $this->baseUrl . $endpoint;
-        $headers = $this->getHeaders();
+        // Do NOT include Authorization header for login/refresh — no valid token exists yet
+        $headers = ['Content-Type: application/json'];
+
+        $language = $this->userHeaderProvider->getLanguage();
+        if ($language) {
+            $headers[] = 'Accept-Language: ' . $language;
+        }
 
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($headers, ['Content-Type: application/json']));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
         $response = curl_exec($ch);
 
@@ -343,6 +351,7 @@ class ApiClient
             $decoded_data = json_decode($result, true);
             $response['message'] = $decoded_data['message'] ?? null;
             $response['inserted_id'] = $decoded_data['inserted_id'] ?? null;
+            $response['data'] = $decoded_data['data'] ?? null;
             $response['success'] = true;
         } else {
             $decoded_data = json_decode($result, true);

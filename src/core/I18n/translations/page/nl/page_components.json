@@ -2,15 +2,12 @@
   "supplier_portal": "Supplier Portal",
   "supplier_app_external_short": "Leverancier (ext.)",
   "franchise_ecosystem": "Franchise-netwerk ecosysteem",
-
   "menu": "Menu",
   "account": "Account",
   "logout": "Uitloggen",
   "my_profile": "Mijn profiel",
-
   "supplier_dashboard": "Dashboard",
   "supplier_dashboard_subtitle": "Snel overzicht van belangrijke informatie en snelkoppelingen.",
-
   "quick_actions": "Snelle acties",
   "manage_catalog": "Productcatalogus",
   "manage_catalog_subtitle": "Voeg producten toe en werk ze bij die beschikbaar zijn voor bestelling.",
@@ -18,14 +15,24 @@
   "manage_price_lists_subtitle": "Stel prijzen in voor specifieke klanten/winkels.",
   "view_profile": "Mijn profiel",
   "view_profile_subtitle": "Bekijk accountgegevens en leveranciersinformatie.",
-
   "products_in_catalog": "Producten in catalogus",
   "active_price_lists": "Actieve prijslijsten",
   "last_update": "Laatste update",
   "not_available": "Geen gegevens",
-
   "catalog": "Catalogus",
   "price_lists": "Prijslijsten",
-  "client": "Klant"
+  "global_price_list_menu": "Prijslijst",
+  "client": "Klant",
+  "orders": "Bestellingen",
+  "complaints": "Klachten",
+  "analytics": "Analyse",
+  "rms_menu": "Grondstofverkoop",
+  "logistics": "Logistiek",
+  "back": "Terug",
+  "hello": "Hallo",
+  "notifications": "Meldingen",
+  "no_new_notifications": "Geen nieuwe meldingen",
+  "settings": "Instellingen",
+  "raw_materials": "Raw materials",
+  "recipes": "Recepten"
 }
-

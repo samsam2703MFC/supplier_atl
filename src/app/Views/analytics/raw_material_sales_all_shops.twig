@@ -1,0 +1,252 @@
+{% extends "layouts/base.twig" %}
+{% block title %}{{ translations.rms_all_title }}{% endblock %}
+{% block head %}
+<style>
+.dash-sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#64748B;margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
+.dash-sec::after{content:'';flex:1;height:1px;background:#E2E8F0;}
+.qty-bar-wrap{flex:1;height:5px;background:#F1F5F9;border-radius:4px;overflow:hidden;min-width:60px;}
+.qty-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#6366F1,#818CF8);}
+.shop-pill{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:12px;font-size:11px;background:#EEF2FF;color:#4338CA;font-weight:500;white-space:nowrap;}
+.shop-share-bar{height:4px;border-radius:3px;background:linear-gradient(90deg,#22C55E,#86EFAC);}
+.breakdown-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;}
+.breakdown-wrap{border-left:2px solid #E2E8F0;margin-left:8px;padding-left:10px;margin-top:6px;}
+.filter-pill{display:inline-block;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid #E2E8F0;background:#fff;color:#64748B;text-decoration:none;transition:all .15s;}
+.filter-pill:hover{border-color:#6366F1;color:#6366F1;}
+.filter-pill.active{background:#6366F1;color:#fff;border-color:#6366F1;box-shadow:0 2px 8px rgba(99,102,241,.25);}
+</style>
+{% endblock %}
+{% block page_heading %}
+    <div class="page-heading">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+                <h3>{{ translations.rms_all_heading }}</h3>
+                <p class="text-subtitle text-muted">{{ translations.rms_all_subtitle }}</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ ROOT }}/analytics/raw-material-sales" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-shop"></i> {{ translations.rms_menu ?? 'Per shop' }}
+                </a>
+                <a href="{{ ROOT }}/analytics" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-bar-chart"></i> {{ translations.analytics_heading }}
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+{% block content %}
+    {% include "page_components/messages.twig" %}
+
+    {# Preset date range badges #}
+    {% set today      = 'now'|date('Y-m-d') %}
+    {% set d7         = ('now - 6 days')|date('Y-m-d') %}
+    {% set d30        = ('now - 29 days')|date('Y-m-d') %}
+    {% set d90        = ('now - 89 days')|date('Y-m-d') %}
+    {% set monthStart = 'now'|date('Y-m-01') %}
+    {% set lastMonthStart = ('first day of last month')|date('Y-m-d') %}
+    {% set lastMonthEnd   = ('last day of last month')|date('Y-m-d') %}
+    {% set yearStart  = 'now'|date('Y-01-01') %}
+
+    {% set presets = [
+        { key: 'today',      label: translations.rms_preset_today      ?? 'Today',          from: today,          to: today },
+        { key: '7d',         label: translations.rms_preset_7d         ?? 'Last 7 days',    from: d7,             to: today },
+        { key: '30d',        label: translations.rms_preset_30d        ?? 'Last 30 days',   from: d30,            to: today },
+        { key: '90d',        label: translations.rms_preset_90d        ?? 'Last 90 days',   from: d90,            to: today },
+        { key: 'this_month', label: translations.rms_preset_this_month ?? 'This month',     from: monthStart,     to: today },
+        { key: 'last_month', label: translations.rms_preset_last_month ?? 'Last month',     from: lastMonthStart, to: lastMonthEnd },
+        { key: 'ytd',        label: translations.rms_preset_ytd        ?? 'YTD',            from: yearStart,      to: today }
+    ] %}
+
+    <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+        <span class="text-muted small me-1">
+            <i class="bi bi-calendar-range"></i>
+            {{ translations.rms_presets_label ?? 'Quick range:' }}
+        </span>
+        {% for p in presets %}
+            <a href="{{ ROOT }}/analytics/raw-material-sales-all-shops?from={{ p.from }}&to={{ p.to }}"
+               class="filter-pill {{ params.from == p.from and params.to == p.to ? 'active' : '' }}">
+                {{ p.label }}
+            </a>
+        {% endfor %}
+    </div>
+
+    {# Filter form #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ ROOT }}/analytics/raw-material-sales-all-shops"
+                  class="d-flex align-items-end gap-3 flex-wrap">
+                <div>
+                    <label class="form-label form-label-sm mb-1">{{ translations.rms_filter_from }}</label>
+                    <input type="date" name="from" class="form-control form-control-sm"
+                           value="{{ params.from }}" style="width:140px">
+                </div>
+                <div>
+                    <label class="form-label form-label-sm mb-1">{{ translations.rms_filter_to }}</label>
+                    <input type="date" name="to" class="form-control form-control-sm"
+                           value="{{ params.to }}" style="width:140px">
+                </div>
+                <div class="pb-1">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-funnel"></i> {{ translations.rms_filter_apply }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% if sales is empty %}
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted d-block mb-2"></i>
+                <p class="text-muted mb-0">{{ translations.rms_all_no_data }}</p>
+            </div>
+        </div>
+    {% else %}
+        {# KPI summary #}
+        {% set totalQty = 0 %}
+        {% set productCount = sales|length %}
+        {% set shopSet = [] %}
+        {% for row in sales %}
+            {% set totalQty = totalQty + row.total_sold_quantity %}
+            {% for shop in row.shops %}
+                {% if shop.shop_id not in shopSet %}
+                    {% set shopSet = shopSet|merge([shop.shop_id]) %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card border rounded p-3 bg-white">
+                    <div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                        {{ translations.rms_kpi_products }}
+                    </div>
+                    <div style="font-size:26px;font-weight:700;color:#0F172A;line-height:1.1;">{{ productCount }}</div>
+                    <div style="font-size:11px;color:#94A3B8;margin-top:4px;">{{ params.from }} → {{ params.to }}</div>
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <div class="kpi-card border rounded p-3 bg-white">
+                    <div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                        {{ translations.rms_all_kpi_shops }}
+                    </div>
+                    <div style="font-size:26px;font-weight:700;color:#0F172A;line-height:1.1;">{{ shopSet|length }}</div>
+                    <div style="font-size:11px;color:#94A3B8;margin-top:4px;">{{ translations.rms_all_kpi_shops_sub }}</div>
+                </div>
+            </div>
+        </div>
+        {# Results table #}
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+            <div class="dash-sec mb-0" style="flex:1;margin:0;">{{ translations.rms_all_table_title }}</div>
+            <div class="d-flex align-items-center gap-2" style="min-width:240px;">
+                <div class="input-group input-group-sm" style="max-width:320px;">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-muted" style="font-size:12px;"></i>
+                    </span>
+                    <input type="search" id="rmsProductSearch"
+                           class="form-control border-start-0 ps-0"
+                           placeholder="{{ translations.rms_all_search_placeholder ?? 'Search product…' }}"
+                           autocomplete="off"
+                           style="font-size:13px;">
+                </div>
+                <span id="rmsSearchCount" class="text-muted small" style="white-space:nowrap;"></span>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="rmsTable" class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3" style="width:28%">{{ translations.rms_col_product }}</th>
+                                <th>{{ translations.rms_col_sku }}</th>
+                                <th>{{ translations.rms_col_material }}</th>
+                                <th class="text-end pe-3">{{ translations.rms_col_qty }}</th>
+                                <th style="width:140px"></th>
+                                <th style="width:30%">{{ translations.rms_all_col_shop_breakdown }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set maxQty = sales[0].total_sold_quantity %}
+                            {% set shopColors = ['#6366F1','#22C55E','#F59E0B','#EF4444','#14B8A6','#8B5CF6','#F97316','#06B6D4','#EC4899','#84CC16'] %}
+                            {% for row in sales %}
+                                <tr data-product="{{ row.catalog_product_name|lower }} {{ row.catalog_product_sku|lower }} {{ row.material_name|lower }}">
+                                    <td class="ps-3 fw-semibold">{{ row.catalog_product_name }}</td>
+                                    <td class="text-muted" style="font-size:12px;">{{ row.catalog_product_sku }}</td>
+                                    <td style="font-size:13px;">{{ row.material_name }}</td>
+                                    <td class="text-end pe-3">
+                                        <span class="fw-bold">
+                                            {{ row.total_sold_quantity|number_format(3, '.', ' ')|replace({'.000': '', ',000': ''}) }}
+                                        </span>
+                                        <span class="text-muted ms-1" style="font-size:11px;">{{ row.unit_name }}</span>
+                                    </td>
+                                    <td class="pe-3">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="qty-bar-wrap">
+                                                <div class="qty-bar" style="width:{{ maxQty > 0 ? ((row.total_sold_quantity / maxQty) * 100)|round : 0 }}%"></div>
+                                            </div>
+                                            <span style="font-size:10px;color:#94A3B8;min-width:32px;text-align:right;">
+                                                {{ maxQty > 0 ? ((row.total_sold_quantity / maxQty) * 100)|round : 0 }}%
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="pe-3 py-2">
+                                        <div class="breakdown-wrap">
+                                            {% for i, shop in row.shops %}
+                                                <div class="breakdown-row">
+                                                    <div style="width:8px;height:8px;border-radius:50%;background:{{ shopColors[i % shopColors|length] }};flex-shrink:0;"></div>
+                                                    <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#374151;" title="{{ shop.shop_name }}">
+                                                        {{ shop.shop_name }}
+                                                    </div>
+                                                    <div style="font-weight:600;color:#0F172A;min-width:30px;text-align:right;font-size:11px;">
+                                                        {{ shop.share }}%
+                                                    </div>
+                                                </div>
+                                                <div style="padding:0 0 3px 16px;">
+                                                    <div style="height:3px;border-radius:2px;background:{{ shopColors[i % shopColors|length] }};width:{{ shop.share }}%;opacity:0.5;"></div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ parent() }}
+{% if sales is not empty %}
+<script>
+(function () {
+    var input   = document.getElementById('rmsProductSearch');
+    var counter = document.getElementById('rmsSearchCount');
+    if (!input) return;
+
+    var rows  = Array.from(document.querySelectorAll('#rmsTable tbody tr'));
+    var total = rows.length;
+
+    function update() {
+        var q = input.value.trim().toLowerCase();
+        var visible = 0;
+        rows.forEach(function (tr) {
+            var hay = tr.getAttribute('data-product') || '';
+            var show = !q || hay.indexOf(q) !== -1;
+            tr.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        if (q) {
+            counter.textContent = visible + ' / ' + total;
+        } else {
+            counter.textContent = '';
+        }
+    }
+
+    input.addEventListener('input', update);
+    input.addEventListener('search', update); // clear button (type=search)
+})();
+</script>
+{% endif %}
+{% endblock %}
+

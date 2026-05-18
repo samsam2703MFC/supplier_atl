@@ -1,0 +1,1392 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ translations.raw_materials_title }}{% endblock %}
+
+{% block head %}
+<style>
+.rm-table th,.rm-table td{vertical-align:middle;}
+.rm-empty{text-align:center;padding:48px 16px;color:#94A3B8;}
+.rm-empty i{font-size:32px;opacity:.4;display:block;margin-bottom:8px;}
+.rm-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
+.rm-pill-active{background:#DCFCE7;color:#15803D;}
+.rm-pill-archived{background:#F1F5F9;color:#94A3B8;}
+.rm-action-btn{width:32px;height:32px;border-radius:6px;border:1px solid #E2E8F0;background:#fff;color:#475569;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.rm-action-btn:hover{background:#6366F1;color:#fff;border-color:#6366F1;}
+.rm-allergen-badge{display:inline-flex;align-items:center;gap:4px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;margin:2px;}
+.rm-allergen-badge .rm-allergen-remove{cursor:pointer;opacity:.7;}
+.rm-allergen-badge .rm-allergen-remove:hover{opacity:1;color:#B91C1C;}
+.rm-allergen-tile{cursor:pointer;border:1px solid #E2E8F0;border-radius:8px;padding:7px 10px;display:flex;align-items:center;gap:6px;transition:all .15s;background:#fff;}
+.rm-allergen-tile:hover{border-color:#6366F1;}
+.rm-allergen-tile.is-assigned{background:#EEF2FF;border-color:#6366F1;color:#3730A3;}
+.rm-allergen-tile .bi{font-size:15px;}
+.rm-detail-row{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px dashed #E2E8F0;}
+.rm-detail-row:last-child{border-bottom:none;}
+.rm-detail-label{color:#64748B;font-size:12px;text-transform:uppercase;letter-spacing:.04em;}
+.rm-detail-value{font-weight:600;color:#0F172A;text-align:right;}
+.rm-price-history-list{max-height:220px;overflow:auto;border:1px solid #E2E8F0;border-radius:8px;}
+.rm-price-history-list table{margin:0;}
+.rm-price-history-list th{position:sticky;top:0;background:#F8FAFC;z-index:1;}
+.rm-price-history-empty{padding:24px 12px;text-align:center;color:#94A3B8;font-size:13px;}
+.rm-price-add-form{background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:8px;padding:8px 10px;}
+.rm-current-price-badge{display:inline-flex;align-items:baseline;gap:6px;background:#EEF2FF;color:#3730A3;padding:6px 12px;border-radius:8px;font-weight:600;}
+.rm-current-price-badge .amount{font-size:18px;}
+.rm-current-price-badge .currency{font-size:12px;opacity:.75;}
+</style>
+{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading">
+        <h3>{{ translations.raw_materials_title }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.raw_materials_subtitle }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+
+    {% include "page_components/alerts.twig" %}
+
+    <div class="row">
+        <div class="col-12">
+
+            <div class="alert alert-light-primary d-flex align-items-start gap-2">
+                <i class="bi bi-info-circle mt-1"></i>
+                <div>
+                    <div class="fw-bold">{{ translations.raw_materials_help_title }}</div>
+                    <div class="small">{{ translations.raw_materials_help_body }}</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <h4 class="card-title mb-0">{{ translations.raw_materials_table }}</h4>
+                        <div class="text-muted small">{{ translations.raw_materials_table_hint }}</div>
+                    </div>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-primary" id="btnAddRawMaterial">
+                            <i class="bi bi-plus-lg me-1"></i>{{ translations.add_raw_material }}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-2 align-items-end mb-3">
+                        <div class="col-12 col-md-5">
+                            <label class="form-label">{{ translations.filter_and_search }}</label>
+                            <div class="d-flex flex-column flex-md-row gap-2">
+                                <input id="filterSearch" type="text" class="form-control"
+                                       placeholder="{{ translations.search_placeholder }}">
+                                <button class="btn btn-light" id="btnClearFilters" type="button" style="white-space:nowrap;">
+                                    <i class="bi bi-x-circle me-1"></i>{{ translations.clear_filters }}
+                                </button>
+                            </div>
+                            <div class="form-text">{{ translations.search_hint }}</div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ translations.filter_category }}</label>
+                            <select id="filterCategory" class="form-select">
+                                <option value="">{{ translations.all_categories }}</option>
+                                {% for c in categories %}
+                                    <option value="{{ c.id }}">{{ c.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">{{ translations.filter_category_hint }}</div>
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">{{ translations.filter_status }}</label>
+                            <select id="filterStatus" class="form-select">
+                                <option value="active">{{ translations.filter_active }}</option>
+                                <option value="archived">{{ translations.filter_archived }}</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover rm-table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width:120px;">{{ translations.sku }}</th>
+                                    <th>{{ translations.name }}</th>
+                                    <th style="width:180px;">{{ translations.category }}</th>
+                                    <th style="width:90px;">{{ translations.unit }}</th>
+                                    <th style="width:90px;">{{ translations.vat_rate }}</th>
+                                    <th style="width:200px;">{{ translations.allergens }}</th>
+                                    <th style="width:110px;">{{ translations.status }}</th>
+                                    <th style="width:110px;" class="text-end">{{ translations.actions }}</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rawMaterialsTbody">
+                                <tr><td colspan="8" class="rm-empty">
+                                    <i class="bi bi-hourglass-split"></i>{{ translations.loading }}
+                                </td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="small text-muted" id="tableMeta">{{ translations.table_meta_default }}</div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    {# ====== MODAL: ADD / EDIT ====== #}
+    <div class="modal fade" id="rawMaterialModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-egg-fried me-2"></i>
+                        <span id="rawMaterialModalTitle">{{ translations.add_raw_material }}</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="rmId">
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <h6 class="text-muted text-uppercase small mb-1">{{ translations.section_basic }}</h6>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{{ translations.sku }}</label>
+                            <input type="text" class="form-control" id="rmSku" maxlength="100">
+                            <div class="invalid-feedback" id="errSku"></div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">{{ translations.name }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="rmName" maxlength="255">
+                            <div class="invalid-feedback" id="errName"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ translations.category }}</label>
+                            <div class="input-group">
+                                <select class="form-select" id="rmCategory">
+                                    <option value="">{{ translations.no_category }}</option>
+                                    {% for c in categories %}
+                                        <option value="{{ c.id }}">{{ c.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" id="btnManageCategories" title="{{ translations.manage_categories }}">
+                                    <i class="bi bi-gear"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="errCategory"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ translations.unit }} <span class="text-danger">*</span></label>
+                            <select class="form-select" id="rmUnit">
+                                <option value="">—</option>
+                                {% for u in units %}
+                                    <option value="{{ u.id }}">{{ u.symbol|default(u.code|default(u.name)) }} — {{ u.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="invalid-feedback" id="errUnit"></div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="text-muted text-uppercase small mb-1">{{ translations.section_pricing }}</h6>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{{ translations.vat_rate }}</label>
+                            <input type="number" step="0.01" min="0" max="100" class="form-control" id="rmVatRate">
+                            <div class="invalid-feedback" id="errVatRate"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ translations.waste_perc }} <span class="text-danger">*</span></label>
+                            <input type="number" step="0.01" min="0" max="100" class="form-control" id="rmWastePerc" value="0">
+                            <div class="invalid-feedback" id="errWastePerc"></div>
+                        </div>
+
+                        <div class="col-12" id="rmInitPriceSection" style="display:none;">
+                            <div class="rm-price-add-form">
+                                <div class="small text-muted text-uppercase fw-semibold mb-2">
+                                    <i class="bi bi-calculator me-1"></i>{{ translations.initial_price_optional }}
+                                </div>
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-sm-4">
+                                        <label class="form-label small mb-1">{{ translations.package_price }}</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" step="0.01" min="0.01" class="form-control" id="rmInitPackagePrice" placeholder="0.00">
+                                            <span class="input-group-text" id="rmInitPriceCurrency">EUR</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm-4">
+                                        <label class="form-label small mb-1">{{ translations.package_qty }}</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" step="0.001" min="0.001" class="form-control" id="rmInitPackageQty" value="1" placeholder="1">
+                                            <span class="input-group-text" id="rmInitPackageUnit">—</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm-4">
+                                        <label class="form-label small mb-1">{{ translations.price_per_unit }}</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control bg-light fw-semibold" id="rmInitPricePerUnit" readonly placeholder="—">
+                                            <span class="input-group-text" id="rmInitPerUnitSuffix">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="small text-muted mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>{{ translations.package_price_hint }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="text-muted text-uppercase small mb-1">{{ translations.section_extra }}</h6>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ translations.description }}</label>
+                            <textarea class="form-control" id="rmDescription" rows="3" maxlength="5000"></textarea>
+                            <div class="invalid-feedback" id="errDescription"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <small class="text-muted" id="modalMeta">{{ translations.modal_meta_new }}</small>
+                    <div>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel }}</button>
+                        <button type="button" class="btn btn-primary" id="btnSaveRawMaterial">
+                            <i class="bi bi-check-lg me-1"></i>{{ translations.save }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ====== MODAL: ZARZĄDZANIE KATEGORIAMI ====== #}
+    <div class="modal fade" id="categoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-tags me-2"></i>{{ translations.manage_categories }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close }}"></button>
+                </div>
+                <div class="modal-body">
+                    {# lista kategorii #}
+                    <ul class="list-group mb-3" id="categoryList" style="max-height:260px;overflow-y:auto;"></ul>
+
+                    {# formularz dodaj/edytuj #}
+                    <div class="input-group">
+                        <input type="hidden" id="catEditId">
+                        <input type="text" class="form-control" id="catNameInput" maxlength="255"
+                               placeholder="{{ translations.category_name }}">
+                        <button type="button" class="btn btn-primary" id="btnSaveCategory">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button type="button" class="btn btn-light" id="btnCancelCatEdit" style="display:none;">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback d-block" id="errCategoryName"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ====== MODAL: DETAILS (iter. 4) ====== #}
+    <div class="modal fade" id="rawMaterialDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title mb-0">
+                            <i class="bi bi-eye me-2"></i>
+                            <span id="rmDetailsTitle">{{ translations.details_raw_material }}</span>
+                        </h5>
+                        <div class="small text-muted" id="rmDetailsSubtitle"></div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close }}"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <input type="hidden" id="rmDetailsId" value="">
+
+                    <div class="row g-3">
+                        {# ===== Lewa: dane surowca (read-only) ===== #}
+                        <div class="col-12 col-lg-6">
+                            <h6 class="text-muted text-uppercase small mb-1">{{ translations.section_basic }}</h6>
+                            <div id="rmDetailsBasic" class="mb-2"></div>
+
+                            <h6 class="text-muted text-uppercase small mb-1">{{ translations.section_pricing }}</h6>
+                            <div id="rmDetailsPricing" class="mb-2"></div>
+
+                            <h6 class="text-muted text-uppercase small mb-1">{{ translations.section_extra }}</h6>
+                            <div id="rmDetailsExtra"></div>
+                        </div>
+
+                        {# ===== Prawa: alergeny ===== #}
+                        <div class="col-12 col-lg-6">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <h6 class="text-muted text-uppercase small mb-0">{{ translations.allergens_section }}</h6>
+                                <span class="badge bg-light text-dark" id="rmAssignedCount">0</span>
+                            </div>
+
+                            <div class="text-muted small mb-1 ps-1">
+                                <i class="bi bi-info-circle me-1"></i>{{ translations.allergens_modal_hint }}
+                            </div>
+
+                            <div id="rmAssignedBadges" class="mb-2 p-2 border rounded bg-light" style="min-height:36px;"></div>
+
+                            <div class="input-group input-group-sm mb-2">
+                                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                <input type="text" id="rmAllergenSearch" class="form-control" placeholder="{{ translations.search_placeholder }}">
+                            </div>
+
+                            <div class="border rounded p-2 bg-white" style="max-height:260px;overflow:auto;">
+                                <div class="row row-cols-1 row-cols-md-2 g-2" id="rmAllergenTiles"></div>
+                            </div>
+                        </div>
+
+                        {# ===== Dół: historia cen (iter. 5, append-only) ===== #}
+                        <div class="col-12">
+                            <hr class="my-2">
+                            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                                <div>
+                                    <h6 class="text-muted text-uppercase small mb-0">{{ translations.price_history_section }}</h6>
+                                    <div class="small text-muted">{{ translations.price_history_hint }}</div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="rm-current-price-badge" id="rmCurrentPriceBadge" style="display:none;">
+                                        <span class="text-muted small text-uppercase me-1">{{ translations.current_price_net }}</span>
+                                        <span class="amount" id="rmCurrentPriceAmount">—</span>
+                                        <span class="currency" id="rmCurrentPriceCurrency"></span>
+                                    </span>
+                                    <button type="button" class="btn btn-sm btn-primary" id="btnTogglePriceForm">
+                                        <i class="bi bi-plus-lg me-1"></i>{{ translations.add_price }}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="rm-price-add-form mb-3" id="rmPriceAddForm" style="display:none;">
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small mb-1">{{ translations.package_price }} <span class="text-danger">*</span></label>
+                                        <div class="row g-1">
+                                            <div class="col-7">
+                                                <div class="input-group input-group-sm">
+                                                    <input type="number" step="0.01" min="0.01" class="form-control" id="rmNewPackagePrice" placeholder="0.00">
+                                                    <span class="input-group-text" id="rmNewPriceCurrency">EUR</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-5">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text">/</span>
+                                                    <input type="number" step="0.001" min="0.001" class="form-control" id="rmNewPackageQty" value="1" placeholder="1">
+                                                    <span class="input-group-text" id="rmNewPackageUnit">—</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-primary small mt-1" id="rmNewPriceCalcResult" style="min-height:1.1em;"></div>
+                                        <div class="invalid-feedback d-block small" id="errPriceNet"></div>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label small mb-1">{{ translations.valid_from }} <span class="text-danger">*</span></label>
+                                        <input type="date" class="form-control form-control-sm" id="rmNewValidFrom">
+                                        <div class="invalid-feedback d-block small" id="errValidFrom"></div>
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label small mb-1">{{ translations.note }}</label>
+                                        <input type="text" class="form-control form-control-sm" id="rmNewPriceNote" maxlength="500" placeholder="{{ translations.note_optional }}">
+                                        <div class="invalid-feedback d-block small" id="errPriceNote"></div>
+                                    </div>
+                                    <div class="col-12 col-md-2 d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-success flex-grow-1" id="btnSavePrice">
+                                            <i class="bi bi-check-lg"></i> {{ translations.save }}
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-light" id="btnCancelPrice">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="small text-muted mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>{{ translations.price_history_append_only_hint }}
+                                </div>
+                            </div>
+
+                            <div class="rm-price-history-list">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:130px;">{{ translations.valid_from }}</th>
+                                            <th style="width:160px;" class="text-end">{{ translations.price_net }}</th>
+                                            <th>{{ translations.note }}</th>
+                                            <th style="width:160px;">{{ translations.created_at }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="rmPriceHistoryTbody">
+                                        <tr><td colspan="4" class="rm-price-history-empty">{{ translations.loading }}</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <small class="text-muted">
+                        <i class="bi bi-lightning-charge me-1"></i>{{ translations.ajax_hint }}
+                    </small>
+                    <div>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.close }}</button>
+                        <button type="button" class="btn btn-primary" id="btnEditFromDetails">
+                            <i class="bi bi-pencil me-1"></i>{{ translations.edit }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const el = (id) => document.getElementById(id);
+
+    function escapeHtml(s) {
+        return String(s ?? "").replace(/[&<>"']/g, m => ({
+            "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+        }[m]));
+    }
+
+    // ===== słowniki przekazane z backendu =====
+    const CATEGORIES = {{ categories|json_encode|raw }};
+    const UNITS      = {{ units|json_encode|raw }};
+    const ALLERGENS  = {{ allergens|json_encode|raw }};
+    const CURRENCY   = {{ currency|json_encode|raw }};
+
+    const categoryById = new Map((CATEGORIES || []).map(c => [String(c.id), c]));
+    const unitById     = new Map((UNITS || []).map(u => [String(u.id), u]));
+    const allergenById = new Map((ALLERGENS || []).map(a => [String(a.id), a]));
+
+    function unitLabel(u) {
+        if (!u) return '';
+        return u.symbol || u.code || u.name || ('#' + u.id);
+    }
+
+    // ===== kalkulatory ceny opakowania =====
+    function calcPackagePrice(price, qty) {
+        if (!price || !qty || Number(price) <= 0 || Number(qty) <= 0) return null;
+        return Number(price) / Number(qty);
+    }
+
+    function updateInitPriceCalc() {
+        const price = el('rmInitPackagePrice').value;
+        const qty   = el('rmInitPackageQty').value;
+        const sel   = el('rmUnit');
+        let unitLbl = '—';
+        if (sel && sel.value) {
+            const opt = sel.options[sel.selectedIndex];
+            unitLbl = (opt.textContent || '').split(' — ')[0].trim() || '—';
+        }
+        el('rmInitPackageUnit').textContent = unitLbl;
+        el('rmInitPerUnitSuffix').textContent = unitLbl;
+        const result = calcPackagePrice(price, qty);
+        el('rmInitPricePerUnit').value = result != null ? result.toFixed(4) : '';
+    }
+
+    function updateNewPriceCalc() {
+        const price   = el('rmNewPackagePrice').value;
+        const qty     = el('rmNewPackageQty').value;
+        const result  = calcPackagePrice(price, qty);
+        const unitLbl = el('rmNewPackageUnit').textContent || '';
+        if (result != null) {
+            el('rmNewPriceCalcResult').textContent = `→ ${result.toFixed(4)} ${CURRENCY} / ${unitLbl}`;
+        } else {
+            el('rmNewPriceCalcResult').textContent = '';
+        }
+    }
+
+    // ===== state =====
+    const state = { items: [], loading: false, modalMode: 'add', editId: null, detailsId: null, detailsAssigned: [] };
+    const rawModal = new bootstrap.Modal(el('rawMaterialModal'));
+    const detailsModal = new bootstrap.Modal(el('rawMaterialDetailsModal'));
+
+    // ===== walidacja UI =====
+    const ERR_FIELDS = {
+        sku:             ['rmSku','errSku'],
+        name:            ['rmName','errName'],
+        id_category:     ['rmCategory','errCategory'],
+        id_unit:         ['rmUnit','errUnit'],
+        vat_rate:        ['rmVatRate','errVatRate'],
+        waste_perc:      ['rmWastePerc','errWastePerc'],
+        description:     ['rmDescription','errDescription']
+    };
+    function clearErrors() {
+        Object.values(ERR_FIELDS).forEach(([inputId, errId]) => {
+            const i = el(inputId), e = el(errId);
+            if (i) i.classList.remove('is-invalid');
+            if (e) e.textContent = '';
+        });
+    }
+    function applyErrors(errors) {
+        Object.entries(errors || {}).forEach(([k, msg]) => {
+            const map = ERR_FIELDS[k];
+            if (!map) return;
+            const [inputId, errId] = map;
+            const i = el(inputId), e = el(errId);
+            if (i) i.classList.add('is-invalid');
+            if (e) e.textContent = msg;
+        });
+    }
+
+    // ===== render tabeli (filtrowanie po stronie UI) =====
+    function getFilteredItems() {
+        const q = (el('filterSearch').value || '').trim().toLowerCase();
+        const catId = el('filterCategory').value || '';
+
+        return state.items.filter(it => {
+            const hay = `${it.sku || ''} ${it.name || ''}`.toLowerCase();
+            const matchQ = !q || hay.includes(q);
+            const matchC = !catId || String(it.id_category || '') === String(catId);
+            return matchQ && matchC;
+        });
+    }
+
+    function renderTable() {
+        const tbody = el('rawMaterialsTbody');
+        const tLoading   = {{ translations.loading|json_encode|raw }};
+        const tEmpty     = {{ translations.no_results|json_encode|raw }};
+        const tEdit      = {{ translations.edit|json_encode|raw }};
+        const tDetails   = {{ translations.details|json_encode|raw }};
+        const tArchive   = {{ translations.archive|json_encode|raw }};
+        const tRestore   = {{ translations.restore|json_encode|raw }};
+        const tDelete    = {{ translations.force_delete|json_encode|raw }};
+        const tActive    = {{ translations.active|json_encode|raw }};
+        const tArchived  = {{ translations.archived|json_encode|raw }};
+        const tNoCat     = {{ translations.no_category|json_encode|raw }};
+        const tNoAllerg  = {{ translations.no_allergens|json_encode|raw }};
+
+        if (state.loading) {
+            tbody.innerHTML = `<tr><td colspan="8" class="rm-empty"><i class="bi bi-hourglass-split"></i>${escapeHtml(tLoading)}</td></tr>`;
+            return;
+        }
+        const rows = getFilteredItems();
+        if (!rows.length) {
+            tbody.innerHTML = `<tr><td colspan="8" class="rm-empty"><i class="bi bi-egg"></i>${escapeHtml(tEmpty)}</td></tr>`;
+            updateMeta(0);
+            return;
+        }
+
+        tbody.innerHTML = rows.map(it => {
+            const cat = it.id_category ? categoryById.get(String(it.id_category)) : null;
+            const unit = it.id_unit ? unitById.get(String(it.id_unit)) : null;
+            const isArchived = !!(it.is_archived && Number(it.is_archived) === 1);
+            const pillCls = isArchived ? 'rm-pill-archived' : 'rm-pill-active';
+            const pillTxt = isArchived ? tArchived : tActive;
+
+            const allergens = Array.isArray(it.allergens) ? it.allergens : [];
+            const allergensHtml = allergens.length
+                ? allergens.map(a => `<span class="rm-allergen-badge" title="${escapeHtml(a.code || a.name || '')}">${escapeHtml(a.name || a.code || '')}</span>`).join('')
+                : `<span class="text-muted small">${escapeHtml(tNoAllerg)}</span>`;
+
+            const actionBtns = isArchived
+                ? `<button type="button" class="rm-action-btn rm-details me-1" title="${escapeHtml(tDetails)}">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="rm-action-btn rm-restore me-1" title="${escapeHtml(tRestore)}" style="color:#198754;">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                    <button type="button" class="rm-action-btn rm-force-delete" title="${escapeHtml(tDelete)}" style="color:#dc3545;">
+                        <i class="bi bi-trash3"></i>
+                    </button>`
+                : `<button type="button" class="rm-action-btn rm-details me-1" title="${escapeHtml(tDetails)}">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                    <button type="button" class="rm-action-btn rm-edit me-1" title="${escapeHtml(tEdit)}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    `;
+
+// <button type="button" class="rm-action-btn rm-archive" title="${escapeHtml(tArchive)}" style="color:#6c757d;">
+  //                      <i class="bi bi-archive"></i>
+    //                </button>
+
+            return `<tr data-id="${escapeHtml(String(it.id))}">
+                <td><code class="small">${escapeHtml(it.sku || '—')}</code></td>
+                <td><div class="fw-semibold">${escapeHtml(it.name || '')}</div></td>
+                <td>${escapeHtml(cat ? (cat.name || '') : tNoCat)}</td>
+                <td>${escapeHtml(unitLabel(unit))}</td>
+                <td>${it.vat_rate != null ? escapeHtml(String(it.vat_rate)) : '—'}</td>
+                <td>${allergensHtml}</td>
+                <td><span class="rm-pill ${pillCls}">${escapeHtml(pillTxt)}</span></td>
+                <td class="text-end">${actionBtns}</td>
+            </tr>`;
+        }).join('');
+
+        updateMeta(rows.length);
+    }
+
+    function updateMeta(count) {
+        const singular = {{ translations.item_singular|json_encode|raw }};
+        const plural   = {{ translations.item_plural|json_encode|raw }};
+        el('tableMeta').textContent = `${count} ${count === 1 ? singular : plural}`;
+    }
+
+    // ===== ładowanie listy =====
+    async function loadItems() {
+        state.loading = true;
+        renderTable();
+        try {
+            const statusVal = el('filterStatus') ? el('filterStatus').value : 'active';
+            const isArchived = statusVal === 'archived' ? '1' : '0';
+            const resp = await api(`/ajax/raw-materials?is_archived=${isArchived}`, { method: 'GET' });
+            if (resp.success || resp.ok) {
+                state.items = Array.isArray(resp.data) ? resp.data : [];
+            } else {
+                state.items = [];
+                Swal.fire({ icon: 'error',
+                    title: {{ translations.error|json_encode|raw }},
+                    text: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }} });
+            }
+        } catch (e) {
+            console.error(e);
+            Swal.fire({ icon: 'error',
+                title: {{ translations.error|json_encode|raw }},
+                text: {{ translations.no_api_connection|json_encode|raw }} });
+        } finally {
+            state.loading = false;
+            renderTable();
+        }
+    }
+
+    // ===== modal: open / fill =====
+    function resetModalFields() {
+        ['rmSku','rmName','rmCategory','rmUnit','rmVatRate','rmDescription'].forEach(id => {
+            el(id).value = '';
+        });
+        el('rmWastePerc').value = '0';
+        el('rmInitPackagePrice').value = '';
+        el('rmInitPackageQty').value = '1';
+        el('rmInitPricePerUnit').value = '';
+        el('rmInitPackageUnit').textContent = '—';
+        el('rmInitPerUnitSuffix').textContent = '—';
+    }
+
+    function openCreateModal() {
+        state.modalMode = 'add';
+        state.editId = null;
+        clearErrors();
+        resetModalFields();
+        el('rmId').value = '';
+        el('rmInitPriceSection').style.display = '';
+        el('rmInitPriceCurrency').textContent = CURRENCY;
+        el('rawMaterialModalTitle').textContent = {{ translations.add_raw_material|json_encode|raw }};
+        el('modalMeta').textContent = {{ translations.modal_meta_new|json_encode|raw }};
+        rawModal.show();
+    }
+
+    function openEditModal(item) {
+        state.modalMode = 'edit';
+        state.editId = item.id;
+        clearErrors();
+        resetModalFields();
+        el('rmInitPriceSection').style.display = 'none';
+
+        el('rmId').value = item.id;
+        el('rawMaterialModalTitle').textContent = {{ translations.edit_raw_material|json_encode|raw }};
+        el('modalMeta').textContent = {{ translations.modal_meta_edit|json_encode|raw }} + ': #' + item.id;
+
+        el('rmSku').value           = item.sku ?? '';
+        el('rmName').value          = item.name ?? '';
+        el('rmCategory').value      = item.id_category != null ? String(item.id_category) : '';
+        el('rmUnit').value          = item.id_unit != null ? String(item.id_unit) : '';
+        el('rmVatRate').value       = item.vat_rate ?? '';
+        el('rmWastePerc').value     = item.waste_perc ?? 0;
+        el('rmDescription').value   = item.description ?? '';
+
+        rawModal.show();
+    }
+
+    // ===== save =====
+    function buildPayload() {
+        const numOrNull = (v) => (v === '' || v === null || v === undefined) ? null : Number(v);
+        const strOrNull = (v) => (v === '' || v === null || v === undefined) ? null : String(v).trim();
+
+        return {
+            sku:              strOrNull(el('rmSku').value),
+            name:             (el('rmName').value || '').trim(),
+            id_category:      el('rmCategory').value ? Number(el('rmCategory').value) : null,
+            id_unit:          el('rmUnit').value ? Number(el('rmUnit').value) : null,
+            vat_rate:         numOrNull(el('rmVatRate').value),
+            waste_perc:       numOrNull(el('rmWastePerc').value),
+            description:      strOrNull(el('rmDescription').value),
+        };
+    }
+
+    async function saveItem() {
+        clearErrors();
+        const payload = buildPayload();
+
+        // walidacja UI: name + id_unit + waste_perc
+        const errors = {};
+        if (!payload.name) errors.name = {{ translations.field_required|json_encode|raw }};
+        if (!payload.id_unit) errors.id_unit = {{ translations.field_required|json_encode|raw }};
+        if (payload.waste_perc === null || payload.waste_perc === undefined) errors.waste_perc = {{ translations.field_required|json_encode|raw }};
+
+        if (Object.keys(errors).length) {
+            applyErrors(errors);
+            return;
+        }
+
+        el('btnSaveRawMaterial').disabled = true;
+        try {
+            const url = state.modalMode === 'edit'
+                ? `/ajax/raw-materials/${state.editId}`
+                : `/ajax/raw-materials`;
+            const method = state.modalMode === 'edit' ? 'PATCH' : 'POST';
+
+            const resp = await api(url, { method, data: payload });
+
+            if (resp.success || resp.ok) {
+                // Opcjonalna cena startowa (tylko przy nowym surowcu)
+                if (state.modalMode === 'add') {
+                    const pkgPrice = el('rmInitPackagePrice').value;
+                    const pkgQty   = el('rmInitPackageQty').value;
+                    const priceNet = calcPackagePrice(pkgPrice, pkgQty);
+                    const newId    = resp.inserted_id;
+                    if (priceNet && newId) {
+                        try {
+                            await api(`/ajax/raw-materials/${newId}/price-history`, {
+                                method: 'POST',
+                                data: {
+                                    price_net:  parseFloat(priceNet.toFixed(4)),
+                                    valid_from: new Date().toISOString().split('T')[0]
+                                }
+                            });
+                        } catch(e) { console.warn('Initial price save failed', e); }
+                    }
+                }
+                rawModal.hide();
+                Swal.fire({
+                    icon: 'success',
+                    title: {{ translations.success|json_encode|raw }},
+                    text: {{ translations.operation_successful|json_encode|raw }},
+                    timer: 1200, showConfirmButton: false
+                });
+                await loadItems();
+            } else {
+                if (resp.errors) {
+                    applyErrors(resp.errors);
+                    Swal.fire({ icon: 'error',
+                        title: {{ translations.error|json_encode|raw }},
+                        text: {{ translations.fix_form_errors|json_encode|raw }} });
+                } else {
+                    Swal.fire({ icon: 'error',
+                        title: {{ translations.error|json_encode|raw }},
+                        text: resp.message || resp.description || {{ translations.undefined_error_occurred|json_encode|raw }} });
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            Swal.fire({ icon: 'error',
+                title: {{ translations.error|json_encode|raw }},
+                text: {{ translations.no_api_connection|json_encode|raw }} });
+        } finally {
+            el('btnSaveRawMaterial').disabled = false;
+        }
+    }
+
+    function getItemFromRow(tr) {
+        const id = tr?.getAttribute('data-id');
+        return state.items.find(x => String(x.id) === String(id));
+    }
+
+    // ===== Modal SZCZEGÓŁÓW + zarządzanie alergenami (iter. 4) =====
+
+    function detailRow(label, value) {
+        const v = (value === null || value === undefined || value === '') ? '—' : value;
+        return `<div class="rm-detail-row">
+            <div class="rm-detail-label">${escapeHtml(label)}</div>
+            <div class="rm-detail-value">${escapeHtml(String(v))}</div>
+        </div>`;
+    }
+
+    function renderDetailsSections(item) {
+        const cat = item.id_category ? categoryById.get(String(item.id_category)) : null;
+        const unit = item.id_unit ? unitById.get(String(item.id_unit)) : null;
+
+        const T = {
+            sku:        {{ translations.sku|json_encode|raw }},
+            name:       {{ translations.name|json_encode|raw }},
+            category:   {{ translations.category|json_encode|raw }},
+            unit:       {{ translations.unit|json_encode|raw }},
+            vat_rate:   {{ translations.vat_rate|json_encode|raw }},
+            waste:      {{ translations.waste_perc|json_encode|raw }},
+            description:{{ translations.description|json_encode|raw }},
+            noCat:      {{ translations.no_category|json_encode|raw }},
+            currentPrice:{{ translations.current_price_net|json_encode|raw }},
+            status:     {{ translations.status|json_encode|raw }},
+            active:     {{ translations.active|json_encode|raw }},
+            archived:   {{ translations.archived|json_encode|raw }},
+        };
+
+        el('rmDetailsBasic').innerHTML =
+            detailRow(T.sku, item.sku || '—') +
+            detailRow(T.name, item.name || '') +
+            detailRow(T.category, cat ? (cat.name || '') : T.noCat) +
+            detailRow(T.unit, unitLabel(unit) || '—') +
+            detailRow(T.status, (item.is_archived && Number(item.is_archived) === 1) ? T.archived : T.active);
+
+        el('rmDetailsPricing').innerHTML =
+            detailRow(T.currentPrice, item.current_price_net != null ? item.current_price_net : '—') +
+            detailRow(T.vat_rate, item.vat_rate != null ? item.vat_rate : '—') +
+            detailRow(T.waste, item.waste_perc != null ? item.waste_perc : '—');
+
+        el('rmDetailsExtra').innerHTML =
+            detailRow(T.description, item.description || '—');
+    }
+
+    function renderAssignedBadges() {
+        const tNoAllerg = {{ translations.no_allergens|json_encode|raw }};
+        const tRemove   = {{ translations.unassign_allergen|json_encode|raw }};
+        const wrap = el('rmAssignedBadges');
+        const list = state.detailsAssigned || [];
+
+        el('rmAssignedCount').textContent = String(list.length);
+
+        if (!list.length) {
+            wrap.innerHTML = `<span class="text-muted small">${escapeHtml(tNoAllerg)}</span>`;
+            return;
+        }
+
+        wrap.innerHTML = list.map(a => {
+            const label = a.name ? `${a.name} — ${a.code || ''}` : (a.code || ('#' + a.id));
+            return `<span class="rm-allergen-badge" data-id="${escapeHtml(String(a.id))}">
+                <span>${escapeHtml(label.trim().replace(/\s+—\s+$/, ''))}</span>
+                <i class="bi bi-x-lg rm-allergen-remove" title="${escapeHtml(tRemove)}"></i>
+            </span>`;
+        }).join('');
+    }
+
+    function renderAllergenTiles() {
+        const wrap = el('rmAllergenTiles');
+        const q = (el('rmAllergenSearch').value || '').trim().toLowerCase();
+        const assignedSet = new Set((state.detailsAssigned || []).map(a => String(a.id)));
+
+        const tiles = (ALLERGENS || []).filter(a => {
+            if (!q) return true;
+            const hay = `${a.code || ''} ${a.name || ''}`.toLowerCase();
+            return hay.includes(q);
+        });
+
+        if (!tiles.length) {
+            wrap.innerHTML = `<div class="col-12 text-center text-muted small py-3">${escapeHtml({{ translations.no_results|json_encode|raw }})}</div>`;
+            return;
+        }
+
+        wrap.innerHTML = tiles.map(a => {
+            const isAssigned = assignedSet.has(String(a.id));
+            const icon = isAssigned ? 'bi-check-square-fill' : 'bi-square';
+            return `<div class="col">
+                <div class="rm-allergen-tile ${isAssigned ? 'is-assigned' : ''}" data-id="${escapeHtml(String(a.id))}">
+                    <i class="bi ${icon}"></i>
+                    <div class="flex-grow-1">
+                        <div class="fw-semibold small">${escapeHtml(a.name || ('#' + a.id))}</div>
+                        <div class="text-muted small">${escapeHtml(a.code || '')}</div>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function updateRowAllergensInList(itemId, assigned) {
+        // Aktualizuj cache state.items, by lista po zamknięciu modala miała aktualne dane
+        const it = state.items.find(x => String(x.id) === String(itemId));
+        if (it) it.allergens = assigned.map(a => ({ id: a.id, code: a.code, name: a.name }));
+    }
+
+    async function loadAssignedAllergens(itemId) {
+        try {
+            const resp = await api(`/ajax/raw-materials/${itemId}/allergens`, { method: 'GET' });
+            if (resp.success || resp.ok) {
+                state.detailsAssigned = Array.isArray(resp.data) ? resp.data : [];
+            } else {
+                state.detailsAssigned = [];
+            }
+        } catch (e) {
+            console.error(e);
+            state.detailsAssigned = [];
+        }
+        renderAssignedBadges();
+        renderAllergenTiles();
+        updateRowAllergensInList(itemId, state.detailsAssigned);
+        renderTable();
+    }
+
+    async function openDetailsModal(item) {
+        state.detailsId = item.id;
+        state.detailsAssigned = [];
+        el('rmDetailsId').value = item.id;
+        el('rmDetailsSubtitle').textContent = (item.sku ? (item.sku + ' — ') : '') + (item.name || '');
+        el('rmAllergenSearch').value = '';
+        el('rmPriceAddForm').style.display = 'none';
+        // Ustaw etykietę jednostki w formularzu ceny
+        const unit = item.id_unit ? unitById.get(String(item.id_unit)) : null;
+        el('rmNewPackageUnit').textContent = unit ? unitLabel(unit) : '—';
+
+        renderDetailsSections(item);
+        renderAssignedBadges();
+        renderAllergenTiles();
+        updateCurrentPriceBadge(item);
+        detailsModal.show();
+        await Promise.all([
+            loadAssignedAllergens(item.id),
+            loadPriceHistory(item.id),
+        ]);
+    }
+
+    async function toggleAllergen(allergenId) {
+        const id = state.detailsId;
+        if (!id) return;
+        const isAssigned = (state.detailsAssigned || []).some(a => String(a.id) === String(allergenId));
+
+        try {
+            let resp;
+            if (isAssigned) {
+                resp = await api(`/ajax/raw-materials/${id}/allergens/${allergenId}`, { method: 'DELETE' });
+            } else {
+                resp = await api(`/ajax/raw-materials/${id}/allergens`, { method: 'POST', data: { id_allergen: Number(allergenId) } });
+            }
+
+            if (!(resp.success || resp.ok)) {
+                Swal.fire({ icon: 'error',
+                    title: {{ translations.error|json_encode|raw }},
+                    text: resp.message || resp.description || {{ translations.undefined_error_occurred|json_encode|raw }} });
+                return;
+            }
+            await loadAssignedAllergens(id);
+        } catch (e) {
+            console.error(e);
+            Swal.fire({ icon: 'error',
+                title: {{ translations.error|json_encode|raw }},
+                text: {{ translations.no_api_connection|json_encode|raw }} });
+        }
+    }
+
+    // ===== bind =====
+    el('btnAddRawMaterial').addEventListener('click', openCreateModal);
+    el('btnManageCategories').addEventListener('click', openCategoryModal);
+    el('btnClearFilters').addEventListener('click', () => {
+        el('filterSearch').value = '';
+        el('filterCategory').value = '';
+        el('filterStatus').value = 'active';
+        loadItems().catch(console.error);
+    });
+    el('filterSearch').addEventListener('input', renderTable);
+    el('filterCategory').addEventListener('change', renderTable);
+    el('filterStatus').addEventListener('change', () => loadItems().catch(console.error));
+    el('btnSaveRawMaterial').addEventListener('click', saveItem);
+
+    el('rmUnit').addEventListener('change', updateInitPriceCalc);
+    el('rmInitPackagePrice').addEventListener('input', updateInitPriceCalc);
+    el('rmInitPackageQty').addEventListener('input', updateInitPriceCalc);
+    el('rmNewPackagePrice').addEventListener('input', updateNewPriceCalc);
+    el('rmNewPackageQty').addEventListener('input', updateNewPriceCalc);
+
+    el('rawMaterialsTbody').addEventListener('click', (ev) => {
+        const tr = ev.target.closest('tr[data-id]');
+        if (!tr) return;
+        const item = getItemFromRow(tr);
+        if (!item) return;
+        if (ev.target.closest('.rm-edit'))         openEditModal(item);
+        else if (ev.target.closest('.rm-details')) openDetailsModal(item);
+        else if (ev.target.closest('.rm-archive')) archiveItem(item);
+        else if (ev.target.closest('.rm-restore')) restoreItem(item);
+        else if (ev.target.closest('.rm-force-delete')) forceDeleteItem(item);
+    });
+
+    // ===== kategorie: modal CRUD =====
+    const catModal = new bootstrap.Modal(el('categoryModal'));
+    let categories = [...(CATEGORIES || [])];
+
+    function rebuildCategorySelect(selectId) {
+        const sel = el(selectId);
+        const current = sel.value;
+        sel.innerHTML = `<option value="">{{ translations.no_category }}</option>` +
+            categories.map(c => `<option value="${escapeHtml(String(c.id))}">${escapeHtml(c.name)}</option>`).join('');
+        sel.value = current;
+    }
+
+    function renderCategoryList() {
+        const tEdit   = {{ translations.edit_category|json_encode|raw }};
+        const tDelete = {{ translations.delete_category|json_encode|raw }};
+        const list = el('categoryList');
+        if (!categories.length) {
+            list.innerHTML = `<li class="list-group-item text-muted small">—</li>`;
+            return;
+        }
+        list.innerHTML = categories.map(c => `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${escapeHtml(c.name)}</span>
+                <span>
+                    <button type="button" class="btn btn-sm btn-link p-0 me-2 cat-edit" data-id="${escapeHtml(String(c.id))}" title="${escapeHtml(tEdit)}">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-link p-0 text-danger cat-delete" data-id="${escapeHtml(String(c.id))}" title="${escapeHtml(tDelete)}">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </span>
+            </li>`).join('');
+    }
+
+    function openCategoryModal() {
+        el('catEditId').value = '';
+        el('catNameInput').value = '';
+        el('errCategoryName').textContent = '';
+        el('btnCancelCatEdit').style.display = 'none';
+        renderCategoryList();
+        catModal.show();
+    }
+
+    function setCatEditMode(id, name) {
+        el('catEditId').value = id;
+        el('catNameInput').value = name;
+        el('btnCancelCatEdit').style.display = '';
+        el('catNameInput').focus();
+    }
+
+    function cancelCatEdit() {
+        el('catEditId').value = '';
+        el('catNameInput').value = '';
+        el('errCategoryName').textContent = '';
+        el('btnCancelCatEdit').style.display = 'none';
+    }
+
+    async function saveCategoryItem() {
+        const name = el('catNameInput').value.trim();
+        const editId = el('catEditId').value;
+        el('errCategoryName').textContent = '';
+
+        if (!name) {
+            el('errCategoryName').textContent = {{ translations.field_required|json_encode|raw }};
+            return;
+        }
+
+        try {
+            let resp;
+            if (editId) {
+                resp = await api(`/ajax/raw-material-categories/${editId}`, { method: 'PATCH', data: { name } });
+            } else {
+                resp = await api('/ajax/raw-material-categories', { method: 'POST', data: { name } });
+            }
+
+            if (!resp.ok) {
+                el('errCategoryName').textContent = {{ translations.category_name_exists|json_encode|raw }};
+                return;
+            }
+
+            // odśwież słownik z API
+            const fresh = await api('/ajax/raw-material-categories');
+            categories = Array.isArray(fresh.data) ? fresh.data : [];
+            categoryById.clear();
+            categories.forEach(c => categoryById.set(String(c.id), c));
+            renderCategoryList();
+            rebuildCategorySelect('rmCategory');
+            rebuildCategorySelect('filterCategory');
+            cancelCatEdit();
+
+        } catch (e) {
+            el('errCategoryName').textContent = e.message || 'Error';
+        }
+    }
+
+    async function deleteCategoryItem(id) {
+        const tConfirm = {{ translations.category_delete_confirm|json_encode|raw }};
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: {{ translations.delete_category|json_encode|raw }},
+            text: tConfirm,
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: {{ translations.delete|json_encode|raw }},
+            cancelButtonText: {{ translations.cancel|json_encode|raw }},
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            await api(`/ajax/raw-material-categories/${id}`, { method: 'DELETE' });
+            const fresh = await api('/ajax/raw-material-categories');
+            categories = Array.isArray(fresh.data) ? fresh.data : [];
+            renderCategoryList();
+            rebuildCategorySelect('rmCategory');
+            rebuildCategorySelect('filterCategory');
+        } catch (e) {
+            Swal.fire({ icon: 'error', text: e.message || 'Error' });
+        }
+    }
+
+    el('btnSaveCategory').addEventListener('click', () => saveCategoryItem());
+    el('btnCancelCatEdit').addEventListener('click', cancelCatEdit);
+    el('categoryList').addEventListener('click', (ev) => {
+        const editBtn = ev.target.closest('.cat-edit');
+        const delBtn  = ev.target.closest('.cat-delete');
+        if (editBtn) {
+            const id = editBtn.dataset.id;
+            const cat = categories.find(c => String(c.id) === id);
+            if (cat) setCatEditMode(id, cat.name);
+        } else if (delBtn) {
+            deleteCategoryItem(delBtn.dataset.id);
+        }
+    });
+
+    async function archiveItem(item) {
+        const result = await Swal.fire({
+            icon: 'warning',
+            title: {{ translations.archive_confirm_title|json_encode|raw }},
+            text:  {{ translations.archive_confirm_text|json_encode|raw }},
+            showCancelButton: true,
+            confirmButtonText: {{ translations.archive|json_encode|raw }},
+            cancelButtonText:  {{ translations.cancel|json_encode|raw }},
+        });
+        if (!result.isConfirmed) return;
+        try {
+            const resp = await api(`/ajax/raw-materials/${item.id}/archive`, { method: 'PATCH', data: {} });
+            if (resp.success || resp.ok) {
+                await loadItems();
+            } else {
+                Swal.fire({ icon: 'error', title: {{ translations.error|json_encode|raw }}, text: resp.message || resp.description || {{ translations.undefined_error_occurred|json_encode|raw }} });
+            }
+        } catch (e) {
+            console.error(e);
+            Swal.fire({ icon: 'error', title: {{ translations.error|json_encode|raw }}, text: {{ translations.no_api_connection|json_encode|raw }} });
+        }
+    }
+
+    async function restoreItem(item) {
+        const result = await Swal.fire({
+            icon: 'question',
+            title: {{ translations.restore_confirm_title|json_encode|raw }},
+            text:  {{ translations.restore_confirm_text|json_encode|raw }},
+            showCancelButton: true,
+            confirmButtonText: {{ translations.restore|json_encode|raw }},
+            cancelButtonText:  {{ translations.cancel|json_encode|raw }},
+        });
+        if (!result.isConfirmed) return;
+        try {
+            const resp = await api(`/ajax/raw-materials/${item.id}/restore`, { method: 'PATCH', data: {} });
+            if (resp.success || resp.ok) {
+                await loadItems();
+            } else {
+                Swal.fire({ icon: 'error', title: {{ translations.error|json_encode|raw }}, text: resp.message || resp.description || {{ translations.undefined_error_occurred|json_encode|raw }} });
+            }
+        } catch (e) {
+            console.error(e);
+            Swal.fire({ icon: 'error', title: {{ translations.error|json_encode|raw }}, text: {{ translations.no_api_connection|json_encode|raw }} });
+        }
+    }
+
+    async function forceDeleteItem(item) {
+        // Step 1: warning
+        const step1 = await Swal.fire({
+            icon: 'warning',
+            title: {{ translations.delete_confirm_title|json_encode|raw }},
+            text:  {{ translations.delete_confirm_text|json_encode|raw }},
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: {{ translations.force_delete|json_encode|raw }},
+            cancelButtonText:  {{ translations.cancel|json_encode|raw }},
+        });
+        if (!step1.isConfirmed) return;
+
+        // Step 2: type name confirmation
+        const step2 = await Swal.fire({
+            title: {{ translations.delete_confirm_title|json_encode|raw }},
+            input: 'text',
+            inputLabel: {{ translations.delete_confirm_type_name|json_encode|raw }},
+            inputPlaceholder: item.name || '',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            confirmButtonText: {{ translations.force_delete|json_encode|raw }},
+            cancelButtonText:  {{ translations.cancel|json_encode|raw }},
+            inputValidator: (value) => {
+                if (!value || value.trim() !== (item.name || '').trim()) {
+                    return {{ translations.delete_confirm_mismatch|json_encode|raw }};
+                }
+            },
+        });
+        if (!step2.isConfirmed) return;
+
+        try {
+            const resp = await api(`/ajax/raw-materials/${item.id}`, { method: 'DELETE' });
+            if (resp.success || resp.ok) {
+                await loadItems();
+                Swal.fire({ icon: 'success', title: {{ translations.success|json_encode|raw }}, text: {{ translations.operation_successful|json_encode|raw }}, timer: 1200, showConfirmButton: false });
+            } else {
+                const is409 = resp.code === 409 || resp.status === 409;
+                const msg = is409
+                    ? {{ translations.error_in_use_by_recipes|json_encode|raw }}
+                    : (resp.message || resp.description || {{ translations.undefined_error_occurred|json_encode|raw }});
+                Swal.fire({ icon: 'error', title: {{ translations.error|json_encode|raw }}, text: msg });
+            }
+        } catch (e) {
+            console.error(e);
+            Swal.fire({ icon: 'error', title: {{ translations.error|json_encode|raw }}, text: {{ translations.no_api_connection|json_encode|raw }} });
+        }
+    }
+
+    // Modal szczegółów: kafelki alergenów (toggle) + usuwanie z badge'a
+    el('rmAllergenTiles').addEventListener('click', (ev) => {
+        const tile = ev.target.closest('.rm-allergen-tile');
+        if (!tile) return;
+        toggleAllergen(tile.getAttribute('data-id'));
+    });
+    el('rmAssignedBadges').addEventListener('click', (ev) => {
+        const rm = ev.target.closest('.rm-allergen-remove');
+        if (!rm) return;
+        const badge = rm.closest('.rm-allergen-badge');
+        if (!badge) return;
+        toggleAllergen(badge.getAttribute('data-id'));
+    });
+    el('rmAllergenSearch').addEventListener('input', renderAllergenTiles);
+
+    // Edycja z poziomu modala szczegółów
+    el('btnEditFromDetails').addEventListener('click', () => {
+        const id = state.detailsId;
+        if (!id) return;
+        const item = state.items.find(x => String(x.id) === String(id));
+        if (!item) return;
+        detailsModal.hide();
+        // Krótkie opóźnienie aby uniknąć kolizji backdrop'ów Bootstrapa
+        setTimeout(() => openEditModal(item), 150);
+    });
+
+    // ===== Historia cen (iter. 5) =====
+
+    function updateCurrentPriceBadge(item) {
+        const badge = el('rmCurrentPriceBadge');
+        if (item.current_price_net != null) {
+            el('rmCurrentPriceAmount').textContent = item.current_price_net;
+            el('rmCurrentPriceCurrency').textContent = CURRENCY;
+            badge.style.display = '';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    async function loadPriceHistory(itemId) {
+        el('rmPriceHistoryTbody').innerHTML = `<tr><td colspan="4" class="rm-price-history-empty">${escapeHtml({{ translations.loading|json_encode|raw }})}</td></tr>`;
+        try {
+            const resp = await api(`/ajax/raw-materials/${itemId}/price-history`, { method: 'GET' });
+            if (resp.success || resp.ok) {
+                renderPriceHistoryRows(Array.isArray(resp.data) ? resp.data : []);
+            } else {
+                el('rmPriceHistoryTbody').innerHTML = `<tr><td colspan="4" class="rm-price-history-empty">${escapeHtml({{ translations.price_history_no_entries|json_encode|raw }})}</td></tr>`;
+            }
+        } catch (e) {
+            console.error(e);
+            el('rmPriceHistoryTbody').innerHTML = `<tr><td colspan="4" class="rm-price-history-empty">${escapeHtml({{ translations.no_api_connection|json_encode|raw }})}</td></tr>`;
+        }
+    }
+
+    function renderPriceHistoryRows(rows) {
+        const tEmpty   = {{ translations.price_history_no_entries|json_encode|raw }};
+        const tPlanned = {{ translations.planned|json_encode|raw }};
+        const today = new Date().toISOString().split('T')[0];
+
+        if (!rows.length) {
+            el('rmPriceHistoryTbody').innerHTML = `<tr><td colspan="4" class="rm-price-history-empty">${escapeHtml(tEmpty)}</td></tr>`;
+            return;
+        }
+        el('rmPriceHistoryTbody').innerHTML = rows.map(r => {
+            const isFuture = r.valid_from > today;
+            const plannedBadge = isFuture ? ` <span class="badge bg-warning text-dark ms-1" style="font-size:10px;">${escapeHtml(tPlanned)}</span>` : '';
+            return `<tr>
+                <td>${escapeHtml(r.valid_from)}${plannedBadge}</td>
+                <td class="text-end fw-semibold">${escapeHtml(String(r.price_net))} <small class="text-muted">${escapeHtml(CURRENCY)}</small></td>
+                <td>${escapeHtml(r.note || '\u2014')}</td>
+                <td class="text-muted small">${escapeHtml(r.created_at ? r.created_at.substring(0, 10) : '\u2014')}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function resetPriceForm() {
+        el('rmNewPackagePrice').value = '';
+        el('rmNewPackageQty').value = '1';
+        el('rmNewPriceCalcResult').textContent = '';
+        el('rmNewValidFrom').value = new Date().toISOString().split('T')[0];
+        el('rmNewPriceNote').value = '';
+        ['errPriceNet', 'errValidFrom', 'errPriceNote'].forEach(id => { const e = el(id); if (e) e.textContent = ''; });
+        el('rmNewPriceCurrency').textContent = CURRENCY;
+    }
+
+    el('btnTogglePriceForm').addEventListener('click', () => {
+        const form = el('rmPriceAddForm');
+        const isHidden = form.style.display === 'none' || !form.style.display;
+        if (isHidden) { resetPriceForm(); form.style.display = ''; } else { form.style.display = 'none'; }
+    });
+
+    el('btnCancelPrice').addEventListener('click', () => {
+        el('rmPriceAddForm').style.display = 'none';
+    });
+
+    el('btnSavePrice').addEventListener('click', async () => {
+        const id = state.detailsId;
+        if (!id) return;
+
+        ['errPriceNet', 'errValidFrom', 'errPriceNote'].forEach(eid => { const e = el(eid); if (e) e.textContent = ''; });
+
+        const pkgPrice  = el('rmNewPackagePrice').value;
+        const pkgQty    = el('rmNewPackageQty').value;
+        const priceNet  = calcPackagePrice(pkgPrice, pkgQty);
+        const validFrom = el('rmNewValidFrom').value;
+        const note      = el('rmNewPriceNote').value.trim() || null;
+
+        let hasErr = false;
+        if (!priceNet || priceNet <= 0) {
+            const e = el('errPriceNet'); if (e) { e.textContent = {{ translations.field_required|json_encode|raw }}; } hasErr = true;
+        }
+        if (!validFrom) {
+            const e = el('errValidFrom'); if (e) { e.textContent = {{ translations.field_required|json_encode|raw }}; } hasErr = true;
+        }
+        if (hasErr) return;
+
+        el('btnSavePrice').disabled = true;
+        try {
+            const resp = await api(`/ajax/raw-materials/${id}/price-history`, {
+                method: 'POST',
+                data: { price_net: parseFloat(priceNet.toFixed(4)), valid_from: validFrom, note }
+            });
+            if (resp.success || resp.ok) {
+                el('rmPriceAddForm').style.display = 'none';
+                await loadPriceHistory(id);
+                await loadItems();
+                const updatedItem = state.items.find(x => String(x.id) === String(id));
+                if (updatedItem) updateCurrentPriceBadge(updatedItem);
+                Swal.fire({ icon: 'success', title: {{ translations.success|json_encode|raw }}, text: {{ translations.operation_successful|json_encode|raw }}, timer: 1200, showConfirmButton: false });
+            } else {
+                const errors = resp.errors || {};
+                if (errors.price_net)  { const e = el('errPriceNet');  if (e) e.textContent = errors.price_net; }
+                if (errors.valid_from) { const e = el('errValidFrom'); if (e) e.textContent = errors.valid_from; }
+                if (errors.note)       { const e = el('errPriceNote'); if (e) e.textContent = errors.note; }
+                if (!Object.keys(errors).length) {
+                    Swal.fire({ icon: 'error', title: {{ translations.error|json_encode|raw }}, text: resp.message || resp.description || {{ translations.undefined_error_occurred|json_encode|raw }} });
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            Swal.fire({ icon: 'error', title: {{ translations.error|json_encode|raw }}, text: {{ translations.no_api_connection|json_encode|raw }} });
+        } finally {
+            el('btnSavePrice').disabled = false;
+        }
+    });
+
+    loadItems().catch(console.error);
+});
+</script>
+{% endblock %}
+

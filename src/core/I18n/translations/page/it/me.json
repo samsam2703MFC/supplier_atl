@@ -23,6 +23,29 @@
   "supplier_phone_label": "Telefono",
   "supplier_email_label": "E-mail",
 
+  "supplier_logo_section": "Logo aziendale",
+  "supplier_logo_hint": "JPG, PNG o WebP, max 2 MB.",
+  "supplier_logo_upload_btn": "Carica logo",
+  "supplier_logo_alt": "Logo aziendale",
+
+  "supplier_profile_edit_title": "Dettagli del profilo",
+  "supplier_profile_edit_hint": "Queste informazioni sono visibili sulla piattaforma.",
+
+  "supplier_iban_label": "IBAN",
+  "supplier_iban_placeholder": "es. IT60 X054 2811 1010 0000 0123 456",
+  "supplier_website_label": "Sito web",
+  "supplier_website_placeholder": "https://",
+  "supplier_notes_label": "Note",
+  "supplier_notes_placeholder": "Note interne sull'account fornitore...",
+
+  "save_btn": "Salva",
+  "cancel_btn": "Annulla",
+
+  "profile_saved": "Profilo salvato con successo.",
+  "profile_save_failed": "Si è verificato un errore durante il salvataggio del profilo.",
+  "logo_uploaded": "Logo caricato con successo.",
+  "logo_upload_failed": "Si è verificato un errore durante il caricamento del logo.",
+
   "not_provided": "Non fornito",
   "read_only_hint": "Questa è una vista informativa (senza modifica).",
   "contact_hint": "I dati di contatto sono usati per la comunicazione nell'integrazione con la rete in franchising."

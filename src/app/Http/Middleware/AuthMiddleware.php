@@ -38,7 +38,8 @@ class AuthMiddleware
                 'supplier_id' => (int)($claims['supplier_id'] ?? 0),
                 'first_name' => (string)($claims['usr_fn'] ?? ''),
                 'last_name' => (string)($claims['usr_ln'] ?? ''),
-                'lang_code' => (string)($claims['usr_lncd'] ?? 'pl')
+                'lang_code' => (string)($claims['usr_lncd'] ?? 'pl'),
+                'is_integrated' => (bool)($claims['is_integrated'] ?? false),
             ]);
             GlobalRegistry::set('lang_code', (string)($claims['usr_lncd'] ?? getUserLanguage()));
         }

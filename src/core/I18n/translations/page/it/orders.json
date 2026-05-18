@@ -1,0 +1,22 @@
+{
+    "orders_title": "Ordini",
+    "orders_heading": "Ordini",
+    "orders_subtitle": "Tutti gli ordini effettuati presso la tua azienda",
+    "orders_empty": "Nessun ordine trovato.",
+    "orders_filter_status": "Stato",
+    "orders_filter_from": "Data inizio",
+    "orders_filter_to": "Data fine",
+    "orders_filter_apply": "Applica",
+    "orders_status_all": "Tutti gli stati",
+    "orders_status_new": "Nuovo",
+    "orders_status_in_transit": "In transito",
+    "orders_status_delivered": "Consegnato",
+    "orders_status_cancelled": "Annullato",
+    "orders_status_archived": "Archiviato",
+    "orders_col_order_key": "Numero ordine",
+    "orders_col_shop": "Punto vendita",
+    "orders_col_order_date": "Data ordine",
+    "orders_col_expected_date": "Data prevista",
+    "orders_col_value_net": "Valore netto",
+    "orders_col_status": "Stato"
+}

@@ -1,0 +1,2549 @@
+{% extends "layouts/base.twig" %}
+
+{% block title %}{{ recipe.name }} — {{ translations.calculator_subtitle }}{% endblock %}
+
+{% block head %}
+<style>
+.calc-tile-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: #6366F1;
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.calc-product-card {
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: #F8FAFC;
+}
+.calc-product-avatar {
+    width: 52px; height: 52px;
+    border-radius: 8px;
+    background: #EEF2FF;
+    color: #3730A3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+.calc-ing-table th,.calc-ing-table td { vertical-align: middle; }
+.calc-ing-table .num { font-variant-numeric: tabular-nums; }
+.calc-empty { text-align: center; padding: 48px 16px; color: #94A3B8; }
+.calc-empty i { font-size: 32px; opacity: .4; display: block; margin-bottom: 8px; }
+.calc-no-price { color: #EF4444; font-size: 10px; font-weight: 600; }
+.calc-action-btn {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid #E2E8F0;
+    background: #fff;
+    color: #94A3B8;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+    font-size: 12px;
+}
+.calc-action-btn:hover { background: #EF4444; color: #fff; border-color: #EF4444; }
+.calc-allergen-badge {
+    display: inline-flex;
+    align-items: center;
+    background: #FEF3C7;
+    color: #92400E;
+    border: 1px solid #FDE68A;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 2px;
+}
+.calc-add-form-bar { background: #F8FAFC; border-bottom: 1px solid #E2E8F0; padding: 12px 16px; }
+.is-archived-badge { display: inline-block; background: #F1F5F9; color: #94A3B8; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; margin-left: 4px; }
+.calc-page-wrap { max-width: 900px; margin: 0 auto; }
+.calc-summary-banner {
+    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    border: 1px solid #C7D2FE;
+    border-radius: 12px;
+    padding: 16px 20px;
+}
+.calc-summary-icon {
+    width: 40px; height: 40px;
+    background: #6366F1;
+    color: #fff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.calc-summary-text { color: #374151; font-size: 14px; line-height: 1.7; }
+.calc-summary-text strong { color: #3730A3; }
+.calc-summary-text .text-success strong { color: #059669 !important; }
+</style>
+{% endblock %}
+
+{% block page_heading %}
+    <div class="page-heading" style="max-width: 900px; margin: 0 auto;">
+        <div class="mb-1">
+            <a href="{{ ROOT }}/recipes" class="text-muted small text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i>{{ translations.back_to_recipes }}
+            </a>
+        </div>
+        <h3>
+            {{ recipe.name }}
+            {% if recipe.is_archived %}
+                <span class="is-archived-badge">{{ translations.archived }}</span>
+            {% endif %}
+        </h3>
+        <p class="text-subtitle text-muted">{{ translations.calculator_subtitle }}</p>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="calc-page-wrap">
+
+    {# ===== TILE 1: PRODUKT ===== #}
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="calc-tile-num">1</span>
+                <span class="fw-semibold">{{ translations.product_tile_title }}</span>
+            </div>
+            <div class="d-flex gap-2">
+                {% if recipe.product_id %}
+                    <a href="{{ ROOT }}/catalog" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>{{ translations.open_in_catalog }}
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+
+            <div class="col-12 col-md-8">
+                <label class="form-label">{{ translations.select_product_label }}</label>
+                <select id="calcProductId" class="form-select">
+                    <option value="">{{ translations.recipe_select_product }}</option>
+                    {% for p in products %}
+                        <option value="{{ p.id }}"
+                                data-name="{{ p.name }}"
+                                data-sku="{{ p.sku ?? '' }}"
+                                data-active="{{ p.is_active ? '1' : '0' }}"
+                                {{ recipe.product_id == p.id ? 'selected' : '' }}>
+                            {{ p.name }}{% if p.sku %} ({{ p.sku }}){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">{{ translations.recipe_product_hint }}</div>
+            </div>
+
+            {# Karta podglądu produktu #}
+            <div id="productPreviewCard" class="mt-3 {{ recipe.product_id ? '' : 'd-none' }}">
+                <div class="calc-product-card d-flex align-items-center gap-3">
+                    <div class="calc-product-avatar" id="productAvatar">
+                        {{ recipe.product_name ? (recipe.product_name|slice(0, 2)|upper) : '--' }}
+                    </div>
+                    <div class="flex-grow-1 min-width-0">
+                        <div class="fw-semibold fs-5" id="productName">{{ recipe.product_name ?? '' }}</div>
+                        <div class="text-muted small mt-1">
+                            {{ translations.product_preview_sku }}:
+                            <strong id="productSku">{{ recipe.product_sku ?? translations.product_no_sku }}</strong>
+                        </div>
+                    </div>
+                    <span id="productStatusBadge"
+                          class="badge {{ recipe.product_is_active ? 'bg-success' : 'bg-secondary' }}">
+                        {{ recipe.product_is_active ? translations.product_preview_status_active : translations.product_preview_status_inactive }}
+                    </span>
+                </div>
+            </div>
+
+        </div>
+        {# <div class="card-footer text-end">
+            <button class="btn btn-sm btn-primary" id="btnSaveProduct">
+                <i class="bi bi-check-lg me-1"></i>{{ translations.save }}
+            </button>
+        </div> #}
+    </div>
+
+    {# ===== TILE 2: SUROWCE ===== #}
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="calc-tile-num">2</span>
+                <span class="fw-semibold">{{ translations.raw_materials_tile_title }}</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="btnOpenQuickAddRm" title="{{ translations.quick_add_raw_material }}">
+                    <i class="bi bi-plus-circle me-1"></i>{{ translations.quick_add_raw_material }}
+                </button>
+                <button class="btn btn-sm btn-outline-primary" id="btnToggleAddIngredient">
+                    <i class="bi bi-plus-lg me-1"></i>{{ translations.add_ingredient }}
+                </button>
+            </div>
+        </div>
+
+        {# Formularz dodawania składnika #}
+        <div id="addIngredientForm" class="calc-add-form-bar" style="display:none;">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-6">
+                    <label class="form-label small mb-1">
+                        {{ translations.ingredient_name }} <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select form-select-sm" id="newRawMaterialId">
+                        <option value="">{{ translations.select_raw_material }}</option>
+                        {% for rm in rawMaterials %}
+                            <option value="{{ rm.id }}" data-unit="{{ rm.unit_name ?? rm.unit_symbol ?? '' }}">
+                                {{ rm.name }}{% if rm.unit_name %} ({{ rm.unit_name }}){% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <div class="invalid-feedback d-block small" id="errIngRm"></div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label small mb-1">
+                        {{ translations.quantity }} <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group input-group-sm">
+                        <input type="number" step="0.001" min="0.001" class="form-control" id="newQty">
+                        <span class="input-group-text" id="newQtyUnit">—</span>
+                    </div>
+                    <div class="invalid-feedback d-block small" id="errIngQty"></div>
+                </div>
+                <div class="col-12 col-md-2 d-flex gap-1">
+                    <button type="button" class="btn btn-sm btn-success flex-grow-1" id="btnConfirmAddIngredient">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-light" id="btnCancelAddIngredient">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {# Tabela składników #}
+        <div class="table-responsive">
+            <table class="table table-hover calc-ing-table mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ translations.ingredient_name }}</th>
+                        <th style="width:130px;" class="text-end">{{ translations.ingredients_qty_header }}</th>
+                        <th style="width:110px;" class="text-end">{{ translations.ingredients_price_header }}</th>
+                        <th style="width:60px;"  class="text-end">%</th>
+                        <th style="width:120px;" class="text-end">{{ translations.ingredients_cost_header }}</th>
+                        <th style="width:40px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="ingredientsTbody">
+                    {% if ingredients is empty %}
+                        <tr>
+                            <td colspan="6" class="calc-empty">
+                                <i class="bi bi-basket2"></i>{{ translations.no_results }}
+                            </td>
+                        </tr>
+                    {% else %}
+                        {% set tw = summary.total_weight ?? 0 %}
+                        {% for ing in ingredients %}
+                            <tr data-ing-id="{{ ing.id }}">
+                                <td>
+                                    {{ ing.raw_material_name_snapshot }}
+                                    {% if ing.raw_material_is_archived %}
+                                        <span class="calc-no-price ms-1" title="{{ translations.ingredient_archived_warning }}">
+                                            <i class="bi bi-archive"></i>
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end num">
+                                    {% set _noDecUnits = ['g', 'ml', 'szt'] %}
+                                    {% if ing.unit_symbol_snapshot in _noDecUnits %}
+                                        {{ ing.quantity|number_format(0, '.', '') }}
+                                    {% else %}
+                                        {{ ing.quantity|number_format(2, '.', '') }}
+                                    {% endif %}
+                                    <span class="text-muted small"> {{ ing.unit_symbol_snapshot }}</span>
+                                </td>
+                                <td class="text-end num">
+                                    {% if ing.price_net_snapshot is not null %}
+                                        {{ ing.price_net_snapshot|number_format(2, '.', '') }}
+                                    {% else %}
+                                        <span class="calc-no-price" title="{{ translations.ingredient_no_price }}">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end num">
+                                    {% if tw > 0 %}
+                                        {{ (ing.quantity / tw * 100)|number_format(2, '.', '') }}%
+                                    {% else %}
+                                        —
+                                    {% endif %}
+                                </td>
+                                <td class="text-end num">
+                                    {% if ing.price_net_snapshot is not null %}
+                                        {{ (ing.quantity * ing.price_net_snapshot)|number_format(2, '.', '') }}
+                                    {% else %}
+                                        <span class="calc-no-price">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <button class="calc-action-btn btnDeleteIng"
+                                            data-id="{{ ing.id }}"
+                                            title="{{ translations.delete }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                </tbody>
+                {% if ingredients is not empty %}
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="2" class="small text-muted py-2">
+                            {{ ingredients|length }} {{ translations.summary_ingredients }}
+                            · {% set _twUnit = ingredients[0].unit_symbol_snapshot ?? '' %}{% if _twUnit in ['g','ml','szt'] %}{{ (summary.total_weight ?? 0)|number_format(0, '.', '') }}{% else %}{{ (summary.total_weight ?? 0)|number_format(2, '.', '') }}{% endif %}
+                            {{ _twUnit }} {{ translations.summary_total_weight|lower }}
+                        </td>
+                        <td></td>
+                        <td class="text-end fw-semibold text-primary small py-2">100%</td>
+                        <td class="text-end fw-bold py-2" id="totalCostCell">
+                            {% if summary.total_cost is not null %}
+                                {{ summary.total_cost|number_format(2, '.', '') }} {{ currency }}
+                            {% else %}
+                                <span class="calc-no-price">—</span>
+                            {% endif %}
+                        </td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+                {% endif %}
+            </table>
+        </div>
+
+        {# Totals row (mockup-style) #}
+        {% if ingredients is not empty %}
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-top bg-light">
+            <span class="small text-muted">
+                {{ ingredients|length }} {{ translations.summary_ingredients }}
+                · {% set _twUnit2 = ingredients[0].unit_symbol_snapshot ?? '' %}{% if _twUnit2 in ['g','ml','szt'] %}{{ (summary.total_weight ?? 0)|number_format(0, '.', '') }}{% else %}{{ (summary.total_weight ?? 0)|number_format(2, '.', '') }}{% endif %} {{ _twUnit2 }}
+            </span>
+            <span class="small">
+                {{ translations.total_raw_materials }}
+                <strong class="ms-2 fs-6">
+                    {% if summary.total_cost is not null %}
+                        {{ summary.total_cost|number_format(2, '.', '') }} {{ currency }}
+                    {% else %}
+                        <span class="calc-no-price">—</span>
+                    {% endif %}
+                </strong>
+            </span>
+        </div>
+        {% endif %}
+
+        {# Alergeny #}
+        <div class="px-3 py-3 border-top">
+            <div class="text-muted small fw-semibold text-uppercase mb-1">
+                {{ translations.allergens_section }} —
+                <span class="fw-normal text-lowercase">{{ translations.allergens_hint }}</span>
+            </div>
+            <div id="allergensBadges" class="mt-2">
+                {% if summary.allergens is empty %}
+                    <span class="text-muted small">{{ translations.no_allergens }}</span>
+                {% else %}
+                    {% set _seenAllergens = [] %}
+                    {% for a in summary.allergens %}
+                        {% set _allergenKey = a.code ?? a.name ?? '' %}
+                        {% if _allergenKey not in _seenAllergens %}
+                            {% set _seenAllergens = _seenAllergens|merge([_allergenKey]) %}
+                            {% set _allergenLabel = translations['allergen_' ~ _allergenKey] ?? a.name ?? _allergenKey %}
+                            <span class="calc-allergen-badge">
+                                <i class="bi bi-exclamation-diamond me-1"></i>{{ _allergenLabel }}
+                            </span>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            </div>
+        </div>
+
+        {# Notatki technologiczne #}
+        <div class="px-3 py-3 border-top">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <div class="text-muted small fw-semibold text-uppercase">
+                    {{ translations.technical_notes }}
+                </div>
+                <button class="btn btn-sm btn-primary" id="btnSaveNotes">
+                    <i class="bi bi-check-lg me-1"></i>{{ translations.save_technical_notes }}
+                </button>
+            </div>
+            <textarea class="form-control" id="calcTechnicalNotes" rows="4" maxlength="5000"
+                      placeholder="{{ translations.technical_notes_placeholder }}">{{ recipe.technical_notes ?? '' }}</textarea>
+            <div class="form-text">{{ translations.technical_notes_hint }}</div>
+        </div>
+
+    </div>
+
+    {# ===== SUMMARY AFTER TILE 2 ===== #}
+    {% if ingredients is not empty %}
+    {% set _sum_g   = 0 %}
+    {% set _sum_ml  = 0 %}
+    {% set _sum_szt = 0 %}
+    {% for _si in ingredients %}
+        {% if _si.unit_symbol_snapshot == 'g' %}
+            {% set _sum_g = _sum_g + _si.quantity %}
+        {% elseif _si.unit_symbol_snapshot == 'ml' %}
+            {% set _sum_ml = _sum_ml + _si.quantity %}
+        {% elseif _si.unit_symbol_snapshot == 'szt' %}
+            {% set _sum_szt = _sum_szt + _si.quantity %}
+        {% endif %}
+    {% endfor %}
+    <div class="calc-summary-banner mb-3">
+        <div class="d-flex align-items-start gap-3">
+            <div class="calc-summary-icon flex-shrink-0">
+                <i class="bi bi-clipboard2-check"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-semibold text-indigo-800 mb-1">{{ translations.summary_step2_title }}</div>
+                <div class="calc-summary-text">
+                    {{ translations.summary_recipe_intro }}
+                    {% set _sum_parts = [] %}
+                    {% if _sum_g > 0 %}
+                        {% set _sum_parts = _sum_parts|merge(['<strong>' ~ _sum_g|number_format(0, '.', '') ~ ' g</strong>']) %}
+                    {% endif %}
+                    {% if _sum_ml > 0 %}
+                        {% set _sum_parts = _sum_parts|merge(['<strong>' ~ _sum_ml|number_format(0, '.', '') ~ ' ml</strong>']) %}
+                    {% endif %}
+                    {% if _sum_szt > 0 %}
+                        {% set _sum_parts = _sum_parts|merge(['<strong>' ~ _sum_szt|number_format(0, '.', '') ~ ' szt</strong>']) %}
+                    {% endif %}
+                    {% if _sum_parts is empty %}
+                        <strong>{{ (summary.total_weight ?? 0)|number_format(2, '.', '') }} {{ ingredients[0].unit_symbol_snapshot ?? '' }}</strong>
+                    {% else %}
+                        {% for _part in _sum_parts %}
+                            {{ _part|raw }}{% if not loop.last %} {{ translations.summary_and }} {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    {% if summary.total_cost is not null %}
+                        — {{ translations.summary_cost_intro }}
+                        <span class="text-success fw-bold">{{ summary.total_cost|number_format(2, '.', '') }} {{ currency }}</span>.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ===== TILE 3: SALES UNIT ===== #}
+    {% set su = recipe.sales_unit %}
+    {# Default portion_unit is resolved in PHP (RecipeController::resolveDefaultPortionUnit) #}
+    {% set _portionUnit = defaultPortionUnit %}
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2">
+            <span class="calc-tile-num">3</span>
+            <span class="fw-semibold">{{ translations.sales_unit_tile_title }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-start">
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.sales_unit_portion_size }}</label>
+                    <div class="input-group">
+                        <input type="number"
+                               step="0.001"
+                               min="0"
+                               class="form-control"
+                               id="suPortionSize"
+                               value="{{ su.portion_size is not null ? su.portion_size : '' }}">
+                        <select class="form-select" id="suPortionUnit" style="max-width: 90px;">
+                            <option value="g"   {% if _portionUnit == 'g'   %}selected{% endif %}>g</option>
+                            <option value="ml"  {% if _portionUnit == 'ml'  %}selected{% endif %}>ml</option>
+                            <option value="szt" {% if _portionUnit == 'szt' or _portionUnit == 'pcs' %}selected{% endif %}>szt</option>
+                            <option value="kg"  {% if _portionUnit == 'kg'  %}selected{% endif %}>kg</option>
+                            <option value="l"   {% if _portionUnit == 'l'   %}selected{% endif %}>l</option>
+                        </select>
+                    </div>
+                    <div class="invalid-feedback d-block small" id="errSuPortionSize"></div>
+                    <div class="invalid-feedback d-block small" id="errSuPortionUnit"></div>
+                    <div class="form-text">{{ translations.sales_unit_portion_size_hint }}</div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.sales_unit_portions_per_packaging }}</label>
+                    <input type="number"
+                           step="1"
+                           min="1"
+                           class="form-control"
+                           id="suPortionsPerPack"
+                           value="{{ su.portions_per_packaging is not null ? su.portions_per_packaging : '' }}">
+                    <div class="invalid-feedback d-block small" id="errSuPortionsPerPack"></div>
+                    <div class="form-text">{{ translations.sales_unit_portions_per_packaging_hint }}</div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.sales_unit_packagings_per_carton }}</label>
+                    <input type="number"
+                           step="1"
+                           min="1"
+                           class="form-control"
+                           id="suPacksPerCarton"
+                           value="{{ su.packagings_per_carton is not null ? su.packagings_per_carton : '' }}">
+                    <div class="invalid-feedback d-block small" id="errSuPacksPerCarton"></div>
+                    <div class="form-text">{{ translations.sales_unit_packagings_per_carton_hint }}</div>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+                <div class="col-12 col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <div class="text-muted small text-uppercase">{{ translations.sales_unit_portions_per_carton }}</div>
+                        <div class="fw-bold fs-5 text-primary" id="suPortionsPerCartonOut">
+                            {% if su.portions_per_carton is not null %}{{ su.portions_per_carton }}{% else %}<span class="text-muted">—</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <div class="text-muted small text-uppercase">{{ translations.sales_unit_packaging_weight }}</div>
+                        <div class="fw-bold fs-5 text-primary" id="suPackWeightOut">
+                            {% if su.packaging_size is not null %}
+                                {% set _puUnit = su.portion_unit ?? _portionUnit %}
+                                {% if _puUnit in ['g','ml','szt'] %}{{ su.packaging_size|number_format(0, '.', '') }}{% else %}{{ su.packaging_size|number_format(2, '.', '') }}{% endif %} {{ _puUnit }}
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <div class="text-muted small text-uppercase">{{ translations.sales_unit_carton_weight }}</div>
+                        <div class="fw-bold fs-5 text-primary" id="suCartonWeightOut">
+                            {% if su.carton_weight_kg is not null %}
+                                {{ su.carton_weight_kg|number_format(2, '.', '') }} kg
+                            {% elseif su.carton_size is not null %}
+                                {% set _puUnit2 = su.portion_unit ?? _portionUnit %}
+                                {% if _puUnit2 in ['g','ml','szt'] %}{{ su.carton_size|number_format(0, '.', '') }}{% else %}{{ su.carton_size|number_format(2, '.', '') }}{% endif %} {{ _puUnit2 }}
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-text mt-3">
+                {{ translations.sales_unit_hierarchy_hint }}
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-sm btn-primary" id="btnSaveSalesUnit">
+                <i class="bi bi-check-lg me-1"></i>{{ translations.save }}
+            </button>
+        </div>
+    </div>
+
+    {# ===== TILE 4: LABOR ===== #}
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center justify-content-between gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <span class="calc-tile-num">4</span>
+                <span class="fw-semibold">{{ translations.labor_tile_title }}</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" id="btnOpenLaborDefaults" title="{{ translations.labor_defaults_btn }}">
+                    <i class="bi bi-gear me-1"></i>{{ translations.labor_defaults_btn }}
+                </button>
+                {% set _hasNoLaborValues = recipe.labor_time_per_unit_min is null and recipe.labor_hourly_rate is null %}
+                {% set _hasLaborDefaults = laborDefaults is defined and (laborDefaults.labor_time_default is not null or laborDefaults.labor_rate_default is not null) %}
+                {% if _hasNoLaborValues and _hasLaborDefaults %}
+                <button class="btn btn-sm btn-outline-secondary" id="btnLoadLaborDefaults">
+                    <i class="bi bi-download me-1"></i>{{ translations.labor_defaults_load_btn }}
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-start">
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.labor_time_per_unit }}</label>
+                    <div class="input-group">
+                        <input type="number"
+                               step="0.1"
+                               min="0"
+                               max="9999.99"
+                               class="form-control"
+                               id="laborTime"
+                               value="{{ recipe.labor_time_per_unit_min is not null ? recipe.labor_time_per_unit_min : '' }}">
+                        <span class="input-group-text">{{ translations.labor_unit_min }}</span>
+                    </div>
+                    <div class="invalid-feedback d-block small" id="errLaborTime"></div>
+                    <div class="form-text">{{ translations.labor_time_hint }}</div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.labor_hourly_rate }}</label>
+                    <div class="input-group">
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               max="9999999.99"
+                               class="form-control"
+                               id="laborRate"
+                               value="{{ recipe.labor_hourly_rate is not null ? recipe.labor_hourly_rate : '' }}">
+                        <span class="input-group-text">{{ currency }}/h</span>
+                    </div>
+                    <div class="invalid-feedback d-block small" id="errLaborRate"></div>
+                    <div class="form-text">{{ translations.labor_rate_hint }}</div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.labor_cost_per_unit }}</label>
+                    <div class="form-control bg-light fw-bold text-primary fs-5"
+                         id="laborCostOut"
+                         style="text-align: right;">
+                        {% if recipe.labor_cost_per_unit is not null %}
+                            {{ recipe.labor_cost_per_unit|number_format(2, '.', '') }} {{ currency }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </div>
+                    <div class="form-text">{{ translations.labor_cost_hint }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-sm btn-primary" id="btnSaveLabor">
+                <i class="bi bi-check-lg me-1"></i>{{ translations.save }}
+            </button>
+        </div>
+    </div>
+
+    {# ===== LABOR SUMMARY ===== #}
+    {% if recipe.labor_time_per_unit_min is not null or recipe.labor_cost_per_unit is not null %}
+    <div class="calc-summary-banner mb-3">
+        <div class="d-flex align-items-start gap-3">
+            <div class="calc-summary-icon flex-shrink-0">
+                <i class="bi bi-person-check"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-semibold mb-1">{{ translations.labor_summary_title }}</div>
+                <div class="calc-summary-text">
+                    {{ translations.labor_summary_intro }}
+                    {% if recipe.labor_time_per_unit_min is not null %}
+                        <strong>{{ recipe.labor_time_per_unit_min|number_format(1, '.', '') }} {{ translations.labor_unit_min }}</strong>
+                    {% else %}
+                        <strong class="text-muted">—</strong>
+                    {% endif %}
+                    {{ translations.labor_summary_cost_intro }}
+                    {% if recipe.labor_cost_per_unit is not null %}
+                        <strong class="text-success">{{ recipe.labor_cost_per_unit|number_format(2, '.', '') }} {{ currency }}</strong>.
+                    {% else %}
+                        <strong class="text-muted">—</strong>.
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ===== TILE 5: OVERHEAD ===== #}
+    {% set oh = recipe.overhead %}
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2">
+            <span class="calc-tile-num">5</span>
+            <span class="fw-semibold">{{ translations.overhead_tile_title }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-start">
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.overhead_forecast_cartons }}</label>
+                    <div class="input-group">
+                        <input type="number"
+                               step="1"
+                               min="1"
+                               class="form-control"
+                               id="ohForecast"
+                               value="{{ oh.forecast_cartons_per_month is not null ? oh.forecast_cartons_per_month : '' }}">
+                        <span class="input-group-text">/ {{ translations.month_short }}</span>
+                    </div>
+                    <div class="invalid-feedback d-block small" id="errOhForecast"></div>
+                    <div class="form-text">{{ translations.overhead_forecast_hint }}</div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.overhead_pool }}</label>
+                    <div class="input-group">
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               class="form-control"
+                               id="ohPool"
+                               value="{{ oh.monthly_overhead_pool is not null ? oh.monthly_overhead_pool : '' }}">
+                        <span class="input-group-text">{{ currency }}</span>
+                    </div>
+                    <div class="invalid-feedback d-block small" id="errOhPool"></div>
+                    <div class="form-text">{{ translations.overhead_pool_hint }}</div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.overhead_per_portion }}</label>
+                    <div class="form-control bg-light fw-bold text-primary fs-5"
+                         id="ohPerPortionOut"
+                         style="text-align: right;">
+                        {% if oh.overhead_per_portion is not null %}
+                            {{ oh.overhead_per_portion|number_format(2, '.', '') }} {{ currency }}
+                        {% else %}<span class="text-muted">—</span>{% endif %}
+                    </div>
+                    <div class="form-text">{{ translations.overhead_per_portion_hint }}</div>
+                </div>
+            </div>
+
+            <button class="btn btn-outline-secondary btn-sm d-none" id="btnRecalcOverhead">
+                <i class="bi bi-arrow-clockwise me-1"></i>{{ translations.overhead_recalculate }}
+            </button>
+
+            <div class="form-text mt-2" id="ohSourceInfo">
+                {% if recipe.sales_unit.portions_per_carton is not null %}
+                    {{ translations.overhead_based_on|replace({'{n}': recipe.sales_unit.portions_per_carton}) }}
+                {% else %}
+                    <span class="text-warning">{{ translations.overhead_missing_sales_unit }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-sm btn-primary" id="btnSaveOverhead">
+                <i class="bi bi-check-lg me-1"></i>{{ translations.save }}
+            </button>
+        </div>
+    </div>
+
+    {# ===== TILE 6: PACKAGING COST ===== #}
+    {% set pack = recipe.packaging %}
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2">
+            <span class="calc-tile-num">6</span>
+            <span class="fw-semibold">{{ translations.packaging_tile_title }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-start">
+                <div class="col-12 col-md-6">
+                    <label class="form-label">{{ translations.packaging_description }}</label>
+                    <input type="text"
+                           class="form-control"
+                           id="packDesc"
+                           maxlength="255"
+                           value="{{ pack.description is not null ? pack.description : '' }}"
+                           placeholder="{{ translations.packaging_description_placeholder }}">
+                    <div class="invalid-feedback d-block small" id="errPackDesc"></div>
+                    <div class="form-text">{{ translations.packaging_description_hint }}</div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">{{ translations.packaging_cost_per_packaging }}</label>
+                    <div class="input-group">
+                        <input type="number"
+                               step="0.0001"
+                               min="0"
+                               class="form-control"
+                               id="packCost"
+                               value="{{ pack.cost_per_packaging is not null ? pack.cost_per_packaging : '' }}">
+                        <span class="input-group-text">{{ currency }}</span>
+                    </div>
+                    <div class="invalid-feedback d-block small" id="errPackCost"></div>
+                    <div class="form-text">{{ translations.packaging_cost_hint }}</div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">{{ translations.packaging_cost_per_portion }}</label>
+                    <div class="form-control bg-light fw-bold text-primary fs-5"
+                         id="packCostPerPortionOut"
+                         style="text-align: right;">
+                        {% if pack.cost_per_packaging is not null and recipe.sales_unit.portions_per_packaging is not null and recipe.sales_unit.portions_per_packaging > 0 %}
+                            {{ (pack.cost_per_packaging / recipe.sales_unit.portions_per_packaging)|number_format(2, '.', '') }} {{ currency }}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </div>
+                    <div class="form-text">{{ translations.packaging_cost_per_portion_hint }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-sm btn-primary" id="btnSavePackaging">
+                <i class="bi bi-check-lg me-1"></i>{{ translations.save }}
+            </button>
+        </div>
+    </div>
+
+    {# ===== TILE 7: VIDANGES ===== #}
+    {% set vid = recipe.vidanges %}
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2">
+            <span class="calc-tile-num">7</span>
+            <span class="fw-semibold">{{ translations.vidanges_tile_title }}</span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3 align-items-start">
+                <div class="col-12 col-md-5">
+                    <label class="form-label">{{ translations.vidanges_carton_type }}</label>
+                    <input type="text"
+                           class="form-control"
+                           id="vidCartonType"
+                           maxlength="120"
+                           value="{{ vid.carton_type is not null ? vid.carton_type : '' }}"
+                           placeholder="{{ translations.vidanges_carton_type_placeholder }}">
+                    <div class="invalid-feedback d-block small" id="errVidCartonType"></div>
+                    <div class="form-text">{{ translations.vidanges_carton_type_hint }}</div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <label class="form-label">{{ translations.vidanges_deposit_per_carton }}</label>
+                    <div class="input-group">
+                        <input type="number"
+                               step="0.01"
+                               min="0"
+                               class="form-control"
+                               id="vidDepositPerCarton"
+                               value="{{ vid.deposit_per_carton is not null ? vid.deposit_per_carton : '' }}">
+                        <span class="input-group-text">{{ currency }}</span>
+                    </div>
+                    <div class="invalid-feedback d-block small" id="errVidDeposit"></div>
+                    <div class="form-text">{{ translations.vidanges_deposit_hint }}</div>
+                </div>
+            </div>
+
+            <div class="row g-3 mt-1">
+                <div class="col-12 col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <div class="text-muted small text-uppercase">{{ translations.vidanges_deposit_per_packaging }}</div>
+                        <div class="fw-bold fs-5 text-primary" id="vidDepositPerPackOut">
+                            {% if vid.deposit_per_packaging is not null %}
+                                {{ vid.deposit_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </div>
+                        <div class="form-text">{{ translations.vidanges_deposit_per_packaging_hint }}</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <div class="text-muted small text-uppercase">{{ translations.vidanges_deposit_per_portion }}</div>
+                        <div class="fw-bold fs-5 text-primary" id="vidDepositPerPortionOut">
+                            {% if vid.deposit_per_portion is not null %}
+                                {{ vid.deposit_per_portion|number_format(2, '.', '') }} {{ currency }}
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </div>
+                        <div class="form-text">{{ translations.vidanges_deposit_per_portion_hint }}</div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 d-flex align-items-center">
+                    <div class="alert alert-info mb-0 py-2 px-3 small w-100">
+                        <i class="bi bi-info-circle me-1"></i>{{ translations.vidanges_passthrough_note }}
+                    </div>
+                </div>
+            </div>
+
+            {% if recipe.sales_unit.packagings_per_carton is null or recipe.sales_unit.portions_per_packaging is null %}
+                <div class="form-text mt-2 text-warning">
+                    {{ translations.vidanges_missing_sales_unit }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-sm btn-primary" id="btnSaveVidanges">
+                <i class="bi bi-check-lg me-1"></i>{{ translations.save }}
+            </button>
+        </div>
+    </div>
+
+    {# ===== TILE 8: P&L SUMMARY ===== #}
+    {% set pnl = recipe.pnl %}
+    {% set _pnl_ppp = pnl.portions_per_packaging %}
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2">
+            <span class="calc-tile-num">8</span>
+            <span class="fw-semibold">{{ translations.pnl_tile_title }}</span>
+            <div class="ms-auto">
+                <div class="btn-group btn-group-sm" role="group" id="pnlViewToggleGroup">
+                    <button type="button" class="btn btn-outline-primary" id="btnPnlViewPack">
+                        <i class="bi bi-box me-1"></i>{{ translations.pnl_view_per_pack }}
+                    </button>
+                    <button type="button" class="btn btn-primary" id="btnPnlViewPortion">
+                        <i class="bi bi-cup-straw me-1"></i>{{ translations.pnl_view_per_portion }}
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <p class="text-muted small mb-3" id="pnlSuInfo">
+                {{ translations.pnl_computed_per_packaging }}:
+                <strong>
+                    {% if pnl.portions_per_packaging is not null %}
+                        {{ pnl.portions_per_packaging }} {{ translations.pnl_portions }}
+                    {% else %}
+                        <span class="text-warning">{{ translations.pnl_missing_portions }}</span>
+                    {% endif %}
+                </strong>
+            </p>
+
+            {# ===== PANEL: PER PACKAGING ===== #}
+            <div id="pnlPackView" class="d-none">
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-borderless mb-0" id="pnlCostTable">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted">{{ translations.pnl_raw_materials }}</td>
+                                <td class="text-end fw-semibold" id="pnlRowMat">
+                                    {% if pnl.raw_materials_per_packaging is not null %}
+                                        {{ pnl.raw_materials_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">{{ translations.pnl_labor }}</td>
+                                <td class="text-end fw-semibold" id="pnlRowLabor">
+                                    {% if pnl.labor_per_packaging is not null %}
+                                        {{ pnl.labor_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">{{ translations.pnl_overhead }}</td>
+                                <td class="text-end fw-semibold" id="pnlRowOverhead">
+                                    {% if pnl.overhead_per_packaging is not null %}
+                                        {{ pnl.overhead_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">{{ translations.pnl_packaging }}</td>
+                                <td class="text-end fw-semibold" id="pnlRowPackaging">
+                                    {% if pnl.packaging_per_packaging is not null %}
+                                        {{ pnl.packaging_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted text-muted-sm">{{ translations.pnl_packaging_not_set }}</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr class="table-light border-top">
+                                <td class="fw-bold">{{ translations.pnl_total_cost }}</td>
+                                <td class="text-end fw-bold fs-6" id="pnlRowTotal">
+                                    {% if pnl.total_cost_per_packaging is not null %}
+                                        {{ pnl.total_cost_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-secondary py-2 px-3 small mb-3" id="pnlVidangesNote">
+                    + <strong id="pnlVidVal">
+                        {% if pnl.vidanges_per_packaging is not null %}
+                            {{ pnl.vidanges_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                        {% else %}—{% endif %}
+                    </strong>
+                    {{ translations.pnl_vidanges_passthrough }}
+                </div>
+
+                <div class="table-responsive mb-0">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            <tr class="table-primary">
+                                <td class="fw-bold">{{ translations.pnl_recommended_price }}</td>
+                                <td class="text-end fw-bold fs-5 text-primary" id="pnlRecommendedPrice">
+                                    {% if pnl.recommended_packaging_price is not null %}
+                                        {{ pnl.recommended_packaging_price|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted fs-6">—</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted small">
+                                    {{ translations.pnl_per_portion_label }}
+                                    <span class="text-muted" id="pnlMarginContext">
+                                        {% if pnl.target_margin is not null %}({{ translations.pnl_margin }} {{ pnl.target_margin|number_format(2, '.', '') }}%){% endif %}
+                                    </span>
+                                </td>
+                                <td class="text-end fw-semibold small text-muted" id="pnlPerPortionPrice">
+                                    {% if pnl.per_portion_price is not null %}
+                                        {{ pnl.per_portion_price|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {# ===== PANEL: PER PORTION ===== #}
+            <div id="pnlPortionView">
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted">{{ translations.pnl_raw_materials }}</td>
+                                <td class="text-end fw-semibold" id="pnlPortRowMat">
+                                    {% if _pnl_ppp and pnl.raw_materials_per_packaging is not null %}
+                                        {{ (pnl.raw_materials_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">{{ translations.pnl_labor }}</td>
+                                <td class="text-end fw-semibold" id="pnlPortRowLabor">
+                                    {% if _pnl_ppp and pnl.labor_per_packaging is not null %}
+                                        {{ (pnl.labor_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">{{ translations.pnl_overhead }}</td>
+                                <td class="text-end fw-semibold" id="pnlPortRowOverhead">
+                                    {% if _pnl_ppp and pnl.overhead_per_packaging is not null %}
+                                        {{ (pnl.overhead_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">{{ translations.pnl_packaging }}</td>
+                                <td class="text-end fw-semibold" id="pnlPortRowPackaging">
+                                    {% if _pnl_ppp and pnl.packaging_per_packaging is not null %}
+                                        {{ (pnl.packaging_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted text-muted-sm">{{ translations.pnl_packaging_not_set }}</span>{% endif %}
+                                </td>
+                            </tr>
+                            <tr class="table-light border-top">
+                                <td class="fw-bold">{{ translations.pnl_total_cost }}</td>
+                                <td class="text-end fw-bold fs-6" id="pnlPortRowTotal">
+                                    {% if _pnl_ppp and pnl.total_cost_per_packaging is not null %}
+                                        {{ (pnl.total_cost_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted">—</span>{% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-secondary py-2 px-3 small mb-3">
+                    + <strong id="pnlPortVidVal">
+                        {% if _pnl_ppp and pnl.vidanges_per_packaging is not null %}
+                            {{ (pnl.vidanges_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                        {% else %}—{% endif %}
+                    </strong>
+                    {{ translations.pnl_vidanges_passthrough }}
+                </div>
+
+                <div class="table-responsive mb-0">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tbody>
+                            <tr class="table-primary">
+                                <td class="fw-bold">{{ translations.pnl_recommended_price }}</td>
+                                <td class="text-end fw-bold fs-5 text-primary" id="pnlPortRecommendedPrice">
+                                    {% if pnl.per_portion_price is not null %}
+                                        {{ pnl.per_portion_price|number_format(2, '.', '') }} {{ currency }}
+                                    {% else %}<span class="text-muted fs-6">—</span>{% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {# Margin slider — wspólny dla obu widoków #}
+            <div class="mb-3 mt-3 pt-3 border-top">
+                <label class="form-label d-flex justify-content-between align-items-center">
+                    <span>{{ translations.pnl_target_margin }}</span>
+                    <strong id="pnlMarginOut">
+                        {% if pnl.target_margin is not null %}{{ pnl.target_margin|number_format(2, '.', '') }}%{% else %}—{% endif %}
+                    </strong>
+                </label>
+                <input type="range"
+                       class="form-range"
+                       id="pnlMarginSlider"
+                       min="0" max="80" step="1"
+                       value="{{ pnl.target_margin is not null ? pnl.target_margin|round(0,'floor') : 0 }}">
+                <div class="d-flex justify-content-between text-muted" style="font-size: 11px;">
+                    <span>0%</span><span>20%</span><span>40%</span><span>60%</span><span>80%</span>
+                </div>
+                <div class="invalid-feedback d-block small" id="errPnlMargin"></div>
+            </div>
+
+            <div class="alert alert-warning py-2 px-3 small mt-0 mb-0" id="pnlIncompleteAlert"{% if pnl.is_complete %} style="display:none;"{% endif %}>
+                <i class="bi bi-exclamation-triangle me-1"></i>{{ translations.pnl_incomplete_warning }}
+                <ul class="mb-0 mt-1 ps-3" id="pnlIncompleteList">
+                    {% if pnl.portions_per_packaging is null %}
+                        <li data-key="portions">{{ translations.recipe_missing_sales_unit }}</li>
+                    {% endif %}
+                    {% if pnl.raw_materials_per_packaging is null %}
+                        <li data-key="raw_materials">{{ translations.recipe_missing_raw_materials }}</li>
+                    {% endif %}
+                    {% if pnl.labor_per_packaging is null %}
+                        <li data-key="labor">{{ translations.recipe_missing_labor }}</li>
+                    {% endif %}
+                    {% if pnl.overhead_per_packaging is null %}
+                        <li data-key="overhead">{{ translations.recipe_missing_overhead }}</li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <button class="btn btn-sm btn-primary" id="btnSavePnl">
+                <i class="bi bi-check-lg me-1"></i>{{ translations.save }}
+            </button>
+        </div>
+    </div>
+
+    {# ===== MODAL: Quick-add raw material ===== #}
+    {# ===== MODAL: Add raw material (full) ===== #}
+    <div class="modal fade" id="modalQuickAddRm" tabindex="-1" aria-labelledby="modalQuickAddRmLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalQuickAddRmLabel">
+                        <i class="bi bi-egg-fried me-2"></i>{{ translations.quick_add_raw_material }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close }}"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <h6 class="text-muted text-uppercase small mb-1">{{ translations.section_basic }}</h6>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{{ translations.sku }}</label>
+                            <input type="text" class="form-control" id="qrmSku" maxlength="100">
+                            <div class="invalid-feedback" id="qrmErrSku"></div>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">{{ translations.name }} <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="qrmName" maxlength="255">
+                            <div class="invalid-feedback" id="qrmErrName"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ translations.category }}</label>
+                            <div class="input-group">
+                                <select class="form-select" id="qrmCategory">
+                                    <option value="">{{ translations.no_category }}</option>
+                                </select>
+                                <button type="button" class="btn btn-outline-secondary" id="btnQrmManageCategories" title="{{ translations.manage_categories }}">
+                                    <i class="bi bi-gear"></i>
+                                </button>
+                            </div>
+                            <div class="invalid-feedback" id="qrmErrCategory"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ translations.unit }} <span class="text-danger">*</span></label>
+                            <select class="form-select" id="qrmUnit">
+                                <option value="">{{ translations.loading }}</option>
+                            </select>
+                            <div class="invalid-feedback" id="qrmErrUnit"></div>
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <h6 class="text-muted text-uppercase small mb-1">{{ translations.section_pricing }}</h6>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label">{{ translations.vat_rate }}</label>
+                            <input type="number" step="0.01" min="0" max="100" class="form-control" id="qrmVatRate">
+                            <div class="invalid-feedback" id="qrmErrVatRate"></div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">{{ translations.waste_perc }}</label>
+                            <input type="number" step="0.01" min="0" max="100" class="form-control" id="qrmWastePerc">
+                            <div class="invalid-feedback" id="qrmErrWastePerc"></div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="rm-price-add-form" style="background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:8px;padding:12px;">
+                                <div class="small text-muted text-uppercase fw-semibold mb-2">
+                                    <i class="bi bi-calculator me-1"></i>{{ translations.initial_price_optional }}
+                                </div>
+                                <div class="row g-2 align-items-end">
+                                    <div class="col-12 col-sm-4">
+                                        <label class="form-label small mb-1">{{ translations.package_price }}</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" step="0.01" min="0.01" class="form-control" id="qrmInitPackagePrice">
+                                            <span class="input-group-text" id="qrmInitPriceCurrency">{{ currency }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm-4">
+                                        <label class="form-label small mb-1">{{ translations.package_qty }}</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="number" step="0.001" min="0.001" class="form-control" id="qrmInitPackageQty" value="1">
+                                            <span class="input-group-text" id="qrmInitPackageUnit">—</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-sm-4">
+                                        <label class="form-label small mb-1">{{ translations.price_per_unit }}</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="text" class="form-control bg-light fw-semibold" id="qrmInitPricePerUnit" readonly placeholder="—">
+                                            <span class="input-group-text" id="qrmInitPerUnitSuffix">—</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="small text-muted mt-2">
+                                    <i class="bi bi-info-circle me-1"></i>{{ translations.package_price_hint }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-2">
+                            <h6 class="text-muted text-uppercase small mb-1">{{ translations.section_extra }}</h6>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ translations.description }}</label>
+                            <textarea class="form-control" id="qrmDescription" rows="2" maxlength="5000"></textarea>
+                            <div class="invalid-feedback" id="qrmErrDescription"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <small class="text-muted">{{ translations.modal_meta_new }}</small>
+                    <div>
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel }}</button>
+                        <button type="button" class="btn btn-primary" id="btnConfirmQuickAddRm">
+                            <i class="bi bi-floppy2-fill me-1"></i>{{ translations.save }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ===== MODAL: Manage raw material categories (from quick-add) ===== #}
+    <div class="modal fade" id="qrmCategoryModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-tags me-2"></i>{{ translations.manage_categories }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close }}"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group mb-3" id="qrmCategoryList" style="max-height:260px;overflow-y:auto;"></ul>
+                    <div class="input-group">
+                        <input type="hidden" id="qrmCatEditId">
+                        <input type="text" class="form-control" id="qrmCatNameInput" maxlength="255"
+                               placeholder="{{ translations.category_name }}">
+                        <button type="button" class="btn btn-primary" id="qrmBtnSaveCategory">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                        <button type="button" class="btn btn-light" id="qrmBtnCancelCatEdit" style="display:none;">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <div class="invalid-feedback d-block" id="qrmErrCategoryName"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ===== MODAL: Labor defaults ===== #}
+    <div class="modal fade" id="modalLaborDefaults" tabindex="-1" aria-labelledby="modalLaborDefaultsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalLaborDefaultsLabel">
+                        <i class="bi bi-gear me-2"></i>{{ translations.labor_defaults_modal_title }}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close }}"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">{{ translations.labor_defaults_hint }}</p>
+                    <div class="mb-3">
+                        <label class="form-label">{{ translations.labor_time_per_unit }}</label>
+                        <div class="input-group">
+                            <input type="number" step="0.1" min="0" max="9999.99" class="form-control"
+                                   id="ldTime"
+                                   value="{{ laborDefaults is defined and laborDefaults.labor_time_default is not null ? laborDefaults.labor_time_default : '' }}">
+                            <span class="input-group-text">{{ translations.labor_unit_min }}</span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">{{ translations.labor_hourly_rate }}</label>
+                        <div class="input-group">
+                            <input type="number" step="0.01" min="0" max="9999999.99" class="form-control"
+                                   id="ldRate"
+                                   value="{{ laborDefaults is defined and laborDefaults.labor_rate_default is not null ? laborDefaults.labor_rate_default : '' }}">
+                            <span class="input-group-text">{{ currency }}/h</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel }}</button>
+                    <button type="button" class="btn btn-primary" id="btnConfirmLaborDefaults">
+                        <i class="bi bi-floppy2-fill me-1"></i>{{ translations.labor_defaults_save }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ===== AKCJE RECEPTURY ===== #}
+    <div class="d-flex justify-content-between align-items-center mt-2 mb-5">        <div class="d-flex gap-2">
+            {# {% if recipe.is_archived %}
+                <button class="btn btn-outline-success btn-sm" id="btnRestoreRecipe">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>{{ translations.restore }}
+                </button>
+            {% else %}
+                <button class="btn btn-outline-warning btn-sm" id="btnArchiveRecipe">
+                    <i class="bi bi-archive me-1"></i>{{ translations.archive }}
+                </button>
+            {% endif %} #}
+            <button class="btn btn-outline-danger btn-sm" id="btnDeleteRecipe">
+                <i class="bi bi-trash me-1"></i>{{ translations.delete }}
+            </button>
+        </div>
+        <a href="{{ ROOT }}/recipes" class="btn btn-light btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>{{ translations.back_to_recipes }}
+        </a>
+    </div>
+
+</div>{# /.calc-page-wrap #}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const RECIPE_ID      = {{ recipe.id|json_encode|raw }};
+    const LABOR_DEFAULTS = {{ laborDefaults is defined ? laborDefaults|json_encode|raw : '{}' }};
+    const CURRENCY  = {{ currency|json_encode|raw }};
+    const PRODUCTS  = {{ products|json_encode|raw }};
+    const IS_ARCHIVED = {{ recipe.is_archived ? 'true' : 'false' }};
+    // Raw materials cost per portion (snapshot aggregate from DB — static for this page load)
+    const RAW_MAT_PER_UNIT = {{ recipe.pnl.raw_materials_per_unit is not null ? recipe.pnl.raw_materials_per_unit|json_encode|raw : 'null' }};
+    // Packaging cost per packaging unit (from DB — updated after save)
+    const PACK_COST_PER_PACK_INIT = {{ recipe.packaging.cost_per_packaging is not null ? recipe.packaging.cost_per_packaging|json_encode|raw : 'null' }};
+    // PnL incomplete warning — translation strings for dynamic alert
+    const T_MISSING_PORTIONS = {{ translations.recipe_missing_sales_unit|json_encode|raw }};
+    const T_MISSING_RAW_MAT  = {{ translations.recipe_missing_raw_materials|json_encode|raw }};
+    const T_MISSING_LABOR    = {{ translations.recipe_missing_labor|json_encode|raw }};
+    const T_MISSING_OVERHEAD = {{ translations.recipe_missing_overhead|json_encode|raw }};
+
+    const productMap = new Map((PRODUCTS || []).map(p => [String(p.id), p]));
+
+    function el(id) { return document.getElementById(id); }
+
+    function escapeHtml(s) {
+        return String(s ?? '').replace(/[&<>"']/g, m => ({
+            '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+        }[m]));
+    }
+
+    function updatePnlIncompleteAlert(ppp, laborTime, laborRate, ohForecast, ohPool) {
+        const alertEl = el('pnlIncompleteAlert');
+        const listEl  = el('pnlIncompleteList');
+        if (!alertEl || !listEl) return;
+
+        const missing = [];
+        if (ppp === null || ppp <= 0)                                     missing.push({ key: 'portions',     text: T_MISSING_PORTIONS });
+        if (RAW_MAT_PER_UNIT === null)                                     missing.push({ key: 'raw_materials', text: T_MISSING_RAW_MAT });
+        if (laborTime === null || laborRate === null)                      missing.push({ key: 'labor',         text: T_MISSING_LABOR });
+        if (ohForecast === null || ohForecast <= 0 || ohPool === null)     missing.push({ key: 'overhead',      text: T_MISSING_OVERHEAD });
+
+        if (missing.length === 0) {
+            alertEl.style.display = 'none';
+            return;
+        }
+        alertEl.style.display = '';
+        listEl.innerHTML = missing.map(m =>
+            `<li data-key="${escapeHtml(m.key)}">${escapeHtml(m.text)}</li>`
+        ).join('');
+    }
+
+    // Format qty: 0 decimal places for g/ml/szt, 2 for everything else
+    function formatQty(value, unit) {
+        if (value === null || value === undefined || !Number.isFinite(value)) return '—';
+        const noDecUnits = ['g', 'ml', 'szt'];
+        return noDecUnits.includes(String(unit ?? '').toLowerCase())
+            ? Math.round(value).toLocaleString('en-US', {maximumFractionDigits: 0})
+            : value.toFixed(2);
+    }
+
+    // -----------------------------------------------------------------------
+    //  Tile 1 — Product
+    // -----------------------------------------------------------------------
+    function updateProductPreview() {
+        const sel = el('calcProductId');
+        const val = sel.value;
+
+        if (!val) {
+            el('productPreviewCard').classList.add('d-none');
+            return;
+        }
+
+        const p = productMap.get(String(val));
+        if (!p) return;
+
+        const initials = (p.name || '--').replace(/[^a-zA-ZÀ-ÖØ-öø-ÿ0-9 ]/g, '')
+                            .trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+        el('productAvatar').textContent     = initials || '--';
+        el('productName').textContent       = p.name || '';
+        el('productSku').textContent        = p.sku || '{{ translations.product_no_sku }}';
+        el('productStatusBadge').textContent = p.is_active
+            ? '{{ translations.product_preview_status_active }}'
+            : '{{ translations.product_preview_status_inactive }}';
+        el('productStatusBadge').className  = 'badge ' + (p.is_active ? 'bg-success' : 'bg-secondary');
+
+        el('productPreviewCard').classList.remove('d-none');
+    }
+
+    async function handleProductSelect() {
+        const sel       = el('calcProductId');
+        const productId = sel.value ? parseInt(sel.value, 10) : null;
+
+        // ── Case A: user cleared the product → unlink and reload ──
+        if (!productId) {
+            const resp = await api('/ajax/recipes/' + RECIPE_ID, {
+                method: 'PATCH',
+                data: { product_id: null },
+            });
+            if (!resp.ok) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+                return;
+            }
+            window.location.reload();
+            return;
+        }
+
+        // ── Case B: product selected — search for an existing recipe for this product ──
+        const searchResp = await api('/ajax/recipes', {
+            method: 'GET',
+            data: { product_id: productId },
+        });
+
+        if (!searchResp.ok) {
+            Swal.fire('{{ translations.error }}', '{{ translations.undefined_error_occurred }}', 'error');
+            return;
+        }
+
+        const existing = Array.isArray(searchResp.data) ? searchResp.data : [];
+
+        // ── Case B1: recipe for this product already exists → navigate to it ──
+        if (existing.length > 0) {
+            const found = existing[0];
+            if (found.id !== RECIPE_ID) {
+                window.location.href = '{{ ROOT }}/recipes/' + found.id;
+            }
+            // already on the correct recipe page — nothing to do
+            return;
+        }
+
+        // ── Case B2: no recipe for this product yet → ask user to create one ──
+        const product     = productMap.get(String(productId));
+        const productName = product?.name ?? '';
+
+        const confirm = await Swal.fire({
+            title: '{{ translations.no_recipe_for_product_title }}',
+            html:  '{{ translations.no_recipe_for_product_body }}'.replace('{name}', '<strong>' + escapeHtml(productName) + '</strong>'),
+            icon:  'question',
+            showCancelButton:   true,
+            confirmButtonText:  '{{ translations.create_recipe }}',
+            cancelButtonText:   '{{ translations.cancel }}',
+        });
+
+        if (!confirm.isConfirmed) {
+            // Reset select back to the currently saved product
+            el('calcProductId').value = {{ recipe.product_id is not null ? recipe.product_id : 'null' }};
+            updateProductPreview();
+            return;
+        }
+
+        // Create a new recipe for this product
+        const createResp = await api('/ajax/recipes', {
+            method: 'POST',
+            data: { name: productName || '{{ translations.new_recipe }}', product_id: productId },
+        });
+
+        if (!createResp.ok) {
+            Swal.fire('{{ translations.error }}', createResp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            return;
+        }
+
+        const newId = createResp.inserted_id;
+        if (!newId) {
+            Swal.fire('{{ translations.error }}', '{{ translations.undefined_error_occurred }}', 'error');
+            return;
+        }
+
+        window.location.href = '{{ ROOT }}/recipes/' + newId;
+    }
+
+    el('calcProductId').addEventListener('change', () => {
+        updateProductPreview();
+        handleProductSelect();
+    });
+
+    {# el('btnSaveProduct').addEventListener('click', handleProductSelect); #}
+
+    // -----------------------------------------------------------------------
+    //  Tile 2 — Add ingredient
+    // -----------------------------------------------------------------------
+    el('btnToggleAddIngredient').addEventListener('click', () => {
+        const form = el('addIngredientForm');
+        const visible = form.style.display !== 'none';
+        form.style.display = visible ? 'none' : '';
+
+        if (!visible) {
+            el('newRawMaterialId').value = '';
+            el('newQty').value           = '';
+            el('newQtyUnit').textContent  = '—';
+            el('errIngRm').textContent    = '';
+            el('errIngQty').textContent   = '';
+            el('newRawMaterialId').classList.remove('is-invalid');
+            el('newQty').classList.remove('is-invalid');
+        }
+    });
+
+    el('btnCancelAddIngredient').addEventListener('click', () => {
+        el('addIngredientForm').style.display = 'none';
+    });
+
+    el('newRawMaterialId').addEventListener('change', function () {
+        const opt = this.options[this.selectedIndex];
+        el('newQtyUnit').textContent = (opt && opt.dataset.unit) ? opt.dataset.unit : '—';
+    });
+
+    el('btnConfirmAddIngredient').addEventListener('click', async () => {
+        el('errIngRm').textContent  = '';
+        el('errIngQty').textContent = '';
+        el('newRawMaterialId').classList.remove('is-invalid');
+        el('newQty').classList.remove('is-invalid');
+
+        const data = {
+            raw_material_id: el('newRawMaterialId').value || null,
+            quantity:        parseFloat(el('newQty').value) || null,
+        };
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID + '/ingredients', { method: 'POST', data });
+
+        if (!resp.ok) {
+            const errors = resp.data?.errors ?? {};
+            if (errors.raw_material_id) {
+                el('newRawMaterialId').classList.add('is-invalid');
+                el('errIngRm').textContent = errors.raw_material_id;
+            }
+            if (errors.quantity) {
+                el('newQty').classList.add('is-invalid');
+                el('errIngQty').textContent = errors.quantity;
+            }
+            if (!errors.raw_material_id && !errors.quantity) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            }
+            return;
+        }
+
+        // Reload page to re-render server-side table with updated data
+        window.location.reload();
+    });
+
+    // -----------------------------------------------------------------------
+    //  Tile 2 — Delete ingredient
+    // -----------------------------------------------------------------------
+    document.querySelectorAll('.btnDeleteIng').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const id = btn.dataset.id;
+
+            const confirmed = await Swal.fire({
+                title:             '{{ translations.delete_ingredient_title }}',
+                text:              '{{ translations.delete_ingredient_confirm }}',
+                icon:              'warning',
+                showCancelButton:  true,
+                confirmButtonText: '{{ translations.delete }}',
+                cancelButtonText:  '{{ translations.cancel }}',
+                confirmButtonColor: '#EF4444',
+            });
+            if (!confirmed.isConfirmed) return;
+
+            const resp = await api('/ajax/recipes/' + RECIPE_ID + '/ingredients/' + id, { method: 'DELETE' });
+            if (!resp.ok) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+                return;
+            }
+            window.location.reload();
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    //  Tile 2 — Save technical notes
+    // -----------------------------------------------------------------------
+    el('btnSaveNotes').addEventListener('click', async () => {
+        const resp = await api('/ajax/recipes/' + RECIPE_ID, {
+            method: 'PATCH',
+            data: { technical_notes: el('calcTechnicalNotes').value.trim() || null },
+        });
+
+        if (!resp.ok) {
+            Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            return;
+        }
+        Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.operation_successful }}', timer: 1200, showConfirmButton: false });
+    });
+
+    // -----------------------------------------------------------------------
+    //  Tile 3 — Labor (live calc + save)
+    // -----------------------------------------------------------------------
+    function parseDecimalOrNull(v) {
+        if (v === null || v === undefined) return null;
+        const s = String(v).trim().replace(',', '.');
+        if (s === '') return null;
+        const n = parseFloat(s);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function recomputeLaborCost() {
+        const time = parseDecimalOrNull(el('laborTime').value);
+        const rate = parseDecimalOrNull(el('laborRate').value);
+        const out  = el('laborCostOut');
+
+        if (time === null || rate === null || time < 0 || rate < 0) {
+            out.innerHTML = '<span class="text-muted">—</span>';
+            return;
+        }
+        const cost = (time / 60) * rate;
+        out.textContent = cost.toFixed(2) + ' ' + CURRENCY;
+    }
+
+    el('laborTime').addEventListener('input', recomputeLaborCost);
+    el('laborRate').addEventListener('input', recomputeLaborCost);
+
+    // "Load from defaults" button — only present in DOM when recipe has no labor values yet
+    (function () {
+        const btnLoad = document.getElementById('btnLoadLaborDefaults');
+        if (!btnLoad) return;
+        btnLoad.addEventListener('click', () => {
+            if (LABOR_DEFAULTS.labor_time_default !== null && LABOR_DEFAULTS.labor_time_default !== undefined) {
+                el('laborTime').value = LABOR_DEFAULTS.labor_time_default;
+            }
+            if (LABOR_DEFAULTS.labor_rate_default !== null && LABOR_DEFAULTS.labor_rate_default !== undefined) {
+                el('laborRate').value = LABOR_DEFAULTS.labor_rate_default;
+            }
+            recomputeLaborCost();
+            const wrap = document.getElementById('btnLoadLaborDefaults');
+            if (wrap) wrap.remove();
+        });
+    })();
+
+    el('btnSaveLabor').addEventListener('click', async () => {
+        el('errLaborTime').textContent = '';
+        el('errLaborRate').textContent = '';
+        el('laborTime').classList.remove('is-invalid');
+        el('laborRate').classList.remove('is-invalid');
+
+        const timeRaw = el('laborTime').value.trim();
+        const rateRaw = el('laborRate').value.trim();
+
+        const data = {
+            labor_time_per_unit_min: timeRaw === '' ? null : parseDecimalOrNull(timeRaw),
+            labor_hourly_rate:       rateRaw === '' ? null : parseDecimalOrNull(rateRaw),
+        };
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID, { method: 'PATCH', data });
+
+        if (!resp.ok) {
+            const errors = resp.data?.errors ?? {};
+            if (errors.labor_time_per_unit_min) {
+                el('laborTime').classList.add('is-invalid');
+                el('errLaborTime').textContent = errors.labor_time_per_unit_min;
+            }
+            if (errors.labor_hourly_rate) {
+                el('laborRate').classList.add('is-invalid');
+                el('errLaborRate').textContent = errors.labor_hourly_rate;
+            }
+            if (!errors.labor_time_per_unit_min && !errors.labor_hourly_rate) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            }
+            return;
+        }
+
+        recomputeLaborCost();
+        Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.operation_successful }}', timer: 1200, showConfirmButton: false });
+    });
+
+    // -----------------------------------------------------------------------
+    //  Tile 4 — Sales unit (live calc + save)
+    // -----------------------------------------------------------------------
+    function parseIntOrNull(v) {
+        if (v === null || v === undefined) return null;
+        const s = String(v).trim();
+        if (s === '') return null;
+        const n = parseInt(s, 10);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function recomputeSalesUnit() {
+        const portionSize = parseDecimalOrNull(el('suPortionSize').value);
+        const portionUnit = el('suPortionUnit').value;
+        const ppp         = parseIntOrNull(el('suPortionsPerPack').value);
+        const ppc         = parseIntOrNull(el('suPacksPerCarton').value);
+
+        const portionsPerCartonOut = el('suPortionsPerCartonOut');
+        const packWeightOut        = el('suPackWeightOut');
+        const cartonWeightOut      = el('suCartonWeightOut');
+
+        // portions per carton
+        if (ppp !== null && ppc !== null && ppp >= 1 && ppc >= 1) {
+            portionsPerCartonOut.textContent = (ppp * ppc).toString();
+        } else {
+            portionsPerCartonOut.innerHTML = '<span class="text-muted">—</span>';
+        }
+
+        // packaging size (in unit)
+        let packagingSize = null;
+        if (portionSize !== null && portionSize > 0 && ppp !== null && ppp >= 1) {
+            packagingSize = portionSize * ppp;
+            const noDecUnits = ['g', 'ml', 'szt'];
+            const packFmt = noDecUnits.includes(portionUnit) ? Math.round(packagingSize).toString() : packagingSize.toFixed(2);
+            packWeightOut.textContent = packFmt + ' ' + portionUnit;
+        } else {
+            packWeightOut.innerHTML = '<span class="text-muted">—</span>';
+        }
+
+        // carton size / weight
+        if (packagingSize !== null && ppc !== null && ppc >= 1) {
+            const cartonSize = packagingSize * ppc;
+            if (portionUnit === 'g') {
+                cartonWeightOut.textContent = (cartonSize / 1000).toFixed(2) + ' kg';
+            } else if (portionUnit === 'kg') {
+                cartonWeightOut.textContent = cartonSize.toFixed(2) + ' kg';
+            } else if (portionUnit === 'ml') {
+                cartonWeightOut.textContent = Math.round(cartonSize).toString() + ' ' + portionUnit;
+            } else if (portionUnit === 'szt') {
+                cartonWeightOut.textContent = Math.round(cartonSize).toString() + ' ' + portionUnit;
+            } else {
+                cartonWeightOut.textContent = cartonSize.toFixed(2) + ' ' + portionUnit;
+            }
+        } else {
+            cartonWeightOut.innerHTML = '<span class="text-muted">—</span>';
+        }
+    }
+
+    el('suPortionSize').addEventListener('input',   recomputeSalesUnit);
+    el('suPortionUnit').addEventListener('change',  recomputeSalesUnit);
+    el('suPortionsPerPack').addEventListener('input', recomputeSalesUnit);
+    el('suPacksPerCarton').addEventListener('input',  recomputeSalesUnit);
+
+    el('btnSaveSalesUnit').addEventListener('click', async () => {
+        ['errSuPortionSize','errSuPortionUnit','errSuPortionsPerPack','errSuPacksPerCarton']
+            .forEach(id => { el(id).textContent = ''; });
+        ['suPortionSize','suPortionUnit','suPortionsPerPack','suPacksPerCarton']
+            .forEach(id => el(id).classList.remove('is-invalid'));
+
+        const sizeRaw = el('suPortionSize').value.trim();
+        const pppRaw  = el('suPortionsPerPack').value.trim();
+        const ppcRaw  = el('suPacksPerCarton').value.trim();
+
+        const data = {
+            portion_size:           sizeRaw === '' ? null : parseDecimalOrNull(sizeRaw),
+            portion_unit:           el('suPortionUnit').value || null,
+            portions_per_packaging: pppRaw === '' ? null : parseIntOrNull(pppRaw),
+            packagings_per_carton:  ppcRaw === '' ? null : parseIntOrNull(ppcRaw),
+        };
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID, { method: 'PATCH', data });
+
+        if (!resp.ok) {
+            const errors = resp.data?.errors ?? {};
+            const map = {
+                portion_size:           ['suPortionSize',     'errSuPortionSize'],
+                portion_unit:           ['suPortionUnit',     'errSuPortionUnit'],
+                portions_per_packaging: ['suPortionsPerPack', 'errSuPortionsPerPack'],
+                packagings_per_carton:  ['suPacksPerCarton',  'errSuPacksPerCarton'],
+            };
+            let handled = false;
+            Object.keys(map).forEach(k => {
+                if (errors[k]) {
+                    const [inputId, errId] = map[k];
+                    el(inputId).classList.add('is-invalid');
+                    el(errId).textContent = errors[k];
+                    handled = true;
+                }
+            });
+            if (!handled) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            }
+            return;
+        }
+
+        recomputeSalesUnit();
+        Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.operation_successful }}', timer: 1200, showConfirmButton: false });
+    });
+
+    // -----------------------------------------------------------------------
+    //  Tile 5 — Overhead (live calc + save + recalculate)
+    // -----------------------------------------------------------------------
+    function recomputeOverhead() {
+        const forecast = parseIntOrNull(el('ohForecast').value);
+        const pool     = parseDecimalOrNull(el('ohPool').value);
+        const ppp      = parseIntOrNull(el('suPortionsPerPack').value);
+        const ppc      = parseIntOrNull(el('suPacksPerCarton').value);
+        const portionsPerCarton = (ppp !== null && ppc !== null && ppp >= 1 && ppc >= 1) ? ppp * ppc : null;
+
+        const out = el('ohPerPortionOut');
+        if (forecast !== null && forecast > 0 && pool !== null && pool >= 0
+            && portionsPerCarton !== null && portionsPerCarton > 0) {
+            const perPortion = pool / forecast / portionsPerCarton;
+            out.textContent = perPortion.toFixed(2) + ' ' + CURRENCY;
+        } else {
+            out.innerHTML = '<span class="text-muted">—</span>';
+        }
+
+        // Update info line "Based on N portions / carton"
+        const info = el('ohSourceInfo');
+        if (portionsPerCarton !== null) {
+            info.textContent = '{{ translations.overhead_based_on|replace({"{n}": "@@N@@"}) }}'.replace('@@N@@', portionsPerCarton);
+            info.classList.remove('text-warning');
+        } else {
+            info.innerHTML = '<span class="text-warning">{{ translations.overhead_missing_sales_unit }}</span>';
+        }
+    }
+
+    el('ohForecast').addEventListener('input', recomputeOverhead);
+    el('ohPool').addEventListener('input', recomputeOverhead);
+    // Re-trigger overhead recalculation when sales unit inputs change
+    el('suPortionsPerPack').addEventListener('input', recomputeOverhead);
+    el('suPacksPerCarton').addEventListener('input', recomputeOverhead);
+
+    el('btnSaveOverhead').addEventListener('click', async () => {
+        ['errOhForecast', 'errOhPool'].forEach(id => { el(id).textContent = ''; });
+        ['ohForecast', 'ohPool'].forEach(id => el(id).classList.remove('is-invalid'));
+
+        const fRaw = el('ohForecast').value.trim();
+        const pRaw = el('ohPool').value.trim();
+
+        const data = {
+            forecast_cartons_per_month: fRaw === '' ? null : parseIntOrNull(fRaw),
+            monthly_overhead_pool:      pRaw === '' ? null : parseDecimalOrNull(pRaw),
+        };
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID, { method: 'PATCH', data });
+
+        if (!resp.ok) {
+            const errors = resp.data?.errors ?? {};
+            const map = {
+                forecast_cartons_per_month: ['ohForecast', 'errOhForecast'],
+                monthly_overhead_pool:      ['ohPool',     'errOhPool'],
+            };
+            let handled = false;
+            Object.keys(map).forEach(k => {
+                if (errors[k]) {
+                    const [inputId, errId] = map[k];
+                    el(inputId).classList.add('is-invalid');
+                    el(errId).textContent = errors[k];
+                    handled = true;
+                }
+            });
+            if (!handled) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            }
+            return;
+        }
+
+        recomputeOverhead();
+        Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.operation_successful }}', timer: 1200, showConfirmButton: false });
+    });
+
+    el('btnRecalcOverhead').addEventListener('click', async () => {
+        const resp = await api('/ajax/recipes/' + RECIPE_ID + '/overhead/recalculate', { method: 'POST' });
+        if (!resp.ok) {
+            Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            return;
+        }
+        // Update read-only outputs from server response
+        const recipe = resp.data ?? {};
+        const ovh    = recipe.overhead ?? {};
+        if (ovh.overhead_per_portion !== null && ovh.overhead_per_portion !== undefined) {
+            el('ohPerPortionOut').textContent = Number(ovh.overhead_per_portion).toFixed(2) + ' ' + CURRENCY;
+        } else {
+            el('ohPerPortionOut').innerHTML = '<span class="text-muted">—</span>';
+        }
+        if (ovh.recalculated_at) {
+            el('ohRecalcInfo').textContent = '{{ translations.overhead_last_recalc }}: ' + ovh.recalculated_at;
+        }
+        Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.operation_successful }}', timer: 1200, showConfirmButton: false });
+    });
+
+    // -----------------------------------------------------------------------
+    //  Tile 6 — Packaging cost (live calc + save)
+    // -----------------------------------------------------------------------
+    // Tracks the current persisted packaging cost so recomputePnl() can read
+    // the latest value without page reload after user saves.
+    let _packCostPerPkg = PACK_COST_PER_PACK_INIT;
+
+    function recomputePackagingCostPerPortion() {
+        const cost = parseDecimalOrNull(el('packCost').value);
+        const ppp  = parseIntOrNull(el('suPortionsPerPack').value);
+        const out  = el('packCostPerPortionOut');
+
+        if (cost !== null && cost >= 0 && ppp !== null && ppp > 0) {
+            out.textContent = (cost / ppp).toFixed(4) + ' ' + CURRENCY;
+        } else {
+            out.innerHTML = '<span class="text-muted">—</span>';
+        }
+    }
+
+    el('packCost').addEventListener('input', () => {
+        recomputePackagingCostPerPortion();
+        recomputePnl();
+    });
+    el('suPortionsPerPack').addEventListener('input', recomputePackagingCostPerPortion);
+
+    el('btnSavePackaging').addEventListener('click', async () => {
+        ['errPackDesc', 'errPackCost'].forEach(id => { el(id).textContent = ''; });
+        ['packDesc', 'packCost'].forEach(id => el(id).classList.remove('is-invalid'));
+
+        const descRaw = el('packDesc').value.trim();
+        const costRaw = el('packCost').value.trim();
+
+        const data = {
+            packaging_description:        descRaw === '' ? null : descRaw,
+            packaging_cost_per_packaging: costRaw === '' ? null : parseDecimalOrNull(costRaw),
+        };
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID, { method: 'PATCH', data });
+
+        if (!resp.ok) {
+            const errors = resp.data?.errors ?? {};
+            const map = {
+                packaging_description:        ['packDesc', 'errPackDesc'],
+                packaging_cost_per_packaging: ['packCost', 'errPackCost'],
+            };
+            let handled = false;
+            Object.keys(map).forEach(k => {
+                if (errors[k]) {
+                    const [inputId, errId] = map[k];
+                    el(inputId).classList.add('is-invalid');
+                    el(errId).textContent = errors[k];
+                    handled = true;
+                }
+            });
+            if (!handled) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            }
+            return;
+        }
+
+        _packCostPerPkg = parseDecimalOrNull(costRaw);
+        recomputePackagingCostPerPortion();
+        recomputePnl();
+        Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.operation_successful }}', timer: 1200, showConfirmButton: false });
+    });
+
+    // -----------------------------------------------------------------------
+    //  Tile 6 — Vidanges (live calc + save)
+    // -----------------------------------------------------------------------
+    function recomputeVidanges() {
+        const deposit       = parseDecimalOrNull(el('vidDepositPerCarton').value);
+        const packsPerCart  = parseIntOrNull(el('suPacksPerCarton').value);
+        const portionsPerPkg = parseIntOrNull(el('suPortionsPerPack').value);
+
+        const packOut    = el('vidDepositPerPackOut');
+        const portionOut = el('vidDepositPerPortionOut');
+
+        let depPerPack = null;
+        if (deposit !== null && deposit >= 0 && packsPerCart !== null && packsPerCart > 0) {
+            depPerPack = deposit / packsPerCart;
+            packOut.textContent = depPerPack.toFixed(2) + ' ' + CURRENCY;
+        } else {
+            packOut.innerHTML = '<span class="text-muted">—</span>';
+        }
+
+        if (depPerPack !== null && portionsPerPkg !== null && portionsPerPkg > 0) {
+            portionOut.textContent = (depPerPack / portionsPerPkg).toFixed(2) + ' ' + CURRENCY;
+        } else {
+            portionOut.innerHTML = '<span class="text-muted">—</span>';
+        }
+    }
+
+    el('vidDepositPerCarton').addEventListener('input', recomputeVidanges);
+    // Recalculate when sales unit inputs change
+    el('suPortionsPerPack').addEventListener('input', recomputeVidanges);
+    el('suPacksPerCarton').addEventListener('input',  recomputeVidanges);
+
+    el('btnSaveVidanges').addEventListener('click', async () => {
+        ['errVidCartonType', 'errVidDeposit'].forEach(id => { el(id).textContent = ''; });
+        ['vidCartonType', 'vidDepositPerCarton'].forEach(id => el(id).classList.remove('is-invalid'));
+
+        const typeRaw    = el('vidCartonType').value.trim();
+        const depositRaw = el('vidDepositPerCarton').value.trim();
+
+        const data = {
+            vidanges_carton_type:        typeRaw    === '' ? null : typeRaw,
+            vidanges_deposit_per_carton: depositRaw === '' ? null : parseDecimalOrNull(depositRaw),
+        };
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID, { method: 'PATCH', data });
+
+        if (!resp.ok) {
+            const errors = resp.data?.errors ?? {};
+            const map = {
+                vidanges_carton_type:        ['vidCartonType',       'errVidCartonType'],
+                vidanges_deposit_per_carton: ['vidDepositPerCarton', 'errVidDeposit'],
+            };
+            let handled = false;
+            Object.keys(map).forEach(k => {
+                if (errors[k]) {
+                    const [inputId, errId] = map[k];
+                    el(inputId).classList.add('is-invalid');
+                    el(errId).textContent = errors[k];
+                    handled = true;
+                }
+            });
+            if (!handled) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            }
+            return;
+        }
+
+        recomputeVidanges();
+        Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.operation_successful }}', timer: 1200, showConfirmButton: false });
+    });
+
+    // -----------------------------------------------------------------------
+    //  Tile 7 — P&L summary (live calc + save target_margin)
+    // -----------------------------------------------------------------------
+    function recomputePnl() {
+        const ppp          = parseIntOrNull(el('suPortionsPerPack').value);
+        const ppc          = parseIntOrNull(el('suPacksPerCarton').value);
+        const laborTime    = parseDecimalOrNull(el('laborTime').value);
+        const laborRate    = parseDecimalOrNull(el('laborRate').value);
+        const ohForecast   = parseIntOrNull(el('ohForecast').value);
+        const ohPool       = parseDecimalOrNull(el('ohPool').value);
+        const marginPct    = parseFloat(el('pnlMarginSlider').value) || 0;
+
+        el('pnlMarginOut').textContent     = marginPct.toFixed(2) + '%';
+        el('pnlMarginContext').textContent = '({{ translations.pnl_margin }} ' + marginPct.toFixed(2) + '%)';
+
+        // portionsPerCarton is needed for overhead
+        const portionsPerCarton = (ppp !== null && ppc !== null) ? ppp * ppc : null;
+
+        // raw materials per packaging
+        const rawMatPack = (RAW_MAT_PER_UNIT !== null && ppp !== null)
+            ? RAW_MAT_PER_UNIT * ppp : null;
+
+        // labor per packaging
+        const laborPerUnit = (laborTime !== null && laborRate !== null)
+            ? (laborTime / 60.0) * laborRate : null;
+        const laborPack = (laborPerUnit !== null && ppp !== null)
+            ? laborPerUnit * ppp : null;
+
+        // overhead per packaging
+        let ohPack = null;
+        if (ohForecast !== null && ohForecast > 0 && ohPool !== null && portionsPerCarton !== null && portionsPerCarton > 0 && ppp !== null) {
+            const ohPerPortion = ohPool / ohForecast / portionsPerCarton;
+            ohPack = ohPerPortion * ppp;
+        }
+
+        // cost totals
+        const allCosts = rawMatPack !== null && laborPack !== null && ohPack !== null;
+        const packagingCost = parseDecimalOrNull(el('packCost').value);
+        const totalPack = allCosts ? rawMatPack + laborPack + ohPack + (packagingCost ?? 0) : null;
+
+        // update cost table — per packaging
+        const fmt = v => v !== null ? v.toFixed(2) + ' ' + CURRENCY : '—';
+        el('pnlRowMat').textContent      = fmt(rawMatPack);
+        el('pnlRowLabor').textContent    = fmt(laborPack);
+        el('pnlRowOverhead').textContent = fmt(ohPack);
+        el('pnlRowPackaging').textContent = packagingCost !== null ? fmt(packagingCost) : '{{ translations.pnl_packaging_not_set }}';
+        el('pnlRowTotal').textContent   = fmt(totalPack);
+
+        // recommended price
+        let recPrice = null;
+        if (totalPack !== null) {
+            const mf = marginPct / 100.0;
+            recPrice = mf >= 0.9899 ? totalPack * 100.0 : totalPack / (1.0 - mf);
+        }
+        const perPortionPrice = (recPrice !== null && ppp !== null && ppp > 0)
+            ? recPrice / ppp : null;
+
+        el('pnlRecommendedPrice').textContent = fmt(recPrice);
+        el('pnlPerPortionPrice').textContent  = fmt(perPortionPrice);
+
+        // vidanges (read live from the vidanges readout — deposit per packaging)
+        const depPerCart = parseDecimalOrNull(el('vidDepositPerCarton').value);
+        const vidPack = (depPerCart !== null && ppc !== null && ppc > 0) ? depPerCart / ppc : null;
+        el('pnlVidVal').textContent = fmt(vidPack);
+
+        // update cost table — per portion
+        const portFmt = v => (v !== null && ppp !== null && ppp > 0) ? (v / ppp).toFixed(2) + ' ' + CURRENCY : '—';
+        el('pnlPortRowMat').textContent       = portFmt(rawMatPack);
+        el('pnlPortRowLabor').textContent     = portFmt(laborPack);
+        el('pnlPortRowOverhead').textContent  = portFmt(ohPack);
+        el('pnlPortRowPackaging').textContent = packagingCost !== null ? portFmt(packagingCost) : '{{ translations.pnl_packaging_not_set }}';
+        el('pnlPortRowTotal').textContent     = portFmt(totalPack);
+        el('pnlPortRecommendedPrice').textContent = fmt(perPortionPrice);
+        el('pnlPortVidVal').textContent = portFmt(vidPack);
+
+        // context info
+        if (ppp !== null) {
+            el('pnlSuInfo').querySelector('strong').textContent = ppp + ' {{ translations.pnl_portions }}';
+        }
+
+        updatePnlIncompleteAlert(ppp, laborTime, laborRate, ohForecast, ohPool);
+    }
+
+    // Hook Tile 8 slider to live compute
+    el('pnlMarginSlider').addEventListener('input', recomputePnl);
+
+    // P&L view toggle: per packaging ↔ per portion
+    el('btnPnlViewPack').addEventListener('click', () => {
+        el('pnlPackView').classList.remove('d-none');
+        el('pnlPortionView').classList.add('d-none');
+        el('btnPnlViewPack').classList.replace('btn-outline-primary', 'btn-primary');
+        el('btnPnlViewPortion').classList.replace('btn-primary', 'btn-outline-primary');
+    });
+    el('btnPnlViewPortion').addEventListener('click', () => {
+        el('pnlPortionView').classList.remove('d-none');
+        el('pnlPackView').classList.add('d-none');
+        el('btnPnlViewPortion').classList.replace('btn-outline-primary', 'btn-primary');
+        el('btnPnlViewPack').classList.replace('btn-primary', 'btn-outline-primary');
+    });
+
+    // Also recompute when upstream tiles change
+    ['suPortionsPerPack', 'suPacksPerCarton', 'laborTime', 'laborRate', 'ohForecast', 'ohPool', 'vidDepositPerCarton', 'packCost'].forEach(id => {
+        const node = el(id);
+        if (node) node.addEventListener('input', recomputePnl);
+    });
+
+    // Initial run — sync alert with current input state on page load
+    recomputePnl();
+
+    el('btnSavePnl').addEventListener('click', async () => {
+        el('errPnlMargin').textContent = '';
+        el('pnlMarginSlider').classList.remove('is-invalid');
+
+        const marginVal = parseFloat(el('pnlMarginSlider').value);
+
+        const resp = await api('/ajax/recipes/' + RECIPE_ID, {
+            method: 'PATCH',
+            data: { target_margin: marginVal },
+        });
+
+        if (!resp.ok) {
+            const errors = resp.data?.errors ?? {};
+            if (errors['target_margin']) {
+                el('pnlMarginSlider').classList.add('is-invalid');
+                el('errPnlMargin').textContent = errors['target_margin'];
+            } else {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+            }
+            return;
+        }
+
+        recomputePnl();
+        Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.operation_successful }}', timer: 1200, showConfirmButton: false });
+    });
+
+    // -----------------------------------------------------------------------
+    //  Tile 2 — Full raw material modal + category management
+    // -----------------------------------------------------------------------
+    (function () {
+        const modalEl    = document.getElementById('modalQuickAddRm');
+        const bsModal    = new bootstrap.Modal(modalEl);
+        const catModalEl = document.getElementById('qrmCategoryModal');
+        const bsCatModal = new bootstrap.Modal(catModalEl);
+
+        let unitsLoaded      = false;
+        let qrmCategories    = [];
+
+        // ---- helpers ----
+        function calcPricePerUnit(price, qty) {
+            if (!price || !qty || Number(price) <= 0 || Number(qty) <= 0) return null;
+            return Number(price) / Number(qty);
+        }
+
+        function updateInitPriceCalc() {
+            const price  = el('qrmInitPackagePrice').value;
+            const qty    = el('qrmInitPackageQty').value;
+            const sel    = el('qrmUnit');
+            let unitLbl  = '—';
+            if (sel && sel.value) {
+                const opt = sel.options[sel.selectedIndex];
+                unitLbl = (opt.textContent || '').split(' — ')[0].trim() || '—';
+            }
+            el('qrmInitPackageUnit').textContent  = unitLbl;
+            el('qrmInitPerUnitSuffix').textContent = unitLbl;
+            const result = calcPricePerUnit(price, qty);
+            el('qrmInitPricePerUnit').value = result != null ? result.toFixed(2) : '';
+        }
+
+        function rebuildCategorySelect(keepVal) {
+            const sel = el('qrmCategory');
+            const cur = keepVal !== undefined ? keepVal : sel.value;
+            sel.innerHTML = '<option value="">{{ translations.no_category }}</option>' +
+                qrmCategories.map(c => `<option value="${escapeHtml(String(c.id))}">${escapeHtml(c.name)}</option>`).join('');
+            sel.value = String(cur);
+        }
+
+        function clearErrors() {
+            ['qrmSku','qrmName','qrmCategory','qrmUnit','qrmVatRate','qrmWastePerc','qrmDescription'].forEach(id => {
+                const el2 = el(id);
+                if (el2) el2.classList.remove('is-invalid');
+            });
+            ['qrmErrSku','qrmErrName','qrmErrCategory','qrmErrUnit','qrmErrVatRate','qrmErrWastePerc','qrmErrDescription'].forEach(id => {
+                const el2 = el(id);
+                if (el2) el2.textContent = '';
+            });
+        }
+
+        function applyErrors(errors) {
+            const map = {
+                sku: ['qrmSku','qrmErrSku'], name: ['qrmName','qrmErrName'],
+                id_category: ['qrmCategory','qrmErrCategory'], id_unit: ['qrmUnit','qrmErrUnit'],
+                vat_rate: ['qrmVatRate','qrmErrVatRate'], waste_perc: ['qrmWastePerc','qrmErrWastePerc'],
+                description: ['qrmDescription','qrmErrDescription'],
+            };
+            Object.entries(errors || {}).forEach(([k, msg]) => {
+                const pair = map[k];
+                if (!pair) return;
+                const inp = el(pair[0]), errEl = el(pair[1]);
+                if (inp) inp.classList.add('is-invalid');
+                if (errEl) errEl.textContent = msg;
+            });
+        }
+
+        async function loadLookups() {
+            const [unitsResp, catsResp] = await Promise.all([
+                unitsLoaded ? Promise.resolve(null) : api('/ajax/raw-material-units', { method: 'GET' }),
+                api('/ajax/raw-material-categories', { method: 'GET' }),
+            ]);
+
+            if (unitsResp && (unitsResp.ok || unitsResp.success) && Array.isArray(unitsResp.data)) {
+                const sel = el('qrmUnit');
+                sel.innerHTML = '<option value="">—</option>';
+                unitsResp.data.forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.id;
+                    opt.textContent = (u.symbol || u.code || '') + (u.name ? ' — ' + u.name : '');
+                    sel.appendChild(opt);
+                });
+                unitsLoaded = true;
+            }
+
+            if ((catsResp.ok || catsResp.success) && Array.isArray(catsResp.data)) {
+                qrmCategories = catsResp.data;
+                rebuildCategorySelect('');
+            }
+        }
+
+        // ---- open modal ----
+        el('btnOpenQuickAddRm').addEventListener('click', async () => {
+            clearErrors();
+            ['qrmSku','qrmName','qrmVatRate','qrmWastePerc','qrmDescription'].forEach(id => { el(id).value = ''; });
+            el('qrmCategory').value = '';
+            el('qrmUnit').value = '';
+            el('qrmInitPackagePrice').value = '';
+            el('qrmInitPackageQty').value = '1';
+            el('qrmInitPricePerUnit').value = '';
+            el('qrmInitPackageUnit').textContent = '—';
+            el('qrmInitPerUnitSuffix').textContent = '—';
+            bsModal.show();
+            await loadLookups();
+        });
+
+        el('qrmUnit').addEventListener('change', updateInitPriceCalc);
+        el('qrmInitPackagePrice').addEventListener('input', updateInitPriceCalc);
+        el('qrmInitPackageQty').addEventListener('input', updateInitPriceCalc);
+
+        // ---- save ----
+        el('btnConfirmQuickAddRm').addEventListener('click', async () => {
+            clearErrors();
+
+            const name   = el('qrmName').value.trim();
+            const unitId = el('qrmUnit').value || null;
+
+            let hasClientError = false;
+            if (!name) {
+                el('qrmName').classList.add('is-invalid');
+                el('qrmErrName').textContent = '{{ translations.field_required }}';
+                hasClientError = true;
+            }
+            if (!unitId) {
+                el('qrmUnit').classList.add('is-invalid');
+                el('qrmErrUnit').textContent = '{{ translations.field_required }}';
+                hasClientError = true;
+            }
+            if (hasClientError) return;
+
+            const numOrNull = v => (v === '' || v == null) ? null : Number(v);
+            const strOrNull = v => (v === '' || v == null) ? null : String(v).trim();
+
+            const data = {
+                name,
+                id_unit:     parseInt(unitId, 10),
+                sku:         strOrNull(el('qrmSku').value),
+                id_category: el('qrmCategory').value ? Number(el('qrmCategory').value) : null,
+                vat_rate:    numOrNull(el('qrmVatRate').value),
+                waste_perc:  numOrNull(el('qrmWastePerc').value),
+                description: strOrNull(el('qrmDescription').value),
+            };
+
+            el('btnConfirmQuickAddRm').disabled = true;
+            try {
+                const resp = await api('/ajax/raw-materials', { method: 'POST', data });
+
+                if (!(resp.ok || resp.success)) {
+                    if (resp.data?.errors || resp.errors) {
+                        applyErrors(resp.data?.errors ?? resp.errors);
+                        Swal.fire({ icon: 'error', title: '{{ translations.error }}', text: '{{ translations.fix_form_errors }}' });
+                    } else {
+                        Swal.fire('{{ translations.error }}', resp.data?.description ?? resp.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+                    }
+                    return;
+                }
+
+                // Optional initial price
+                const pkgPrice = el('qrmInitPackagePrice').value;
+                const pkgQty   = el('qrmInitPackageQty').value;
+                const priceNet = calcPricePerUnit(pkgPrice, pkgQty);
+                const newId    = resp.inserted_id ?? resp.data?.id;
+                if (priceNet && newId) {
+                    try {
+                        await api(`/ajax/raw-materials/${newId}/price-history`, {
+                            method: 'POST',
+                            data: { price_net: parseFloat(priceNet.toFixed(4)), valid_from: new Date().toISOString().split('T')[0] }
+                        });
+                    } catch (e) { console.warn('Initial price save failed', e); }
+                }
+
+                // Inject new option into ingredient select
+                if (newId) {
+                    const unitOpt = el('qrmUnit').options[el('qrmUnit').selectedIndex];
+                    const unitSymbol = unitOpt ? unitOpt.textContent.split(' — ')[0].trim() : '';
+                    const opt = document.createElement('option');
+                    opt.value = newId;
+                    opt.dataset.unit = unitSymbol;
+                    opt.textContent = escapeHtml(name) + (unitSymbol ? ' (' + unitSymbol + ')' : '');
+                    el('newRawMaterialId').appendChild(opt);
+                    el('newRawMaterialId').value = String(newId);
+                    el('newQtyUnit').textContent = unitSymbol || '—';
+                }
+
+                bsModal.hide();
+                Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.raw_material_added }}', timer: 1500, showConfirmButton: false });
+            } finally {
+                el('btnConfirmQuickAddRm').disabled = false;
+            }
+        });
+
+        // ---- category management sub-modal ----
+        function renderQrmCategoryList() {
+            const tEdit   = {{ translations.edit_category|json_encode|raw }};
+            const tDelete = {{ translations.delete_category|json_encode|raw }};
+            const list = el('qrmCategoryList');
+            if (!qrmCategories.length) {
+                list.innerHTML = '<li class="list-group-item text-muted small">—</li>';
+                return;
+            }
+            list.innerHTML = qrmCategories.map(c => `
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>${escapeHtml(c.name)}</span>
+                    <span>
+                        <button type="button" class="btn btn-sm btn-link p-0 me-2 qrm-cat-edit" data-id="${escapeHtml(String(c.id))}" title="${escapeHtml(tEdit)}">
+                            <i class="bi bi-pencil text-primary"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-link p-0 text-danger qrm-cat-delete" data-id="${escapeHtml(String(c.id))}" title="${escapeHtml(tDelete)}">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </span>
+                </li>`).join('');
+        }
+
+        el('btnQrmManageCategories').addEventListener('click', () => {
+            el('qrmCatEditId').value = '';
+            el('qrmCatNameInput').value = '';
+            el('qrmErrCategoryName').textContent = '';
+            el('qrmBtnCancelCatEdit').style.display = 'none';
+            renderQrmCategoryList();
+            bsCatModal.show();
+        });
+
+        el('qrmBtnSaveCategory').addEventListener('click', async () => {
+            const name   = el('qrmCatNameInput').value.trim();
+            const editId = el('qrmCatEditId').value;
+            el('qrmErrCategoryName').textContent = '';
+            if (!name) {
+                el('qrmErrCategoryName').textContent = '{{ translations.field_required }}';
+                return;
+            }
+            try {
+                let resp;
+                if (editId) {
+                    resp = await api(`/ajax/raw-material-categories/${editId}`, { method: 'PATCH', data: { name } });
+                } else {
+                    resp = await api('/ajax/raw-material-categories', { method: 'POST', data: { name } });
+                }
+                if (!(resp.ok || resp.success)) {
+                    el('qrmErrCategoryName').textContent = {{ translations.category_name_exists|json_encode|raw }};
+                    return;
+                }
+                const fresh = await api('/ajax/raw-material-categories');
+                qrmCategories = Array.isArray(fresh.data) ? fresh.data : [];
+                renderQrmCategoryList();
+                rebuildCategorySelect();
+                el('qrmCatEditId').value = '';
+                el('qrmCatNameInput').value = '';
+                el('qrmBtnCancelCatEdit').style.display = 'none';
+            } catch (e) {
+                el('qrmErrCategoryName').textContent = e.message || '{{ translations.undefined_error_occurred }}';
+            }
+        });
+
+        el('qrmBtnCancelCatEdit').addEventListener('click', () => {
+            el('qrmCatEditId').value = '';
+            el('qrmCatNameInput').value = '';
+            el('qrmErrCategoryName').textContent = '';
+            el('qrmBtnCancelCatEdit').style.display = 'none';
+        });
+
+        el('qrmCategoryList').addEventListener('click', async (ev) => {
+            const editBtn = ev.target.closest('.qrm-cat-edit');
+            const delBtn  = ev.target.closest('.qrm-cat-delete');
+            if (editBtn) {
+                const cat = qrmCategories.find(c => String(c.id) === editBtn.dataset.id);
+                if (cat) {
+                    el('qrmCatEditId').value = cat.id;
+                    el('qrmCatNameInput').value = cat.name;
+                    el('qrmBtnCancelCatEdit').style.display = '';
+                    el('qrmCatNameInput').focus();
+                }
+            } else if (delBtn) {
+                const result = await Swal.fire({
+                    icon: 'warning',
+                    title: {{ translations.delete_category|json_encode|raw }},
+                    text:  {{ translations.category_delete_confirm|json_encode|raw }},
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    confirmButtonText: {{ translations.delete|json_encode|raw }},
+                    cancelButtonText:  {{ translations.cancel|json_encode|raw }},
+                });
+                if (!result.isConfirmed) return;
+                try {
+                    await api(`/ajax/raw-material-categories/${delBtn.dataset.id}`, { method: 'DELETE' });
+                    const fresh = await api('/ajax/raw-material-categories');
+                    qrmCategories = Array.isArray(fresh.data) ? fresh.data : [];
+                    renderQrmCategoryList();
+                    rebuildCategorySelect();
+                } catch (e) {
+                    Swal.fire({ icon: 'error', text: e.message || '{{ translations.undefined_error_occurred }}' });
+                }
+            }
+        });
+
+        // Keep category select fresh after closing category modal
+        catModalEl.addEventListener('hidden.bs.modal', () => {
+            rebuildCategorySelect();
+        });
+    })();
+
+    // -----------------------------------------------------------------------
+    //  Tile 3 — Labor defaults modal
+    // -----------------------------------------------------------------------
+    (function () {
+        const modalEl = document.getElementById('modalLaborDefaults');
+        const bsModal = new bootstrap.Modal(modalEl);
+
+        el('btnOpenLaborDefaults').addEventListener('click', () => {
+            bsModal.show();
+        });
+
+        el('btnConfirmLaborDefaults').addEventListener('click', async () => {
+            const timeRaw = el('ldTime').value.trim();
+            const rateRaw = el('ldRate').value.trim();
+
+            const data = {
+                labor_time_default: timeRaw === '' ? null : parseDecimalOrNull(timeRaw),
+                labor_rate_default: rateRaw === '' ? null : parseDecimalOrNull(rateRaw),
+            };
+
+            const resp = await api('/ajax/labor-defaults', { method: 'PATCH', data });
+
+            if (!resp.ok) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+                return;
+            }
+
+            bsModal.hide();
+            Swal.fire({ icon: 'success', title: '{{ translations.success }}', text: '{{ translations.labor_defaults_saved }}', timer: 1500, showConfirmButton: false });
+        });
+    })();
+
+    // -----------------------------------------------------------------------
+    //  Archive / Restore / Delete recipe
+    // -----------------------------------------------------------------------
+    const archiveBtn  = el('btnArchiveRecipe');
+    const restoreBtn  = el('btnRestoreRecipe');
+    const deleteBtn   = el('btnDeleteRecipe');
+
+    if (archiveBtn) {
+        archiveBtn.addEventListener('click', async () => {
+            const confirmed = await Swal.fire({
+                title: '{{ translations.archive_confirm_title }}',
+                text:  '{{ translations.archive_confirm_text }}',
+                icon:  'warning',
+                showCancelButton: true,
+                confirmButtonText: '{{ translations.archive }}',
+                cancelButtonText:  '{{ translations.cancel }}',
+            });
+            if (!confirmed.isConfirmed) return;
+
+            const resp = await api('/ajax/recipes/' + RECIPE_ID + '/archive', { method: 'PATCH', data: {} });
+            if (!resp.ok) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+                return;
+            }
+            window.location.href = '{{ ROOT }}/recipes';
+        });
+    }
+
+    if (restoreBtn) {
+        restoreBtn.addEventListener('click', async () => {
+            const confirmed = await Swal.fire({
+                title: '{{ translations.restore_confirm_title }}',
+                text:  '{{ translations.restore_confirm_text }}',
+                icon:  'question',
+                showCancelButton: true,
+                confirmButtonText: '{{ translations.restore }}',
+                cancelButtonText:  '{{ translations.cancel }}',
+            });
+            if (!confirmed.isConfirmed) return;
+
+            const resp = await api('/ajax/recipes/' + RECIPE_ID + '/restore', { method: 'PATCH', data: {} });
+            if (!resp.ok) {
+                Swal.fire('{{ translations.error }}', resp.data?.description ?? '{{ translations.undefined_error_occurred }}', 'error');
+                return;
+            }
+            window.location.reload();
+        });
+    }
+
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async () => {
+            const confirmed = await Swal.fire({
+                title: '{{ translations.delete_confirm_title }}',
+                text:  '{{ translations.delete_confirm_text }}',
+                icon:  'warning',
+                showCancelButton: true,
+                confirmButtonText: '{{ translations.delete }}',
+                cancelButtonText:  '{{ translations.cancel }}',
+                confirmButtonColor: '#EF4444',
+            });
+            if (!confirmed.isConfirmed) return;
+
+            const resp = await api('/ajax/recipes/' + RECIPE_ID, { method: 'DELETE' });
+            if (!resp.ok) {
+                const desc = resp.data?.description ?? '';
+                const msg = desc === 'RECIPE_HAS_INGREDIENTS'
+                    ? '{{ translations.error_has_ingredients }}'
+                    : (desc || '{{ translations.undefined_error_occurred }}');
+                Swal.fire('{{ translations.error }}', msg, 'error');
+                return;
+            }
+            window.location.href = '{{ ROOT }}/recipes';
+        });
+    }
+});
+</script>
+{% endblock %}

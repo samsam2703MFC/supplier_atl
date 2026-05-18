@@ -23,6 +23,29 @@
   "supplier_phone_label": "Téléphone",
   "supplier_email_label": "E-mail",
 
+  "supplier_logo_section": "Logo de l'entreprise",
+  "supplier_logo_hint": "JPG, PNG ou WebP, max 2 Mo.",
+  "supplier_logo_upload_btn": "Télécharger le logo",
+  "supplier_logo_alt": "Logo de l'entreprise",
+
+  "supplier_profile_edit_title": "Détails du profil",
+  "supplier_profile_edit_hint": "Ces informations sont visibles sur la plateforme.",
+
+  "supplier_iban_label": "IBAN",
+  "supplier_iban_placeholder": "ex. FR76 3000 6000 0112 3456 7890 189",
+  "supplier_website_label": "Site web",
+  "supplier_website_placeholder": "https://",
+  "supplier_notes_label": "Notes",
+  "supplier_notes_placeholder": "Notes internes sur ce compte fournisseur...",
+
+  "save_btn": "Enregistrer",
+  "cancel_btn": "Annuler",
+
+  "profile_saved": "Profil enregistré avec succès.",
+  "profile_save_failed": "Une erreur s'est produite lors de l'enregistrement du profil.",
+  "logo_uploaded": "Logo téléchargé avec succès.",
+  "logo_upload_failed": "Une erreur s'est produite lors du téléchargement du logo.",
+
   "not_provided": "Non fourni",
   "read_only_hint": "Ceci est une vue informative (sans édition).",
   "contact_hint": "Les coordonnées sont utilisées pour la communication dans le cadre de l'intégration du réseau de franchise."

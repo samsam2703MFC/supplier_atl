@@ -116,6 +116,9 @@
   "no_file_selected": "Selecteer eerst een bestand.",
   "invalid_json_file": "Ongeldig JSON-bestand. Controleer de inhoud van het bestand.",
   "file_read_error": "Fout bij het lezen van het bestand. Probeer het opnieuw.",
-  "loading": "Laden..."
+  "loading": "Laden...",
+
+  "attention": "Let op",
+  "yes_delete_it": "Ja, verwijder"
 }
 

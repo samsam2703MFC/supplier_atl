@@ -158,6 +158,20 @@
   "import_completed": "Import completed successfully.",
   "import_failed": "Import failed. Please check the file format.",
   "invalid_json_file": "Invalid JSON file. Please check the file content.",
-  "file_read_error": "Error reading file. Please try again."
+  "file_read_error": "Error reading file. Please try again.",
+
+  "catalog_photo_manage": "Product photo",
+  "catalog_no_photo": "No photo",
+  "catalog_photo_upload_new": "Upload photo",
+  "catalog_photo_delete": "Delete photo",
+  "catalog_photo_crop_save": "Crop & save",
+  "catalog_upload_photo": "Add photo",
+  "catalog_photo_uploading": "Uploading photo...",
+  "catalog_photo_uploaded": "Photo saved successfully",
+  "catalog_photo_delete_confirm": "Delete photo?",
+  "catalog_photo_deleted": "Photo deleted",
+
+  "catalog_inactive_mapped_info_title": "Inactive products visible to clients",
+  "catalog_inactive_mapped_info_body": "Products marked as inactive that are mapped to client materials are still visible in the ordering view. Clients see a warning icon next to them indicating the product may not be delivered."
 }
 

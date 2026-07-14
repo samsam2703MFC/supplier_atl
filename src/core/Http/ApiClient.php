@@ -211,18 +211,32 @@ class ApiClient
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
 
-        $response = curl_exec($ch);
-
-        curl_close($ch);
+        $result = curl_exec($ch);
         $response_code = curl_getinfo($ch)['http_code'];
+        curl_close($ch);
 
-        $decoded_data = json_decode($response, true);
+        $decoded_data = json_decode($result, true);
+        if (!is_array($decoded_data)) {
+            $decoded_data = [];
+        }
+
+        $response = [
+            'message' => $decoded_data['message'] ?? null,
+            'success' => false,
+            'error' => [],
+            'code' => $response_code,
+            'data' => $decoded_data,
+            'description' => null,
+        ];
 
         if($response_code == 200 || $response_code == 201 || $response_code == 204)
-            return ['success' => true, 'message' => ""];
+        {
+            $response['success'] = true;
+        } else {
+            $response['description'] = $decoded_data['description'] ?? $decoded_data['message'] ?? null;
+        }
 
-
-        return ['success' => false, 'description' => $decoded_data['description']];
+        return $response;
     }
 
     public function patch($endpoint, $data) {

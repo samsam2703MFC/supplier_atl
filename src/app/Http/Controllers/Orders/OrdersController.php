@@ -111,7 +111,9 @@ class OrdersController extends Controller
     #[Route('POST', '/ajax/orders/{orderId:\d+}/finalization-check')]
     public function finalizationCheck(string $orderId): JsonResponse
     {
-        return $this->proxyLifecycleResponse($this->orderService->finalizationCheck((int) $orderId));
+        $payload = $this->getJson(Request::createFromGlobals());
+
+        return $this->proxyLifecycleResponse($this->orderService->finalizationCheck((int) $orderId, $payload));
     }
 
     #[Route('POST', '/ajax/orders/{orderId:\d+}/finalize')]
@@ -142,7 +144,7 @@ class OrdersController extends Controller
         return $this->proxyLifecycleResponse($this->orderService->createCarrier($payload));
     }
 
-    #[Route('PUT', '/ajax/orders/carriers/{carrierId:\d+}')]
+    #[Route('PATCH', '/ajax/orders/carriers/{carrierId:\d+}')]
     public function updateCarrier(string $carrierId): JsonResponse
     {
         $payload = $this->getJson(Request::createFromGlobals());
@@ -150,10 +152,10 @@ class OrdersController extends Controller
         return $this->proxyLifecycleResponse($this->orderService->updateCarrier((int) $carrierId, $payload));
     }
 
-    #[Route('POST', '/ajax/orders/carriers/{carrierId:\d+}/deactivate')]
-    public function deactivateCarrier(string $carrierId): JsonResponse
+    #[Route('DELETE', '/ajax/orders/carriers/{carrierId:\d+}')]
+    public function deleteCarrier(string $carrierId): JsonResponse
     {
-        return $this->proxyLifecycleResponse($this->orderService->deactivateCarrier((int) $carrierId));
+        return $this->proxyLifecycleResponse($this->orderService->deleteCarrier((int) $carrierId));
     }
 
     #[Route('GET', '/ajax/orders/{orderId:\d+}/documents')]
@@ -180,7 +182,7 @@ class OrdersController extends Controller
         return $this->json($response['data'] ?? []);
     }
 
-    #[Route('POST', '/ajax/orders/{orderId:\d+}/documents/differences')]
+    #[Route('POST', '/ajax/orders/{orderId:\d+}/documents/difference')]
     public function generateDifferencesDocument(string $orderId): JsonResponse
     {
         return $this->proxyLifecycleResponse($this->orderService->generateDifferencesDocument((int) $orderId));

@@ -58,10 +58,10 @@ class SupplierOrderService
         return $this->orderRepository->updateTransport($supplierId, $orderId, $payload);
     }
 
-    public function finalizationCheck(int $orderId): array
+    public function finalizationCheck(int $orderId, array $payload): array
     {
         $supplierId = GlobalRegistry::get('user')['supplier_id'];
-        return $this->orderRepository->finalizationCheck($supplierId, $orderId);
+        return $this->orderRepository->finalizationCheck($supplierId, $orderId, $payload);
     }
 
     public function finalize(int $orderId, array $payload): array
@@ -88,10 +88,10 @@ class SupplierOrderService
         return $this->orderRepository->updateCarrier($supplierId, $carrierId, $payload);
     }
 
-    public function deactivateCarrier(int $carrierId): array
+    public function deleteCarrier(int $carrierId): array
     {
         $supplierId = GlobalRegistry::get('user')['supplier_id'];
-        return $this->orderRepository->deactivateCarrier($supplierId, $carrierId);
+        return $this->orderRepository->deleteCarrier($supplierId, $carrierId);
     }
 
     public function getDocuments(int $orderId): array

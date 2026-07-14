@@ -104,23 +104,27 @@
     {% elseif order is empty %}
         <div class="alert alert-secondary">{{ translations.orders_details_empty }}</div>
     {% else %}
-        {% set originalItems = order.original_products ?? order.ordered_products ?? order.products ?? order.items ?? [] %}
-        {% set finalItems = order.final_products ?? order.final_items ?? [] %}
-        {% set comparison = order.comparison ?? order.differences ?? [] %}
+        {% set originalItems = order.original_items ?? [] %}
+        {% set finalItems = order.final_items ?? [] %}
+        {% set comparison = order.comparison ?? [] %}
         {% set documents = order.documents ?? [] %}
-        {% set history = order.history ?? order.events ?? [] %}
+        {% set history = order.history ?? [] %}
         {% set transport = order.transport ?? [] %}
         {% set shop = order.shop ?? [] %}
         {% set currency = order.currency_code ?? order.currency ?? '' %}
         {% set allowedActions = order.allowed_actions ?? [] %}
-        {% set canAccept = 'ACCEPT' in allowedActions or 'ACCEPTED' in allowedActions or 'accept' in allowedActions or 'accepted' in allowedActions %}
-        {% set canReject = 'REJECT' in allowedActions or 'REJECTED' in allowedActions or 'reject' in allowedActions or 'rejected' in allowedActions %}
-        {% set canCancel = 'CANCEL' in allowedActions or 'CANCELLED' in allowedActions or 'cancel' in allowedActions or 'cancelled' in allowedActions %}
-        {% set canGenerateDifferencesDocument = 'GENERATE_DIFFERENCES_DOCUMENT' in allowedActions or 'GENERATE_DIFFERENCE_DOCUMENT' in allowedActions or 'generate_differences_document' in allowedActions or 'generate_difference_document' in allowedActions %}
-        {% set canGenerateReleaseDocument = 'GENERATE_RELEASE_DOCUMENT' in allowedActions or 'GENERATE_RELEASE' in allowedActions or 'generate_release_document' in allowedActions or 'generate_release' in allowedActions %}
-        {% set canGenerateCmrDocument = 'GENERATE_CMR_DOCUMENT' in allowedActions or 'GENERATE_CMR' in allowedActions or 'generate_cmr_document' in allowedActions or 'generate_cmr' in allowedActions %}
-        {% set fulfillmentStatus = order.supplier_fulfillment_status ?? order.fulfillment_status ?? '' %}
-        {% set isFinalEditorEditable = fulfillmentStatus == 'ACCEPTED' %}
+        {% set canAccept = 'accept' in allowedActions %}
+        {% set canReject = 'reject' in allowedActions %}
+        {% set canCancel = 'cancel' in allowedActions %}
+        {% set canEditFinalItems = 'edit_final_items' in allowedActions %}
+        {% set canEditTransport = 'edit_transport' in allowedActions %}
+        {% set canManageCarriers = 'manage_carriers' in allowedActions %}
+        {% set canFinalizationCheck = 'finalization_check' in allowedActions %}
+        {% set canFinalize = 'finalize' in allowedActions %}
+        {% set canGenerateDifferencesDocument = 'generate_difference_document' in allowedActions %}
+        {% set canGenerateReleaseDocument = 'generate_release_document' in allowedActions %}
+        {% set canGenerateCmrDocument = 'generate_cmr_document' in allowedActions %}
+        {% set isFinalEditorEditable = canEditFinalItems %}
 
         {% if canAccept or canReject or canCancel %}
             <div class="order-detail-card p-3 mb-3" id="order-lifecycle-panel" data-order-id="{{ order.id }}">
@@ -159,18 +163,18 @@
                             <div class="fs-4 fw-bold"><code>{{ orderKey }}</code></div>
                         </div>
                         <div class="d-flex flex-wrap align-items-start gap-2">
-                            {{ detail.status_badge(order.status ?? null, translations, 'orders_status_') }}
-                            {{ detail.status_badge(order.supplier_fulfillment_status ?? order.fulfillment_status ?? null, translations, 'orders_fulfillment_status_') }}
+                            {{ detail.status_badge(order.logistics_status ?? null, translations, 'orders_status_') }}
+                            {{ detail.status_badge(order.supplier_fulfillment_status ?? null, translations, 'orders_fulfillment_status_') }}
                         </div>
                     </div>
                     <div class="order-detail-meta">
                         <div class="order-detail-meta-item">
                             <span class="order-detail-label">{{ translations.orders_details_logistic_status }}</span>
-                            <span class="order-detail-value">{{ order.status ?? '—' }}</span>
+                            <span class="order-detail-value">{{ order.logistics_status ?? '—' }}</span>
                         </div>
                         <div class="order-detail-meta-item">
                             <span class="order-detail-label">{{ translations.orders_details_fulfillment_status }}</span>
-                            <span class="order-detail-value">{{ order.supplier_fulfillment_status ?? order.fulfillment_status ?? '—' }}</span>
+                            <span class="order-detail-value">{{ order.supplier_fulfillment_status ?? '—' }}</span>
                         </div>
                         <div class="order-detail-meta-item">
                             <span class="order-detail-label">{{ translations.orders_col_order_date }}</span>
@@ -228,14 +232,14 @@
                 <div class="order-detail-card p-3 h-100" id="transport-editor"
                      data-order-id="{{ order.id }}"
                      data-version="{{ order.version ?? '' }}"
-                     data-editable="{{ isFinalEditorEditable ? '1' : '0' }}"
+                     data-editable="{{ canEditTransport ? '1' : '0' }}"
                      data-transport="{{ transport|json_encode|e('html_attr') }}">
                     <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
                         <div>
                             <div class="section-title mb-1">{{ translations.orders_details_transport }}</div>
-                            <div class="order-lifecycle-note">{{ isFinalEditorEditable ? translations.orders_transport_subtitle : translations.orders_transport_readonly }}</div>
+                            <div class="order-lifecycle-note">{{ canEditTransport ? translations.orders_transport_subtitle : translations.orders_transport_readonly }}</div>
                         </div>
-                        {% if isFinalEditorEditable %}
+                        {% if canManageCarriers %}
                             <button type="button" class="btn btn-sm btn-outline-secondary" id="transport-carriers-manage">
                                 <i class="bi bi-truck me-1"></i>{{ translations.orders_carriers_manage }}
                             </button>
@@ -244,43 +248,43 @@
                     <div class="transport-form-grid">
                         <div>
                             <label class="form-label">{{ translations.orders_transport_type }}</label>
-                            <select class="form-select form-select-sm" id="transport-type" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                            <select class="form-select form-select-sm" id="transport-type" {{ canEditTransport ? '' : 'disabled' }}>
                                 <option value="OWN">{{ translations.orders_transport_type_own }}</option>
                                 <option value="EXTERNAL">{{ translations.orders_transport_type_external }}</option>
                             </select>
                         </div>
                         <div id="transport-carrier-wrap">
                             <label class="form-label">{{ translations.orders_details_carrier }}</label>
-                            <select class="form-select form-select-sm" id="transport-carrier-id" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                            <select class="form-select form-select-sm" id="transport-carrier-id" {{ canEditTransport ? '' : 'disabled' }}>
                                 <option value="">{{ translations.orders_carriers_select }}</option>
                             </select>
                         </div>
                         <div>
                             <label class="form-label">{{ translations.orders_details_supplier_planned_date }}</label>
-                            <input type="date" class="form-control form-control-sm" id="transport-planned-date" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                            <input type="date" class="form-control form-control-sm" id="transport-planned-date" {{ canEditTransport ? '' : 'disabled' }}>
                         </div>
                         <div>
                             <label class="form-label">{{ translations.orders_transport_loading_place }}</label>
-                            <input type="text" class="form-control form-control-sm" id="transport-loading-place" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                            <input type="text" class="form-control form-control-sm" id="transport-loading-place" {{ canEditTransport ? '' : 'disabled' }}>
                         </div>
                         <div>
                             <label class="form-label">{{ translations.orders_transport_loading_country }}</label>
-                            <input type="text" class="form-control form-control-sm" id="transport-loading-country" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                            <input type="text" class="form-control form-control-sm" id="transport-loading-country" {{ canEditTransport ? '' : 'disabled' }}>
                         </div>
                         <div>
                             <label class="form-label">{{ translations.orders_transport_delivery_place }}</label>
-                            <input type="text" class="form-control form-control-sm" id="transport-delivery-place" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                            <input type="text" class="form-control form-control-sm" id="transport-delivery-place" {{ canEditTransport ? '' : 'disabled' }}>
                         </div>
                         <div>
                             <label class="form-label">{{ translations.orders_transport_delivery_country }}</label>
-                            <input type="text" class="form-control form-control-sm" id="transport-delivery-country" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                            <input type="text" class="form-control form-control-sm" id="transport-delivery-country" {{ canEditTransport ? '' : 'disabled' }}>
                         </div>
                         <div class="full">
                             <label class="form-label">{{ translations.orders_transport_instructions }}</label>
-                            <textarea class="form-control form-control-sm" id="transport-instructions" rows="2" {{ isFinalEditorEditable ? '' : 'disabled' }}></textarea>
+                            <textarea class="form-control form-control-sm" id="transport-instructions" rows="2" {{ canEditTransport ? '' : 'disabled' }}></textarea>
                         </div>
                     </div>
-                    {% if isFinalEditorEditable %}
+                    {% if canEditTransport %}
                         <div class="transport-actions mt-3">
                             <button type="button" class="btn btn-sm btn-primary" id="transport-save">
                                 <i class="bi bi-save me-1"></i>{{ translations.orders_transport_save }}
@@ -429,7 +433,7 @@
             {% endif %}
         </div>
 
-        {% if isFinalEditorEditable %}
+        {% if canFinalizationCheck or canFinalize %}
             <div class="order-detail-card p-3 mb-3" id="finalization-panel" data-order-id="{{ order.id }}" data-version="{{ order.version ?? '' }}">
                 <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
                     <div>
@@ -455,7 +459,7 @@
                         </div>
                         <div class="d-flex flex-wrap gap-2">
                             {% if canGenerateDifferencesDocument %}
-                                <button type="button" class="btn btn-sm btn-outline-primary js-document-generate" id="documents-generate-differences" data-document-kind="differences">
+                                <button type="button" class="btn btn-sm btn-outline-primary js-document-generate" id="documents-generate-differences" data-document-kind="difference">
                                     <i class="bi bi-file-earmark-diff me-1"></i>{{ translations.orders_documents_generate_differences }}
                                 </button>
                             {% endif %}
@@ -804,8 +808,13 @@
         return Number.isFinite(parsed) ? parsed : 0;
     }
 
-    function itemId(item) {
-        return item.product_id ?? item.material_product_id ?? item.material_id ?? item.raw_material_id ?? item.id ?? null;
+    function sourceOrderItemId(item, useIdFallback = false) {
+        const explicit = item.source_order_item_id ?? item.material_order_item_id ?? item.order_item_id ?? null;
+        return explicit ?? (useIdFallback ? (item.id ?? null) : null);
+    }
+
+    function catalogProductId(item) {
+        return item.catalog_product_id ?? item.product_id ?? item.material_product_id ?? item.material_id ?? item.raw_material_id ?? null;
     }
 
     function itemSku(item) {
@@ -833,18 +842,18 @@
     function normalizeRows() {
         const originals = parseJson(root.dataset.originalItems, []);
         const finals = parseJson(root.dataset.finalItems, []);
-        const finalByProduct = new Map(finals.map((item) => [String(itemId(item)), item]));
+        const finalBySource = new Map(finals.filter((item) => sourceOrderItemId(item) !== null).map((item) => [String(sourceOrderItemId(item)), item]));
         const normalized = originals.map((item, index) => {
-            const productId = itemId(item);
-            const finalItem = finalByProduct.get(String(productId));
+            const sourceId = sourceOrderItemId(item, true);
+            const catalogId = catalogProductId(item);
+            const finalItem = finalBySource.get(String(sourceId));
             const originalQuantity = orderedQty(item);
             const merged = finalItem || item;
             return {
-                uid: `original-${productId ?? index}`,
+                uid: `original-${sourceId ?? catalogId ?? index}`,
                 source: 'original',
-                order_item_id: item.order_item_id ?? item.material_order_item_id ?? item.id ?? null,
-                final_item_id: finalItem?.id ?? finalItem?.final_item_id ?? null,
-                product_id: productId,
+                source_order_item_id: sourceId,
+                catalog_product_id: catalogId,
                 sku: itemSku(merged) || itemSku(item),
                 name: itemName(merged) || itemName(item),
                 pack: packLabel(merged) || packLabel(item),
@@ -856,16 +865,16 @@
         });
 
         finals.forEach((item, index) => {
-            const productId = itemId(item);
-            if (normalized.some((row) => String(row.product_id) === String(productId))) {
+            const sourceId = sourceOrderItemId(item);
+            const catalogId = catalogProductId(item);
+            if (sourceId !== null && normalized.some((row) => String(row.source_order_item_id) === String(sourceId))) {
                 return;
             }
             normalized.push({
-                uid: `final-${productId ?? index}`,
+                uid: `final-${catalogId ?? index}`,
                 source: 'final',
-                order_item_id: null,
-                final_item_id: item.id ?? item.final_item_id ?? null,
-                product_id: productId,
+                source_order_item_id: null,
+                catalog_product_id: catalogId,
                 sku: itemSku(item),
                 name: itemName(item),
                 pack: packLabel(item),
@@ -894,7 +903,8 @@
 
     function snapshot() {
         return JSON.stringify(rows.map((row) => ({
-            product_id: row.product_id,
+            source_order_item_id: row.source_order_item_id,
+            catalog_product_id: row.catalog_product_id,
             final_pack_quantity: Number(row.final_pack_quantity),
             reason: row.reason || '',
             added: !!row.added
@@ -975,11 +985,10 @@
 
     function payload() {
         return {
-            version,
+            version: Number(version),
             items: rows.map((row) => ({
-                order_item_id: row.order_item_id,
-                final_item_id: row.final_item_id,
-                product_id: row.product_id,
+                source_order_item_id: row.added ? null : row.source_order_item_id,
+                catalog_product_id: row.added ? row.catalog_product_id : null,
                 final_pack_quantity: Number(row.final_pack_quantity),
                 reason: row.reason || null
             }))
@@ -1006,7 +1015,7 @@
             return;
         }
 
-        const existingIds = new Set(rows.map((row) => String(row.product_id)));
+        const existingIds = new Set(rows.map((row) => String(row.catalog_product_id)).filter((id) => id !== 'null' && id !== 'undefined'));
         const available = products.filter((product) => !existingIds.has(String(product.id)));
         if (!available.length) {
             Swal.fire({ icon: 'info', text: tx.addNoProducts });
@@ -1040,9 +1049,8 @@
         rows.push({
             uid: `draft-${product.id}-${Date.now()}`,
             source: 'draft',
-            order_item_id: null,
-            final_item_id: null,
-            product_id: product.id,
+            source_order_item_id: null,
+            catalog_product_id: product.id,
             sku: product.sku || '',
             name: product.name || '',
             pack: packLabel(product),
@@ -1213,10 +1221,12 @@
     }
 
     function transportPayload() {
+        const mode = els.type?.value || 'OWN';
         return {
-            version,
-            transport_type: els.type?.value || 'OWN',
-            carrier_id: els.type?.value === 'EXTERNAL' ? (els.carrier?.value || null) : null,
+            version: Number(version),
+            mode,
+            transport_type: 'ROAD',
+            carrier_id: mode === 'EXTERNAL' ? (els.carrier?.value || null) : null,
             planned_delivery_date: els.plannedDate?.value || null,
             loading_place: els.loadingPlace?.value || null,
             loading_country: els.loadingCountry?.value || null,
@@ -1228,7 +1238,7 @@
 
     function populateTransport() {
         const transport = parseJson(root.dataset.transport, {});
-        els.type.value = transport.transport_type || transport.type || 'OWN';
+        els.type.value = transport.mode || 'OWN';
         els.plannedDate.value = transport.planned_delivery_date || transport.supplier_planned_date || transport.planned_date || '';
         els.loadingPlace.value = transport.loading_place || transport.loading_location || '';
         els.loadingCountry.value = transport.loading_country || '';
@@ -1267,7 +1277,7 @@
         if (transportBusy) return;
         const payload = transportPayload();
         if (!payload.planned_delivery_date) { Swal.fire({ icon:'error', title: tr.validation, text: tr.plannedDateRequired }); return; }
-        if (payload.transport_type === 'EXTERNAL' && !payload.carrier_id) { Swal.fire({ icon:'error', title: tr.validation, text: tr.externalCarrierRequired }); return; }
+        if (payload.mode === 'EXTERNAL' && !payload.carrier_id) { Swal.fire({ icon:'error', title: tr.validation, text: tr.externalCarrierRequired }); return; }
         transportBusy = true;
         els.save.disabled = true;
         try {
@@ -1309,20 +1319,20 @@
         });
         if (!result.value) return;
         const endpoint = carrier ? `/ajax/orders/carriers/${carrier.id}` : '/ajax/orders/carriers';
-        const method = carrier ? 'PUT' : 'POST';
+        const method = carrier ? 'PATCH' : 'POST';
         const resp = await api(endpoint, { method, data: result.value });
         if (!resp.ok) { Swal.fire({ icon:'error', text: apiMessage(resp, tr.server) }); return; }
         await loadCarriers();
-        await showCarrierManager();
+        window.location.reload();
     }
 
     async function deactivateCarrier(carrier) {
         const confirmed = await Swal.fire({ icon:'warning', text: tr.carrierConfirmDeactivate, showCancelButton:true, confirmButtonText: tr.carrierDeactivate, cancelButtonText: tr.close });
         if (!confirmed.isConfirmed) return;
-        const resp = await api(`/ajax/orders/carriers/${carrier.id}/deactivate`, { method:'POST', data:{} });
+        const resp = await api(`/ajax/orders/carriers/${carrier.id}`, { method:'DELETE' });
         if (!resp.ok) { Swal.fire({ icon:'error', text: apiMessage(resp, tr.server) }); return; }
         await loadCarriers();
-        await showCarrierManager();
+        window.location.reload();
     }
 
     async function showCarrierManager() {
@@ -1367,7 +1377,7 @@
         els.finalizeStart.disabled = true;
         try {
             Swal.fire({ title: tr.finalizeChecking, allowOutsideClick:false, didOpen: () => Swal.showLoading() });
-            const check = await api(`/ajax/orders/${orderId}/finalization-check`, { method:'POST', data:{} });
+            const check = await api(`/ajax/orders/${orderId}/finalization-check`, { method:'POST', data:{ version: Number(version) } });
             Swal.close();
             if (check.status === 409) { await showConflict(); return; }
             if (!check.ok) { Swal.fire({ icon:'error', text: apiMessage(check, tr.server) }); return; }
@@ -1382,11 +1392,11 @@
                 <h6 class="mt-3">${escapeHtml(tr.finalizeWarnings)}</h6>${listHtml(warnings, tr.finalizeNoIssues)}
                 <h6 class="mt-3">${escapeHtml(tr.finalizeComparison)}</h6>${comparisonHtml}
                 <h6 class="mt-3">${escapeHtml(tr.finalizeTransport)}</h6>
-                <p class="text-muted mb-0">${escapeHtml(transport.transport_type || transport.type || 'OWN')} · ${escapeHtml(transport.planned_delivery_date || transport.planned_date || '')}</p>
+                <p class="text-muted mb-0">${escapeHtml(transport.mode || 'OWN')} · ${escapeHtml(transport.planned_delivery_date || transport.planned_date || '')}</p>
             `;
             const result = await Swal.fire({ icon: errors.length ? 'error' : 'question', title: tr.finalizeTitle, html, showCancelButton: !errors.length, showConfirmButton: !errors.length, confirmButtonText: tr.finalizeConfirm, cancelButtonText: tr.close, width: 760 });
             if (!result.isConfirmed) return;
-            const finalized = await api(`/ajax/orders/${orderId}/finalize`, { method:'POST', data:{ version } });
+            const finalized = await api(`/ajax/orders/${orderId}/finalize`, { method:'POST', data:{ version: Number(version) } });
             if (finalized.status === 409) { await showConflict(); return; }
             if (!finalized.ok) { Swal.fire({ icon:'error', text: apiMessage(finalized, tr.server) }); return; }
             await Swal.fire({ icon:'success', title: tr.finalizedTitle, text: tr.finalizedText, timer: 1200, showConfirmButton:false });
@@ -1402,9 +1412,9 @@
     if (editable) {
         els.type?.addEventListener('change', updateTransportVisibility);
         els.save?.addEventListener('click', saveTransport);
-        els.carriersManage?.addEventListener('click', async () => { try { await loadCarriers(); await showCarrierManager(); } catch (e) { Swal.fire({ icon:'error', text: tr.network }); } });
-        els.finalizeStart?.addEventListener('click', finalizeOrder);
     }
+    els.carriersManage?.addEventListener('click', async () => { try { await loadCarriers(); await showCarrierManager(); } catch (e) { Swal.fire({ icon:'error', text: tr.network }); } });
+    els.finalizeStart?.addEventListener('click', finalizeOrder);
     populateTransport();
 })();
 
@@ -1668,7 +1678,7 @@
     generateButtons.forEach((generateButton) => {
         generateButton.addEventListener('click', async () => {
             if (generateBusy) return;
-            const kind = generateButton.dataset.documentKind || 'differences';
+            const kind = generateButton.dataset.documentKind || 'difference';
             const fallbackError = kind === 'release' ? td.generateReleaseError : td.generateError;
             generateBusy = true;
             generateButtons.forEach((button) => { button.disabled = true; });

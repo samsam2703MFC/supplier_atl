@@ -27,9 +27,7 @@ class SupplierOrderRepository
 
     public function getDetails(int $supplierId, int $orderId): array
     {
-        return $this->apiClient->get(
-            "/material-suppliers/{$supplierId}/orders/{$orderId}?include=products,final_products,comparison,transport,documents,history"
-        );
+        return $this->apiClient->get("/material-suppliers/{$supplierId}/orders/{$orderId}/read-model");
     }
 
     public function accept(int $supplierId, int $orderId, array $payload): array
@@ -57,9 +55,9 @@ class SupplierOrderRepository
         return $this->apiClient->put("/material-suppliers/{$supplierId}/orders/{$orderId}/transport", $payload);
     }
 
-    public function finalizationCheck(int $supplierId, int $orderId): array
+    public function finalizationCheck(int $supplierId, int $orderId, array $payload): array
     {
-        return $this->apiClient->post("/material-suppliers/{$supplierId}/orders/{$orderId}/finalization-check", []);
+        return $this->apiClient->post("/material-suppliers/{$supplierId}/orders/{$orderId}/finalization-check", $payload);
     }
 
     public function finalize(int $supplierId, int $orderId, array $payload): array
@@ -79,12 +77,12 @@ class SupplierOrderRepository
 
     public function updateCarrier(int $supplierId, int $carrierId, array $payload): array
     {
-        return $this->apiClient->put("/material-suppliers/{$supplierId}/carriers/{$carrierId}", $payload);
+        return $this->apiClient->patch("/material-suppliers/{$supplierId}/carriers/{$carrierId}", $payload);
     }
 
-    public function deactivateCarrier(int $supplierId, int $carrierId): array
+    public function deleteCarrier(int $supplierId, int $carrierId): array
     {
-        return $this->apiClient->post("/material-suppliers/{$supplierId}/carriers/{$carrierId}/deactivate", []);
+        return $this->apiClient->delete("/material-suppliers/{$supplierId}/carriers/{$carrierId}");
     }
 
     public function getDocuments(int $supplierId, int $orderId): array
@@ -99,7 +97,7 @@ class SupplierOrderRepository
 
     public function generateDifferencesDocument(int $supplierId, int $orderId): array
     {
-        return $this->apiClient->post("/material-suppliers/{$supplierId}/orders/{$orderId}/documents/differences", []);
+        return $this->apiClient->post("/material-suppliers/{$supplierId}/orders/{$orderId}/documents/difference", []);
     }
 
     public function generateReleaseDocument(int $supplierId, int $orderId): array

@@ -1,0 +1,1699 @@
+{% extends "layouts/base.twig" %}
+
+{% set orderKey = order.order_key ?? ('#' ~ (order.id ?? '')) %}
+
+{% block title %}{{ translations.orders_details_page_title }} {{ orderKey }}{% endblock %}
+
+{% block head %}
+<style>
+.order-detail-wrap { max-width: 1180px; margin: 0 auto; }
+.order-detail-card { border: 1px solid #e2e8f0; border-radius: 8px; background: #fff; }
+.order-detail-card .section-title { font-size: 0.95rem; font-weight: 700; color: #1f2937; }
+.order-detail-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.order-detail-meta-item { min-width: 0; }
+.order-detail-label { display: block; color: #64748b; font-size: 0.75rem; margin-bottom: 2px; }
+.order-detail-value { color: #111827; font-weight: 600; overflow-wrap: anywhere; }
+.order-detail-empty { color: #94a3b8; padding: 22px 8px; text-align: center; }
+.order-detail-table th, .order-detail-table td { vertical-align: middle; }
+.order-detail-table .num { font-variant-numeric: tabular-nums; }
+.order-detail-history { border-left: 2px solid #e2e8f0; padding-left: 16px; }
+.order-detail-history-item { position: relative; padding-bottom: 16px; }
+.order-detail-history-item::before { content: ""; position: absolute; left: -22px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: #435ebe; }
+.order-lifecycle-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.order-lifecycle-actions .btn { min-width: 132px; }
+.order-lifecycle-note { color: #64748b; font-size: 0.85rem; }
+.final-items-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.final-items-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.final-items-dirty { display: none; color: #b45309; font-weight: 700; font-size: .85rem; }
+.final-items-dirty.is-visible { display: inline-flex; }
+.final-items-editor input, .final-items-editor textarea { min-width: 96px; }
+.final-items-editor textarea { min-width: 180px; resize: vertical; }
+.final-items-editor .editor-error { border-color: #dc3545; }
+.final-items-editor .change-type { min-width: 92px; display: inline-block; }
+.product-option-muted { color: #64748b; font-size: .8rem; }
+.transport-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.transport-form-grid .full { grid-column: 1 / -1; }
+.transport-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cmr-status-panel { border-top: 1px solid #e2e8f0; padding-top: 14px; }
+.cmr-status-panel .cmr-status-body { display: flex; flex-direction: column; gap: 8px; }
+.cmr-status-panel .cmr-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cmr-missing-list { margin: 0; padding-left: 1.1rem; color: #92400e; }
+.finalization-list { margin: 0; padding-left: 1.1rem; }
+@media (max-width: 767.98px) { .order-detail-meta, .transport-form-grid { grid-template-columns: 1fr; } .order-lifecycle-actions .btn, .final-items-actions .btn, .transport-actions .btn { width: 100%; } }
+</style>
+{% endblock %}
+
+{% macro date(value) %}
+    {{ value ? value|date('d.m.Y') : '—' }}
+{% endmacro %}
+
+{% macro money(value, currency) %}
+    {{ value is not null ? value|number_format(2, '.', ' ') ~ ' ' ~ (currency ?? '') : '—' }}
+{% endmacro %}
+
+{% macro status_badge(status, translations, prefix) %}
+    {% set statusMap = {
+        'NEW': 'primary',
+        'ACCEPTED': 'info',
+        'FINALIZED': 'success',
+        'REJECTED': 'danger',
+        'CANCELLED': 'danger',
+        'IN_TRANSIT': 'info',
+        'DELIVERED': 'success',
+        'ARCHIVED': 'secondary'
+    } %}
+    {% set key = prefix ~ (status|default('unknown')|lower|replace({'-': '_', ' ': '_'})) %}
+    <span class="badge bg-{{ statusMap[status] ?? 'secondary' }}">{{ translations[key] ?? status ?? translations.orders_details_unknown }}</span>
+{% endmacro %}
+
+{% import _self as detail %}
+
+{% block page_heading %}
+    <div class="page-heading order-detail-wrap">
+        <div class="mb-1">
+            <a href="{{ ROOT }}/orders" class="text-muted small text-decoration-none">
+                <i class="bi bi-arrow-left me-1"></i>{{ translations.orders_details_back_to_list }}
+            </a>
+        </div>
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+            <div>
+                <h3 class="mb-1">{{ translations.orders_details_page_heading }} <code>{{ orderKey }}</code></h3>
+                <p class="text-subtitle text-muted mb-0">{{ translations.orders_details_page_subtitle }}</p>
+            </div>
+            {% if api_status == 200 and order.id is defined %}
+                <div class="d-flex align-items-start gap-2">
+                    <a href="{{ ROOT }}/orders/{{ order.id }}/document" class="btn btn-outline-primary">
+                        <i class="bi bi-download me-1"></i>{{ translations.orders_action_pdf }}
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="order-detail-wrap">
+    {% include "page_components/messages.twig" %}
+
+    {% if api_status == 403 %}
+        <div class="alert alert-danger">{{ translations.orders_details_forbidden }}</div>
+    {% elseif api_status == 404 %}
+        <div class="alert alert-warning">{{ translations.orders_details_not_found }}</div>
+    {% elseif api_status != 200 %}
+        <div class="alert alert-danger">{{ translations.orders_details_api_error }}</div>
+    {% elseif order is empty %}
+        <div class="alert alert-secondary">{{ translations.orders_details_empty }}</div>
+    {% else %}
+        {% set originalItems = order.original_products ?? order.ordered_products ?? order.products ?? order.items ?? [] %}
+        {% set finalItems = order.final_products ?? order.final_items ?? [] %}
+        {% set comparison = order.comparison ?? order.differences ?? [] %}
+        {% set documents = order.documents ?? [] %}
+        {% set history = order.history ?? order.events ?? [] %}
+        {% set transport = order.transport ?? [] %}
+        {% set shop = order.shop ?? [] %}
+        {% set currency = order.currency_code ?? order.currency ?? '' %}
+        {% set allowedActions = order.allowed_actions ?? [] %}
+        {% set canAccept = 'ACCEPT' in allowedActions or 'ACCEPTED' in allowedActions or 'accept' in allowedActions or 'accepted' in allowedActions %}
+        {% set canReject = 'REJECT' in allowedActions or 'REJECTED' in allowedActions or 'reject' in allowedActions or 'rejected' in allowedActions %}
+        {% set canCancel = 'CANCEL' in allowedActions or 'CANCELLED' in allowedActions or 'cancel' in allowedActions or 'cancelled' in allowedActions %}
+        {% set canGenerateDifferencesDocument = 'GENERATE_DIFFERENCES_DOCUMENT' in allowedActions or 'GENERATE_DIFFERENCE_DOCUMENT' in allowedActions or 'generate_differences_document' in allowedActions or 'generate_difference_document' in allowedActions %}
+        {% set canGenerateReleaseDocument = 'GENERATE_RELEASE_DOCUMENT' in allowedActions or 'GENERATE_RELEASE' in allowedActions or 'generate_release_document' in allowedActions or 'generate_release' in allowedActions %}
+        {% set canGenerateCmrDocument = 'GENERATE_CMR_DOCUMENT' in allowedActions or 'GENERATE_CMR' in allowedActions or 'generate_cmr_document' in allowedActions or 'generate_cmr' in allowedActions %}
+        {% set fulfillmentStatus = order.supplier_fulfillment_status ?? order.fulfillment_status ?? '' %}
+        {% set isFinalEditorEditable = fulfillmentStatus == 'ACCEPTED' %}
+
+        {% if canAccept or canReject or canCancel %}
+            <div class="order-detail-card p-3 mb-3" id="order-lifecycle-panel" data-order-id="{{ order.id }}">
+                <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                    <div>
+                        <div class="section-title mb-1">{{ translations.orders_lifecycle_title }}</div>
+                        <div class="order-lifecycle-note">{{ translations.orders_lifecycle_subtitle }}</div>
+                    </div>
+                    <div class="order-lifecycle-actions">
+                        {% if canAccept %}
+                            <button type="button" class="btn btn-sm btn-success js-lifecycle-action" data-action="accept">
+                                <i class="bi bi-check2-circle me-1"></i>{{ translations.orders_lifecycle_accept }}
+                            </button>
+                        {% endif %}
+                        {% if canReject %}
+                            <button type="button" class="btn btn-sm btn-outline-danger js-lifecycle-action" data-action="reject">
+                                <i class="bi bi-x-circle me-1"></i>{{ translations.orders_lifecycle_reject }}
+                            </button>
+                        {% endif %}
+                        {% if canCancel %}
+                            <button type="button" class="btn btn-sm btn-danger js-lifecycle-action" data-action="cancel">
+                                <i class="bi bi-slash-circle me-1"></i>{{ translations.orders_lifecycle_cancel }}
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-xl-8">
+                <div class="order-detail-card p-3 h-100">
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                        <div>
+                            <div class="text-muted small">{{ translations.orders_col_order_key }}</div>
+                            <div class="fs-4 fw-bold"><code>{{ orderKey }}</code></div>
+                        </div>
+                        <div class="d-flex flex-wrap align-items-start gap-2">
+                            {{ detail.status_badge(order.status ?? null, translations, 'orders_status_') }}
+                            {{ detail.status_badge(order.supplier_fulfillment_status ?? order.fulfillment_status ?? null, translations, 'orders_fulfillment_status_') }}
+                        </div>
+                    </div>
+                    <div class="order-detail-meta">
+                        <div class="order-detail-meta-item">
+                            <span class="order-detail-label">{{ translations.orders_details_logistic_status }}</span>
+                            <span class="order-detail-value">{{ order.status ?? '—' }}</span>
+                        </div>
+                        <div class="order-detail-meta-item">
+                            <span class="order-detail-label">{{ translations.orders_details_fulfillment_status }}</span>
+                            <span class="order-detail-value">{{ order.supplier_fulfillment_status ?? order.fulfillment_status ?? '—' }}</span>
+                        </div>
+                        <div class="order-detail-meta-item">
+                            <span class="order-detail-label">{{ translations.orders_col_order_date }}</span>
+                            <span class="order-detail-value">{{ detail.date(order.order_date ?? order.created_at ?? null) }}</span>
+                        </div>
+                        <div class="order-detail-meta-item">
+                            <span class="order-detail-label">{{ translations.orders_col_value_net }}</span>
+                            <span class="order-detail-value">{{ detail.money(order.approximate_value_net ?? order.value_net ?? null, currency) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-xl-4">
+                <div class="order-detail-card p-3 h-100">
+                    <div class="section-title mb-3">{{ translations.orders_details_dates }}</div>
+                    <div class="order-detail-meta">
+                        <div>
+                            <span class="order-detail-label">{{ translations.orders_details_expected_date }}</span>
+                            <span class="order-detail-value">{{ detail.date(order.expected_date ?? order.shop_expected_date ?? null) }}</span>
+                        </div>
+                        <div>
+                            <span class="order-detail-label">{{ translations.orders_details_supplier_planned_date }}</span>
+                            <span class="order-detail-value">{{ detail.date(order.supplier_planned_date ?? order.planned_delivery_date ?? null) }}</span>
+                        </div>
+                        <div>
+                            <span class="order-detail-label">{{ translations.orders_details_delivered_on }}</span>
+                            <span class="order-detail-value">{{ detail.date(order.delivered_on ?? null) }}</span>
+                        </div>
+                        <div>
+                            <span class="order-detail-label">{{ translations.orders_details_batch }}</span>
+                            <span class="order-detail-value">{{ order.order_batch_key ?? '—' }}{% if order.batch_index %} / #{{ order.batch_index }}{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-3">
+            <div class="col-12 col-lg-6">
+                <div class="order-detail-card p-3 h-100">
+                    <div class="section-title mb-3">{{ translations.orders_details_shop_section }}</div>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">{{ translations.orders_details_shop }}</dt>
+                        <dd class="col-sm-8">{{ shop.name ?? order.shop_name ?? '—' }}</dd>
+                        <dt class="col-sm-4 text-muted">{{ translations.orders_details_shop_code }}</dt>
+                        <dd class="col-sm-8">{{ shop.code ?? order.shop_code ?? '—' }}</dd>
+                        <dt class="col-sm-4 text-muted">{{ translations.orders_details_shop_address }}</dt>
+                        <dd class="col-sm-8">{{ shop.address ?? order.shop_address ?? '—' }}</dd>
+                        <dt class="col-sm-4 text-muted">{{ translations.orders_details_supplier }}</dt>
+                        <dd class="col-sm-8">{{ order.supplier_name ?? '—' }}</dd>
+                    </dl>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="order-detail-card p-3 h-100" id="transport-editor"
+                     data-order-id="{{ order.id }}"
+                     data-version="{{ order.version ?? '' }}"
+                     data-editable="{{ isFinalEditorEditable ? '1' : '0' }}"
+                     data-transport="{{ transport|json_encode|e('html_attr') }}">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                        <div>
+                            <div class="section-title mb-1">{{ translations.orders_details_transport }}</div>
+                            <div class="order-lifecycle-note">{{ isFinalEditorEditable ? translations.orders_transport_subtitle : translations.orders_transport_readonly }}</div>
+                        </div>
+                        {% if isFinalEditorEditable %}
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="transport-carriers-manage">
+                                <i class="bi bi-truck me-1"></i>{{ translations.orders_carriers_manage }}
+                            </button>
+                        {% endif %}
+                    </div>
+                    <div class="transport-form-grid">
+                        <div>
+                            <label class="form-label">{{ translations.orders_transport_type }}</label>
+                            <select class="form-select form-select-sm" id="transport-type" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                                <option value="OWN">{{ translations.orders_transport_type_own }}</option>
+                                <option value="EXTERNAL">{{ translations.orders_transport_type_external }}</option>
+                            </select>
+                        </div>
+                        <div id="transport-carrier-wrap">
+                            <label class="form-label">{{ translations.orders_details_carrier }}</label>
+                            <select class="form-select form-select-sm" id="transport-carrier-id" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                                <option value="">{{ translations.orders_carriers_select }}</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">{{ translations.orders_details_supplier_planned_date }}</label>
+                            <input type="date" class="form-control form-control-sm" id="transport-planned-date" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                        </div>
+                        <div>
+                            <label class="form-label">{{ translations.orders_transport_loading_place }}</label>
+                            <input type="text" class="form-control form-control-sm" id="transport-loading-place" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                        </div>
+                        <div>
+                            <label class="form-label">{{ translations.orders_transport_loading_country }}</label>
+                            <input type="text" class="form-control form-control-sm" id="transport-loading-country" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                        </div>
+                        <div>
+                            <label class="form-label">{{ translations.orders_transport_delivery_place }}</label>
+                            <input type="text" class="form-control form-control-sm" id="transport-delivery-place" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                        </div>
+                        <div>
+                            <label class="form-label">{{ translations.orders_transport_delivery_country }}</label>
+                            <input type="text" class="form-control form-control-sm" id="transport-delivery-country" {{ isFinalEditorEditable ? '' : 'disabled' }}>
+                        </div>
+                        <div class="full">
+                            <label class="form-label">{{ translations.orders_transport_instructions }}</label>
+                            <textarea class="form-control form-control-sm" id="transport-instructions" rows="2" {{ isFinalEditorEditable ? '' : 'disabled' }}></textarea>
+                        </div>
+                    </div>
+                    {% if isFinalEditorEditable %}
+                        <div class="transport-actions mt-3">
+                            <button type="button" class="btn btn-sm btn-primary" id="transport-save">
+                                <i class="bi bi-save me-1"></i>{{ translations.orders_transport_save }}
+                            </button>
+                        </div>
+                    {% endif %}
+                    <div class="cmr-status-panel mt-3" id="cmr-status-panel" data-order-id="{{ order.id }}" data-can-generate="{{ canGenerateCmrDocument ? '1' : '0' }}">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <div>
+                                <div class="section-title mb-1">{{ translations.orders_cmr_title }}</div>
+                                <div class="order-lifecycle-note">{{ translations.orders_cmr_subtitle }}</div>
+                            </div>
+                            <span class="badge bg-secondary" id="cmr-status-badge">{{ translations.orders_cmr_loading }}</span>
+                        </div>
+                        <div class="cmr-status-body">
+                            <div class="small text-muted" id="cmr-status-text">{{ translations.orders_cmr_loading }}</div>
+                            <ul class="cmr-missing-list d-none" id="cmr-missing-list"></ul>
+                            <div class="cmr-actions">
+                                <button type="button" class="btn btn-sm btn-outline-primary d-none" id="cmr-generate">
+                                    <i class="bi bi-file-earmark-medical me-1"></i>{{ translations.orders_cmr_generate }}
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary d-none" id="cmr-download">
+                                    <i class="bi bi-download me-1"></i>{{ translations.orders_documents_download }}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="order-detail-card p-3 mb-3">
+            <div class="section-title mb-3">{{ translations.orders_details_original_items }}</div>
+            {% if originalItems is empty %}
+                <div class="order-detail-empty">{{ translations.orders_details_no_products }}</div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-sm order-detail-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ translations.orders_details_col_sku }}</th>
+                                <th>{{ translations.orders_details_col_name }}</th>
+                                <th class="text-end">{{ translations.orders_details_col_ordered_pack_quantity }}</th>
+                                <th class="text-end">{{ translations.orders_details_col_price }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in originalItems %}
+                                <tr>
+                                    <td>{{ item.supplier_sku ?? item.sku ?? '—' }}</td>
+                                    <td>{{ item.material_name ?? item.name ?? '—' }}</td>
+                                    <td class="text-end num">{{ item.ordered_pack_quantity ?? item.pack_quantity ?? item.quantity ?? '—' }}</td>
+                                    <td class="text-end num">{{ detail.money(item.pack_price_net ?? item.price_net ?? null, currency) }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="order-detail-card p-3 mb-3" id="final-items-editor"
+             data-order-id="{{ order.id }}"
+             data-version="{{ order.version ?? '' }}"
+             data-editable="{{ isFinalEditorEditable ? '1' : '0' }}"
+             data-original-items="{{ originalItems|json_encode|e('html_attr') }}"
+             data-final-items="{{ finalItems|json_encode|e('html_attr') }}">
+            <div class="final-items-toolbar mb-3">
+                <div>
+                    <div class="section-title mb-1">{{ translations.orders_details_final_items }}</div>
+                    <div class="order-lifecycle-note">
+                        {% if isFinalEditorEditable %}
+                            {{ translations.orders_final_editor_subtitle }}
+                        {% else %}
+                            {{ translations.orders_final_editor_readonly }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="final-items-actions">
+                    <span class="final-items-dirty" id="final-items-dirty">{{ translations.orders_final_editor_unsaved }}</span>
+                    {% if isFinalEditorEditable %}
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="final-items-add">
+                            <i class="bi bi-plus-circle me-1"></i>{{ translations.orders_final_editor_add_product }}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="final-items-reset" disabled>
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>{{ translations.orders_final_editor_discard }}
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary" id="final-items-save" disabled>
+                            <i class="bi bi-save me-1"></i>{{ translations.orders_final_editor_save }}
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm order-detail-table final-items-editor mb-0">
+                    <thead>
+                        <tr>
+                            <th>{{ translations.orders_details_col_sku }}</th>
+                            <th>{{ translations.orders_details_col_name }}</th>
+                            <th>{{ translations.orders_final_editor_pack }}</th>
+                            <th class="text-end">{{ translations.orders_details_col_ordered_pack_quantity }}</th>
+                            <th class="text-end">{{ translations.orders_details_col_final_pack_quantity }}</th>
+                            <th class="text-end">{{ translations.orders_final_editor_difference }}</th>
+                            <th>{{ translations.orders_details_col_change_type }}</th>
+                            <th>{{ translations.orders_details_col_reason }}</th>
+                            <th class="text-end">{{ translations.orders_col_actions }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="final-items-editor-body">
+                        <tr><td colspan="9" class="order-detail-empty">{{ translations.orders_details_loading }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="order-detail-card p-3 mb-3">
+            <div class="section-title mb-3">{{ translations.orders_details_comparison }}</div>
+            {% if comparison is empty %}
+                <div class="order-detail-empty">{{ translations.orders_details_no_comparison }}</div>
+            {% else %}
+                {% set comparisonRows = comparison.items ?? comparison %}
+                <div class="table-responsive">
+                    <table class="table table-sm order-detail-table mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ translations.orders_details_col_name }}</th>
+                                <th>{{ translations.orders_details_col_change_type }}</th>
+                                <th class="text-end">{{ translations.orders_details_col_ordered_pack_quantity }}</th>
+                                <th class="text-end">{{ translations.orders_details_col_final_pack_quantity }}</th>
+                                <th>{{ translations.orders_details_col_reason }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in comparisonRows %}
+                                <tr>
+                                    <td>{{ row.material_name ?? row.name ?? row.label ?? '—' }}</td>
+                                    <td>{{ row.change_type ?? row.type ?? '—' }}</td>
+                                    <td class="text-end num">{{ row.ordered_pack_quantity ?? '—' }}</td>
+                                    <td class="text-end num">{{ row.final_pack_quantity ?? '—' }}</td>
+                                    <td>{{ row.change_reason ?? row.reason ?? '—' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+
+        {% if isFinalEditorEditable %}
+            <div class="order-detail-card p-3 mb-3" id="finalization-panel" data-order-id="{{ order.id }}" data-version="{{ order.version ?? '' }}">
+                <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+                    <div>
+                        <div class="section-title mb-1">{{ translations.orders_finalize_title }}</div>
+                        <div class="order-lifecycle-note">{{ translations.orders_finalize_subtitle }}</div>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-success" id="order-finalize-start">
+                            <i class="bi bi-check2-square me-1"></i>{{ translations.orders_finalize_button }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="row g-3">
+            <div class="col-12 col-lg-6">
+                <div class="order-detail-card p-3 h-100" id="order-documents-panel" data-order-id="{{ order.id }}">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                        <div>
+                            <div class="section-title mb-1">{{ translations.orders_details_documents }}</div>
+                            <div class="order-lifecycle-note">{{ translations.orders_documents_subtitle }}</div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% if canGenerateDifferencesDocument %}
+                                <button type="button" class="btn btn-sm btn-outline-primary js-document-generate" id="documents-generate-differences" data-document-kind="differences">
+                                    <i class="bi bi-file-earmark-diff me-1"></i>{{ translations.orders_documents_generate_differences }}
+                                </button>
+                            {% endif %}
+                            {% if canGenerateReleaseDocument %}
+                                <button type="button" class="btn btn-sm btn-outline-primary js-document-generate" id="documents-generate-release" data-document-kind="release">
+                                    <i class="bi bi-file-earmark-check me-1"></i>{{ translations.orders_documents_generate_release }}
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if documents is empty %}
+                        <div class="order-detail-empty">{{ translations.orders_details_no_documents }}</div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table table-sm order-detail-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>{{ translations.orders_documents_col_type }}</th>
+                                        <th>{{ translations.orders_documents_col_number }}</th>
+                                        <th>{{ translations.orders_documents_col_date }}</th>
+                                        <th>{{ translations.orders_documents_col_status }}</th>
+                                        <th>{{ translations.orders_documents_col_data_version }}</th>
+                                        <th class="text-end">{{ translations.orders_col_actions }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for document in documents %}
+                                        {% set documentType = document.type ?? document.document_type ?? 'document' %}
+                                        {% set documentStatus = document.status ?? 'available' %}
+                                        {% set typeKey = 'orders_document_type_' ~ documentType|lower|replace({'-': '_', ' ': '_'}) %}
+                                        {% set statusKey = 'orders_document_status_' ~ documentStatus|lower|replace({'-': '_', ' ': '_'}) %}
+                                        {% set isVoided = documentStatus in ['VOIDED', 'voided', 'CANCELLED', 'cancelled', 'INVALIDATED', 'invalidated'] %}
+                                        <tr class="{{ isVoided ? 'text-muted' : '' }}">
+                                            <td>{{ translations[typeKey] ?? documentType }}</td>
+                                            <td>{{ document.number ?? document.document_number ?? document.name ?? '—' }}</td>
+                                            <td>{{ detail.date(document.issued_at ?? document.document_date ?? document.created_at ?? document.date ?? null) }}</td>
+                                            <td><span class="badge bg-{{ isVoided ? 'secondary' : 'light text-dark' }}">{{ translations[statusKey] ?? documentStatus }}</span>{% if isVoided %}<div class="small text-muted mt-1">{{ translations.orders_documents_invalidated_hint }}</div>{% endif %}</td>
+                                            <td>{{ document.data_version ?? '—' }}</td>
+                                            <td class="text-end">
+                                                {% if document.id is defined and not isVoided %}
+                                                    <button type="button" class="btn btn-sm btn-outline-primary js-document-download" data-document-id="{{ document.id }}" data-document-number="{{ document.number ?? document.document_number ?? document.id }}">
+                                                        <i class="bi bi-download me-1"></i>{{ translations.orders_documents_download }}
+                                                    </button>
+                                                {% else %}
+                                                    —
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="order-detail-card p-3 h-100">
+                    <div class="section-title mb-3">{{ translations.orders_details_history }}</div>
+                    {% if history is empty %}
+                        <div class="order-detail-empty">{{ translations.orders_details_no_history }}</div>
+                    {% else %}
+                        <div class="order-detail-history">
+                            {% for event in history %}
+                                <div class="order-detail-history-item">
+                                    <div class="fw-semibold">{{ event.label ?? event.action ?? event.status ?? '—' }}</div>
+                                    <div class="text-muted small">{{ event.actor_name ?? event.actor ?? '' }}{% if event.created_at ?? event.date ?? null %} · {{ detail.date(event.created_at ?? event.date) }}{% endif %}</div>
+                                    {% if event.description ?? event.comment ?? null %}
+                                        <div class="small mt-1">{{ event.description ?? event.comment }}</div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+(() => {
+    const panel = document.getElementById('order-lifecycle-panel');
+    if (!panel) {
+        return;
+    }
+
+    const orderId = panel.dataset.orderId;
+    const buttons = Array.from(document.querySelectorAll('.js-lifecycle-action'));
+    let lifecycleBusy = false;
+
+    const t = {
+        acceptTitle: {{ translations.orders_lifecycle_accept_title|json_encode|raw }},
+        acceptText: {{ translations.orders_lifecycle_accept_text|json_encode|raw }},
+        acceptDateLabel: {{ translations.orders_lifecycle_accept_date_label|json_encode|raw }},
+        rejectTitle: {{ translations.orders_lifecycle_reject_title|json_encode|raw }},
+        rejectText: {{ translations.orders_lifecycle_reject_text|json_encode|raw }},
+        cancelTitle: {{ translations.orders_lifecycle_cancel_title|json_encode|raw }},
+        cancelText: {{ translations.orders_lifecycle_cancel_text|json_encode|raw }},
+        reasonPlaceholder: {{ translations.orders_lifecycle_reason_placeholder|json_encode|raw }},
+        reasonRequired: {{ translations.orders_lifecycle_reason_required|json_encode|raw }},
+        confirm: {{ translations.orders_lifecycle_confirm|json_encode|raw }},
+        close: {{ translations.orders_action_close|json_encode|raw }},
+        successTitle: {{ translations.orders_lifecycle_success_title|json_encode|raw }},
+        successText: {{ translations.orders_lifecycle_success_text|json_encode|raw }},
+        validationError: {{ translations.orders_lifecycle_validation_error|json_encode|raw }},
+        forbidden: {{ translations.orders_lifecycle_forbidden|json_encode|raw }},
+        notFound: {{ translations.orders_lifecycle_not_found|json_encode|raw }},
+        conflictTitle: {{ translations.orders_lifecycle_conflict_title|json_encode|raw }},
+        conflictText: {{ translations.orders_lifecycle_conflict_text|json_encode|raw }},
+        serverError: {{ translations.orders_lifecycle_server_error|json_encode|raw }},
+        networkError: {{ translations.orders_lifecycle_network_error|json_encode|raw }}
+    };
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function setButtonsDisabled(disabled) {
+        buttons.forEach((button) => {
+            button.disabled = disabled;
+        });
+    }
+
+    function apiMessage(resp, fallback) {
+        if (!resp) {
+            return fallback;
+        }
+
+        if (resp.errors && typeof resp.errors === 'object') {
+            return Object.values(resp.errors).flat().join('\n') || fallback;
+        }
+
+        if (Array.isArray(resp.message)) {
+            return resp.message.join('\n');
+        }
+
+        return resp.description || resp.message || fallback;
+    }
+
+    function modalConfig(action) {
+        if (action === 'accept') {
+            return {
+                icon: 'question',
+                title: t.acceptTitle,
+                html: `
+                    <p class="text-muted text-start">${escapeHtml(t.acceptText)}</p>
+                    <label class="form-label w-100 text-start" for="lifecycle-planned-date">${escapeHtml(t.acceptDateLabel)}</label>
+                    <input id="lifecycle-planned-date" type="date" class="form-control">
+                `,
+                payload: () => {
+                    const plannedDate = document.getElementById('lifecycle-planned-date')?.value || '';
+                    return plannedDate ? { planned_delivery_date: plannedDate } : {};
+                }
+            };
+        }
+
+        const isCancel = action === 'cancel';
+        return {
+            icon: 'warning',
+            title: isCancel ? t.cancelTitle : t.rejectTitle,
+            html: `
+                <p class="text-muted text-start">${escapeHtml(isCancel ? t.cancelText : t.rejectText)}</p>
+                <textarea id="lifecycle-reason" class="form-control" rows="4" placeholder="${escapeHtml(t.reasonPlaceholder)}"></textarea>
+            `,
+            payload: () => {
+                const reason = document.getElementById('lifecycle-reason')?.value.trim() || '';
+                if (!reason) {
+                    throw new Error(t.reasonRequired);
+                }
+                return { reason };
+            }
+        };
+    }
+
+    async function runLifecycle(action) {
+        if (lifecycleBusy) {
+            return;
+        }
+
+        const config = modalConfig(action);
+        const result = await Swal.fire({
+            icon: config.icon,
+            title: config.title,
+            html: config.html,
+            showCancelButton: true,
+            confirmButtonText: t.confirm,
+            cancelButtonText: t.close,
+            showLoaderOnConfirm: true,
+            allowOutsideClick: () => !Swal.isLoading(),
+            preConfirm: async () => {
+                let payload;
+                try {
+                    payload = config.payload();
+                } catch (error) {
+                    Swal.showValidationMessage(error.message);
+                    return false;
+                }
+
+                lifecycleBusy = true;
+                setButtonsDisabled(true);
+
+                try {
+                    const resp = await api(`/ajax/orders/${orderId}/${action}`, {
+                        method: 'POST',
+                        data: payload
+                    });
+
+                    if (resp.ok) {
+                        return { success: true };
+                    }
+
+                    if (resp.status === 409) {
+                        return { conflict: true };
+                    }
+
+                    if (resp.status === 400 || resp.status === 422) {
+                        Swal.showValidationMessage(apiMessage(resp, t.validationError));
+                        return false;
+                    }
+
+                    if (resp.status === 403) {
+                        Swal.showValidationMessage(t.forbidden);
+                        return false;
+                    }
+
+                    if (resp.status === 404) {
+                        Swal.showValidationMessage(t.notFound);
+                        return false;
+                    }
+
+                    Swal.showValidationMessage(apiMessage(resp, t.serverError));
+                    return false;
+                } catch (error) {
+                    Swal.showValidationMessage(t.networkError);
+                    return false;
+                } finally {
+                    lifecycleBusy = false;
+                    setButtonsDisabled(false);
+                }
+            }
+        });
+
+        if (result.value?.success) {
+            await Swal.fire({
+                icon: 'success',
+                title: t.successTitle,
+                text: t.successText,
+                timer: 1000,
+                showConfirmButton: false
+            });
+            window.location.reload();
+        }
+
+        if (result.value?.conflict) {
+            await Swal.fire({
+                icon: 'warning',
+                title: t.conflictTitle,
+                text: t.conflictText
+            });
+            window.location.reload();
+        }
+    }
+
+    buttons.forEach((button) => {
+        button.addEventListener('click', () => runLifecycle(button.dataset.action));
+    });
+})();
+
+(() => {
+    const root = document.getElementById('final-items-editor');
+    if (!root) {
+        return;
+    }
+
+    const editable = root.dataset.editable === '1';
+    const orderId = root.dataset.orderId;
+    const version = root.dataset.version || null;
+    const body = document.getElementById('final-items-editor-body');
+    const addBtn = document.getElementById('final-items-add');
+    const saveBtn = document.getElementById('final-items-save');
+    const resetBtn = document.getElementById('final-items-reset');
+    const dirtyBadge = document.getElementById('final-items-dirty');
+    let rows = [];
+    let initialSnapshot = '';
+    let productCache = null;
+    let saving = false;
+
+    const tx = {
+        empty: {{ translations.orders_final_editor_empty|json_encode|raw }},
+        restore: {{ translations.orders_final_editor_restore|json_encode|raw }},
+        remove: {{ translations.orders_final_editor_remove|json_encode|raw }},
+        removeDraft: {{ translations.orders_final_editor_remove_draft|json_encode|raw }},
+        unchanged: {{ translations.orders_final_change_unchanged|json_encode|raw }},
+        increased: {{ translations.orders_final_change_increased|json_encode|raw }},
+        decreased: {{ translations.orders_final_change_decreased|json_encode|raw }},
+        removed: {{ translations.orders_final_change_removed|json_encode|raw }},
+        added: {{ translations.orders_final_change_added|json_encode|raw }},
+        reasonRequired: {{ translations.orders_final_editor_reason_required|json_encode|raw }},
+        quantityInvalid: {{ translations.orders_final_editor_quantity_invalid|json_encode|raw }},
+        addTitle: {{ translations.orders_final_editor_add_title|json_encode|raw }},
+        addLoading: {{ translations.orders_final_editor_add_loading|json_encode|raw }},
+        addNoProducts: {{ translations.orders_final_editor_add_no_products|json_encode|raw }},
+        addSelect: {{ translations.orders_final_editor_add_select|json_encode|raw }},
+        addConfirm: {{ translations.orders_final_editor_add_confirm|json_encode|raw }},
+        saveSuccessTitle: {{ translations.orders_final_editor_save_success_title|json_encode|raw }},
+        saveSuccessText: {{ translations.orders_final_editor_save_success_text|json_encode|raw }},
+        validationError: {{ translations.orders_lifecycle_validation_error|json_encode|raw }},
+        conflictTitle: {{ translations.orders_lifecycle_conflict_title|json_encode|raw }},
+        conflictText: {{ translations.orders_final_editor_conflict_text|json_encode|raw }},
+        refresh: {{ translations.orders_final_editor_refresh|json_encode|raw }},
+        serverError: {{ translations.orders_lifecycle_server_error|json_encode|raw }},
+        networkError: {{ translations.orders_lifecycle_network_error|json_encode|raw }},
+        discardTitle: {{ translations.orders_final_editor_discard_title|json_encode|raw }},
+        discardText: {{ translations.orders_final_editor_discard_text|json_encode|raw }},
+        discardConfirm: {{ translations.orders_final_editor_discard_confirm|json_encode|raw }},
+        leaveWarning: {{ translations.orders_final_editor_leave_warning|json_encode|raw }}
+    };
+
+    function parseJson(value, fallback) {
+        try {
+            return JSON.parse(value || '[]');
+        } catch (error) {
+            return fallback;
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function numberValue(value) {
+        const parsed = Number(value ?? 0);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function itemId(item) {
+        return item.product_id ?? item.material_product_id ?? item.material_id ?? item.raw_material_id ?? item.id ?? null;
+    }
+
+    function itemSku(item) {
+        return item.supplier_sku ?? item.sku ?? item.product_sku ?? '';
+    }
+
+    function itemName(item) {
+        return item.material_name ?? item.product_name ?? item.name ?? '';
+    }
+
+    function packLabel(item) {
+        const size = item.package_size ?? item.pack_size ?? item.size ?? '';
+        const unit = item.package_unit ?? item.pack_unit ?? item.unit ?? item.unit_symbol ?? '';
+        return [size, unit].filter(Boolean).join(' ') || '—';
+    }
+
+    function orderedQty(item) {
+        return numberValue(item.ordered_pack_quantity ?? item.pack_quantity ?? item.quantity ?? 0);
+    }
+
+    function finalQty(item, originalQty) {
+        return numberValue(item.final_pack_quantity ?? item.pack_quantity ?? item.quantity ?? originalQty);
+    }
+
+    function normalizeRows() {
+        const originals = parseJson(root.dataset.originalItems, []);
+        const finals = parseJson(root.dataset.finalItems, []);
+        const finalByProduct = new Map(finals.map((item) => [String(itemId(item)), item]));
+        const normalized = originals.map((item, index) => {
+            const productId = itemId(item);
+            const finalItem = finalByProduct.get(String(productId));
+            const originalQuantity = orderedQty(item);
+            const merged = finalItem || item;
+            return {
+                uid: `original-${productId ?? index}`,
+                source: 'original',
+                order_item_id: item.order_item_id ?? item.material_order_item_id ?? item.id ?? null,
+                final_item_id: finalItem?.id ?? finalItem?.final_item_id ?? null,
+                product_id: productId,
+                sku: itemSku(merged) || itemSku(item),
+                name: itemName(merged) || itemName(item),
+                pack: packLabel(merged) || packLabel(item),
+                ordered_pack_quantity: originalQuantity,
+                final_pack_quantity: finalQty(merged, originalQuantity),
+                reason: merged.change_reason ?? merged.reason ?? '',
+                added: false
+            };
+        });
+
+        finals.forEach((item, index) => {
+            const productId = itemId(item);
+            if (normalized.some((row) => String(row.product_id) === String(productId))) {
+                return;
+            }
+            normalized.push({
+                uid: `final-${productId ?? index}`,
+                source: 'final',
+                order_item_id: null,
+                final_item_id: item.id ?? item.final_item_id ?? null,
+                product_id: productId,
+                sku: itemSku(item),
+                name: itemName(item),
+                pack: packLabel(item),
+                ordered_pack_quantity: 0,
+                final_pack_quantity: finalQty(item, 0),
+                reason: item.change_reason ?? item.reason ?? '',
+                added: true
+            });
+        });
+
+        rows = normalized;
+        initialSnapshot = snapshot();
+    }
+
+    function changeType(row) {
+        if (row.added) return tx.added;
+        if (row.final_pack_quantity === 0 && row.ordered_pack_quantity > 0) return tx.removed;
+        if (row.final_pack_quantity > row.ordered_pack_quantity) return tx.increased;
+        if (row.final_pack_quantity < row.ordered_pack_quantity) return tx.decreased;
+        return tx.unchanged;
+    }
+
+    function diff(row) {
+        return row.final_pack_quantity - row.ordered_pack_quantity;
+    }
+
+    function snapshot() {
+        return JSON.stringify(rows.map((row) => ({
+            product_id: row.product_id,
+            final_pack_quantity: Number(row.final_pack_quantity),
+            reason: row.reason || '',
+            added: !!row.added
+        })));
+    }
+
+    function isDirty() {
+        return snapshot() !== initialSnapshot;
+    }
+
+    function setDirtyState() {
+        const dirty = isDirty();
+        dirtyBadge?.classList.toggle('is-visible', dirty);
+        if (saveBtn) saveBtn.disabled = !dirty || saving;
+        if (resetBtn) resetBtn.disabled = !dirty || saving;
+    }
+
+    function render() {
+        if (!rows.length) {
+            body.innerHTML = `<tr><td colspan="9" class="order-detail-empty">${escapeHtml(tx.empty)}</td></tr>`;
+            setDirtyState();
+            return;
+        }
+
+        body.innerHTML = rows.map((row, index) => {
+            const rowDiff = diff(row);
+            const readonly = editable ? '' : 'disabled';
+            const removeLabel = row.added ? tx.removeDraft : tx.remove;
+            return `
+                <tr data-index="${index}">
+                    <td>${escapeHtml(row.sku || '—')}</td>
+                    <td>${escapeHtml(row.name || '—')}</td>
+                    <td>${escapeHtml(row.pack || '—')}</td>
+                    <td class="text-end num">${row.ordered_pack_quantity}</td>
+                    <td class="text-end"><input type="number" min="0" step="0.001" class="form-control form-control-sm text-end js-final-qty" value="${row.final_pack_quantity}" ${readonly}></td>
+                    <td class="text-end num">${rowDiff > 0 ? '+' : ''}${rowDiff}</td>
+                    <td><span class="badge bg-light text-dark change-type">${escapeHtml(changeType(row))}</span></td>
+                    <td><textarea class="form-control form-control-sm js-final-reason" rows="2" ${readonly}>${escapeHtml(row.reason || '')}</textarea></td>
+                    <td class="text-end">
+                        ${editable ? `
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary js-final-restore" title="${escapeHtml(tx.restore)}"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                <button type="button" class="btn btn-outline-danger js-final-remove" title="${escapeHtml(removeLabel)}"><i class="bi bi-trash"></i></button>
+                            </div>
+                        ` : '—'}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        setDirtyState();
+    }
+
+    function validateRows() {
+        let valid = true;
+        body.querySelectorAll('.editor-error').forEach((el) => el.classList.remove('editor-error'));
+        rows.forEach((row, index) => {
+            const tr = body.querySelector(`tr[data-index="${index}"]`);
+            if (!Number.isFinite(Number(row.final_pack_quantity)) || Number(row.final_pack_quantity) < 0) {
+                tr?.querySelector('.js-final-qty')?.classList.add('editor-error');
+                valid = false;
+            }
+            const needsReason = !row.added && Number(row.final_pack_quantity) < Number(row.ordered_pack_quantity);
+            if (needsReason && !String(row.reason || '').trim()) {
+                tr?.querySelector('.js-final-reason')?.classList.add('editor-error');
+                valid = false;
+            }
+        });
+        return valid;
+    }
+
+    function apiMessage(resp, fallback) {
+        if (resp?.errors && typeof resp.errors === 'object') {
+            return Object.values(resp.errors).flat().join('\n') || fallback;
+        }
+        if (Array.isArray(resp?.message)) return resp.message.join('\n');
+        return resp?.description || resp?.message || fallback;
+    }
+
+    function payload() {
+        return {
+            version,
+            items: rows.map((row) => ({
+                order_item_id: row.order_item_id,
+                final_item_id: row.final_item_id,
+                product_id: row.product_id,
+                final_pack_quantity: Number(row.final_pack_quantity),
+                reason: row.reason || null
+            }))
+        };
+    }
+
+    async function fetchProducts() {
+        if (productCache) return productCache;
+        const resp = await api('/ajax/catalog/products', { method: 'GET' });
+        if (!resp.ok) throw new Error(tx.networkError);
+        const data = Array.isArray(resp.data) ? resp.data : [];
+        productCache = data.filter((product) => product.active === true || product.is_active === true || product.active === 1 || product.is_active === 1);
+        return productCache;
+    }
+
+    async function addProduct() {
+        let products;
+        try {
+            Swal.fire({ title: tx.addLoading, allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            products = await fetchProducts();
+            Swal.close();
+        } catch (error) {
+            Swal.fire({ icon: 'error', text: tx.networkError });
+            return;
+        }
+
+        const existingIds = new Set(rows.map((row) => String(row.product_id)));
+        const available = products.filter((product) => !existingIds.has(String(product.id)));
+        if (!available.length) {
+            Swal.fire({ icon: 'info', text: tx.addNoProducts });
+            return;
+        }
+
+        const options = available.map((product) => `
+            <option value="${escapeHtml(product.id)}">
+                ${escapeHtml(product.sku || '—')} — ${escapeHtml(product.name || '')}
+            </option>
+        `).join('');
+        const result = await Swal.fire({
+            icon: 'question',
+            title: tx.addTitle,
+            html: `<select id="final-product-select" class="form-select"><option value="">${escapeHtml(tx.addSelect)}</option>${options}</select>`,
+            showCancelButton: true,
+            confirmButtonText: tx.addConfirm,
+            cancelButtonText: {{ translations.orders_action_close|json_encode|raw }},
+            preConfirm: () => {
+                const id = document.getElementById('final-product-select')?.value;
+                if (!id) {
+                    Swal.showValidationMessage(tx.addSelect);
+                    return false;
+                }
+                return id;
+            }
+        });
+
+        if (!result.value) return;
+        const product = available.find((item) => String(item.id) === String(result.value));
+        rows.push({
+            uid: `draft-${product.id}-${Date.now()}`,
+            source: 'draft',
+            order_item_id: null,
+            final_item_id: null,
+            product_id: product.id,
+            sku: product.sku || '',
+            name: product.name || '',
+            pack: packLabel(product),
+            ordered_pack_quantity: 0,
+            final_pack_quantity: 1,
+            reason: '',
+            added: true
+        });
+        render();
+    }
+
+    async function save() {
+        if (saving || !isDirty()) return;
+        if (!validateRows()) {
+            Swal.fire({ icon: 'error', title: tx.validationError, text: tx.reasonRequired });
+            return;
+        }
+        saving = true;
+        setDirtyState();
+        try {
+            const resp = await api(`/ajax/orders/${orderId}/final-items`, { method: 'PUT', data: payload() });
+            if (resp.ok) {
+                await Swal.fire({ icon: 'success', title: tx.saveSuccessTitle, text: tx.saveSuccessText, timer: 1000, showConfirmButton: false });
+                window.removeEventListener('beforeunload', beforeUnload);
+                window.location.reload();
+                return;
+            }
+            if (resp.status === 409) {
+                const result = await Swal.fire({ icon: 'warning', title: tx.conflictTitle, text: tx.conflictText, showCancelButton: true, confirmButtonText: tx.refresh, cancelButtonText: {{ translations.orders_action_close|json_encode|raw }} });
+                if (result.isConfirmed) {
+                    window.removeEventListener('beforeunload', beforeUnload);
+                    window.location.reload();
+                }
+                return;
+            }
+            Swal.fire({ icon: 'error', title: tx.validationError, text: apiMessage(resp, tx.serverError) });
+        } catch (error) {
+            Swal.fire({ icon: 'error', text: tx.networkError });
+        } finally {
+            saving = false;
+            setDirtyState();
+        }
+    }
+
+    function beforeUnload(event) {
+        if (!isDirty()) return;
+        event.preventDefault();
+        event.returnValue = tx.leaveWarning;
+        return tx.leaveWarning;
+    }
+
+    body.addEventListener('input', (event) => {
+        const tr = event.target.closest('tr[data-index]');
+        if (!tr) return;
+        const row = rows[Number(tr.dataset.index)];
+        if (event.target.classList.contains('js-final-qty')) {
+            row.final_pack_quantity = numberValue(event.target.value);
+        }
+        if (event.target.classList.contains('js-final-reason')) {
+            row.reason = event.target.value;
+        }
+        render();
+    });
+
+    body.addEventListener('click', (event) => {
+        const tr = event.target.closest('tr[data-index]');
+        if (!tr) return;
+        const index = Number(tr.dataset.index);
+        const row = rows[index];
+        if (event.target.closest('.js-final-restore')) {
+            row.final_pack_quantity = row.ordered_pack_quantity;
+            row.reason = '';
+            render();
+        }
+        if (event.target.closest('.js-final-remove')) {
+            if (row.added) {
+                rows.splice(index, 1);
+            } else {
+                row.final_pack_quantity = 0;
+            }
+            render();
+        }
+    });
+
+    addBtn?.addEventListener('click', addProduct);
+    saveBtn?.addEventListener('click', save);
+    resetBtn?.addEventListener('click', async () => {
+        if (!isDirty()) return;
+        const result = await Swal.fire({ icon: 'warning', title: tx.discardTitle, text: tx.discardText, showCancelButton: true, confirmButtonText: tx.discardConfirm, cancelButtonText: {{ translations.orders_action_close|json_encode|raw }} });
+        if (result.isConfirmed) {
+            normalizeRows();
+            render();
+        }
+    });
+
+    window.addEventListener('beforeunload', beforeUnload);
+    normalizeRows();
+    render();
+})();
+
+
+(() => {
+    const root = document.getElementById('transport-editor');
+    if (!root) return;
+
+    const editable = root.dataset.editable === '1';
+    const orderId = root.dataset.orderId;
+    const version = root.dataset.version || null;
+    let carriers = [];
+    let transportBusy = false;
+    let finalizeBusy = false;
+
+    const tr = {
+        validation: {{ translations.orders_lifecycle_validation_error|json_encode|raw }},
+        network: {{ translations.orders_lifecycle_network_error|json_encode|raw }},
+        server: {{ translations.orders_lifecycle_server_error|json_encode|raw }},
+        savedTitle: {{ translations.orders_transport_saved_title|json_encode|raw }},
+        savedText: {{ translations.orders_transport_saved_text|json_encode|raw }},
+        externalCarrierRequired: {{ translations.orders_transport_external_carrier_required|json_encode|raw }},
+        plannedDateRequired: {{ translations.orders_transport_planned_date_required|json_encode|raw }},
+        carrierNameRequired: {{ translations.orders_carrier_name_required|json_encode|raw }},
+        carriersTitle: {{ translations.orders_carriers_title|json_encode|raw }},
+        carriersEmpty: {{ translations.orders_carriers_empty|json_encode|raw }},
+        carrierAdd: {{ translations.orders_carrier_add|json_encode|raw }},
+        carrierEdit: {{ translations.orders_carrier_edit|json_encode|raw }},
+        carrierDeactivate: {{ translations.orders_carrier_deactivate|json_encode|raw }},
+        carrierName: {{ translations.orders_carrier_name|json_encode|raw }},
+        carrierCode: {{ translations.orders_carrier_code|json_encode|raw }},
+        carrierConfirmDeactivate: {{ translations.orders_carrier_confirm_deactivate|json_encode|raw }},
+        close: {{ translations.orders_action_close|json_encode|raw }},
+        save: {{ translations.orders_final_editor_save|json_encode|raw }},
+        conflictTitle: {{ translations.orders_lifecycle_conflict_title|json_encode|raw }},
+        conflictText: {{ translations.orders_final_editor_conflict_text|json_encode|raw }},
+        finalizeTitle: {{ translations.orders_finalize_title|json_encode|raw }},
+        finalizeChecking: {{ translations.orders_finalize_checking|json_encode|raw }},
+        finalizeErrors: {{ translations.orders_finalize_errors|json_encode|raw }},
+        finalizeWarnings: {{ translations.orders_finalize_warnings|json_encode|raw }},
+        finalizeNoIssues: {{ translations.orders_finalize_no_issues|json_encode|raw }},
+        finalizeComparison: {{ translations.orders_details_comparison|json_encode|raw }},
+        finalizeTransport: {{ translations.orders_details_transport|json_encode|raw }},
+        finalizeConfirm: {{ translations.orders_finalize_confirm|json_encode|raw }},
+        finalizedTitle: {{ translations.orders_finalize_success_title|json_encode|raw }},
+        finalizedText: {{ translations.orders_finalize_success_text|json_encode|raw }},
+        refresh: {{ translations.orders_final_editor_refresh|json_encode|raw }}
+    };
+
+    const els = {
+        type: document.getElementById('transport-type'),
+        carrier: document.getElementById('transport-carrier-id'),
+        carrierWrap: document.getElementById('transport-carrier-wrap'),
+        plannedDate: document.getElementById('transport-planned-date'),
+        loadingPlace: document.getElementById('transport-loading-place'),
+        loadingCountry: document.getElementById('transport-loading-country'),
+        deliveryPlace: document.getElementById('transport-delivery-place'),
+        deliveryCountry: document.getElementById('transport-delivery-country'),
+        instructions: document.getElementById('transport-instructions'),
+        save: document.getElementById('transport-save'),
+        carriersManage: document.getElementById('transport-carriers-manage'),
+        finalizeStart: document.getElementById('order-finalize-start')
+    };
+
+    function parseJson(value, fallback = {}) { try { return JSON.parse(value || '{}'); } catch (e) { return fallback; } }
+    function escapeHtml(value) { return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+    function apiMessage(resp, fallback) {
+        if (resp?.errors && typeof resp.errors === 'object') return Object.values(resp.errors).flat().join('\n') || fallback;
+        if (Array.isArray(resp?.message)) return resp.message.join('\n');
+        return resp?.description || resp?.message || fallback;
+    }
+
+    function transportPayload() {
+        return {
+            version,
+            transport_type: els.type?.value || 'OWN',
+            carrier_id: els.type?.value === 'EXTERNAL' ? (els.carrier?.value || null) : null,
+            planned_delivery_date: els.plannedDate?.value || null,
+            loading_place: els.loadingPlace?.value || null,
+            loading_country: els.loadingCountry?.value || null,
+            delivery_place: els.deliveryPlace?.value || null,
+            delivery_country: els.deliveryCountry?.value || null,
+            instructions: els.instructions?.value || null
+        };
+    }
+
+    function populateTransport() {
+        const transport = parseJson(root.dataset.transport, {});
+        els.type.value = transport.transport_type || transport.type || 'OWN';
+        els.plannedDate.value = transport.planned_delivery_date || transport.supplier_planned_date || transport.planned_date || '';
+        els.loadingPlace.value = transport.loading_place || transport.loading_location || '';
+        els.loadingCountry.value = transport.loading_country || '';
+        els.deliveryPlace.value = transport.delivery_place || transport.delivery_location || '';
+        els.deliveryCountry.value = transport.delivery_country || '';
+        els.instructions.value = transport.instructions || transport.note || '';
+        loadCarriers().then(() => {
+            els.carrier.value = transport.carrier_id || transport.carrier?.id || '';
+        }).catch(() => {});
+        updateTransportVisibility();
+    }
+
+    function updateTransportVisibility() {
+        if (els.carrierWrap) els.carrierWrap.style.display = els.type.value === 'EXTERNAL' ? '' : 'none';
+    }
+
+    async function loadCarriers() {
+        const resp = await api('/ajax/orders/carriers', { method: 'GET' });
+        if (!resp.ok) throw new Error(apiMessage(resp, tr.network));
+        carriers = Array.isArray(resp.data) ? resp.data : [];
+        renderCarrierSelect();
+    }
+
+    function carrierIsActive(carrier) {
+        return carrier.is_active !== false && carrier.active !== false && carrier.status !== 'INACTIVE';
+    }
+
+    function renderCarrierSelect() {
+        const current = els.carrier.value;
+        const options = carriers.filter(carrierIsActive).map((carrier) => `<option value="${escapeHtml(carrier.id)}">${escapeHtml(carrier.name || carrier.code || '')}</option>`).join('');
+        els.carrier.innerHTML = `<option value="">${escapeHtml({{ translations.orders_carriers_select|json_encode|raw }})}</option>${options}`;
+        els.carrier.value = current;
+    }
+
+    async function saveTransport() {
+        if (transportBusy) return;
+        const payload = transportPayload();
+        if (!payload.planned_delivery_date) { Swal.fire({ icon:'error', title: tr.validation, text: tr.plannedDateRequired }); return; }
+        if (payload.transport_type === 'EXTERNAL' && !payload.carrier_id) { Swal.fire({ icon:'error', title: tr.validation, text: tr.externalCarrierRequired }); return; }
+        transportBusy = true;
+        els.save.disabled = true;
+        try {
+            const resp = await api(`/ajax/orders/${orderId}/transport`, { method: 'PUT', data: payload });
+            if (resp.ok) {
+                await Swal.fire({ icon:'success', title: tr.savedTitle, text: tr.savedText, timer: 1000, showConfirmButton:false });
+                window.location.reload();
+                return;
+            }
+            if (resp.status === 409) { await showConflict(); return; }
+            Swal.fire({ icon:'error', title: tr.validation, text: apiMessage(resp, tr.server) });
+        } catch (e) {
+            Swal.fire({ icon:'error', text: tr.network });
+        } finally {
+            transportBusy = false;
+            els.save.disabled = false;
+        }
+    }
+
+    async function carrierForm(carrier = null) {
+        const result = await Swal.fire({
+            icon: 'question',
+            title: carrier ? tr.carrierEdit : tr.carrierAdd,
+            html: `
+                <label class="form-label w-100 text-start">${escapeHtml(tr.carrierName)}</label>
+                <input id="carrier-name" class="form-control" value="${escapeHtml(carrier?.name || '')}">
+                <label class="form-label w-100 text-start mt-2">${escapeHtml(tr.carrierCode)}</label>
+                <input id="carrier-code" class="form-control" value="${escapeHtml(carrier?.code || '')}">
+            `,
+            showCancelButton: true,
+            confirmButtonText: tr.save,
+            cancelButtonText: tr.close,
+            preConfirm: () => {
+                const name = document.getElementById('carrier-name').value.trim();
+                const code = document.getElementById('carrier-code').value.trim();
+                if (!name) { Swal.showValidationMessage(tr.carrierNameRequired); return false; }
+                return { name, code: code || null };
+            }
+        });
+        if (!result.value) return;
+        const endpoint = carrier ? `/ajax/orders/carriers/${carrier.id}` : '/ajax/orders/carriers';
+        const method = carrier ? 'PUT' : 'POST';
+        const resp = await api(endpoint, { method, data: result.value });
+        if (!resp.ok) { Swal.fire({ icon:'error', text: apiMessage(resp, tr.server) }); return; }
+        await loadCarriers();
+        await showCarrierManager();
+    }
+
+    async function deactivateCarrier(carrier) {
+        const confirmed = await Swal.fire({ icon:'warning', text: tr.carrierConfirmDeactivate, showCancelButton:true, confirmButtonText: tr.carrierDeactivate, cancelButtonText: tr.close });
+        if (!confirmed.isConfirmed) return;
+        const resp = await api(`/ajax/orders/carriers/${carrier.id}/deactivate`, { method:'POST', data:{} });
+        if (!resp.ok) { Swal.fire({ icon:'error', text: apiMessage(resp, tr.server) }); return; }
+        await loadCarriers();
+        await showCarrierManager();
+    }
+
+    async function showCarrierManager() {
+        const rows = carriers.length ? carriers.map((carrier) => `
+            <tr>
+                <td>${escapeHtml(carrier.name || '')}</td>
+                <td>${escapeHtml(carrier.code || '—')}</td>
+                <td>${carrierIsActive(carrier) ? 'ACTIVE' : 'INACTIVE'}</td>
+                <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-primary carrier-edit" data-id="${carrier.id}">${escapeHtml(tr.carrierEdit)}</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger carrier-deactivate" data-id="${carrier.id}" ${carrierIsActive(carrier) ? '' : 'disabled'}>${escapeHtml(tr.carrierDeactivate)}</button>
+                </td>
+            </tr>
+        `).join('') : `<tr><td colspan="4" class="text-muted">${escapeHtml(tr.carriersEmpty)}</td></tr>`;
+        await Swal.fire({
+            title: tr.carriersTitle,
+            width: 800,
+            html: `<div class="text-end mb-2"><button type="button" id="carrier-add" class="btn btn-sm btn-primary">${escapeHtml(tr.carrierAdd)}</button></div><div class="table-responsive"><table class="table table-sm"><tbody>${rows}</tbody></table></div>`,
+            showConfirmButton: false,
+            showCloseButton: true,
+            didOpen: () => {
+                document.getElementById('carrier-add')?.addEventListener('click', () => carrierForm());
+                document.querySelectorAll('.carrier-edit').forEach((btn) => btn.addEventListener('click', () => carrierForm(carriers.find((carrier) => String(carrier.id) === btn.dataset.id))));
+                document.querySelectorAll('.carrier-deactivate').forEach((btn) => btn.addEventListener('click', () => deactivateCarrier(carriers.find((carrier) => String(carrier.id) === btn.dataset.id))));
+            }
+        });
+    }
+
+    function listHtml(items, empty) {
+        if (!Array.isArray(items) || !items.length) return `<p class="text-muted">${escapeHtml(empty)}</p>`;
+        return `<ul class="finalization-list">${items.map((item) => `<li>${escapeHtml(item.message || item.description || item)}</li>`).join('')}</ul>`;
+    }
+
+    async function showConflict() {
+        const result = await Swal.fire({ icon:'warning', title: tr.conflictTitle, text: tr.conflictText, showCancelButton:true, confirmButtonText: tr.refresh, cancelButtonText: tr.close });
+        if (result.isConfirmed) window.location.reload();
+    }
+
+    async function finalizeOrder() {
+        if (finalizeBusy) return;
+        finalizeBusy = true;
+        els.finalizeStart.disabled = true;
+        try {
+            Swal.fire({ title: tr.finalizeChecking, allowOutsideClick:false, didOpen: () => Swal.showLoading() });
+            const check = await api(`/ajax/orders/${orderId}/finalization-check`, { method:'POST', data:{} });
+            Swal.close();
+            if (check.status === 409) { await showConflict(); return; }
+            if (!check.ok) { Swal.fire({ icon:'error', text: apiMessage(check, tr.server) }); return; }
+            const errors = check.errors || check.data?.errors || [];
+            const warnings = check.warnings || check.data?.warnings || [];
+            const comparison = check.comparison || check.data?.comparison || [];
+            const transport = check.transport || check.data?.transport || transportPayload();
+            const comparisonRows = Array.isArray(comparison?.items) ? comparison.items : (Array.isArray(comparison) ? comparison : []);
+            const comparisonHtml = comparisonRows.length ? `<ul class="finalization-list">${comparisonRows.map((row) => `<li>${escapeHtml(row.material_name || row.name || row.label || '')}: ${escapeHtml(row.ordered_pack_quantity ?? '—')} → ${escapeHtml(row.final_pack_quantity ?? '—')}</li>`).join('')}</ul>` : `<p class="text-muted">${escapeHtml({{ translations.orders_details_no_comparison|json_encode|raw }})}</p>`;
+            const html = `
+                <h6>${escapeHtml(tr.finalizeErrors)}</h6>${listHtml(errors, tr.finalizeNoIssues)}
+                <h6 class="mt-3">${escapeHtml(tr.finalizeWarnings)}</h6>${listHtml(warnings, tr.finalizeNoIssues)}
+                <h6 class="mt-3">${escapeHtml(tr.finalizeComparison)}</h6>${comparisonHtml}
+                <h6 class="mt-3">${escapeHtml(tr.finalizeTransport)}</h6>
+                <p class="text-muted mb-0">${escapeHtml(transport.transport_type || transport.type || 'OWN')} · ${escapeHtml(transport.planned_delivery_date || transport.planned_date || '')}</p>
+            `;
+            const result = await Swal.fire({ icon: errors.length ? 'error' : 'question', title: tr.finalizeTitle, html, showCancelButton: !errors.length, showConfirmButton: !errors.length, confirmButtonText: tr.finalizeConfirm, cancelButtonText: tr.close, width: 760 });
+            if (!result.isConfirmed) return;
+            const finalized = await api(`/ajax/orders/${orderId}/finalize`, { method:'POST', data:{ version } });
+            if (finalized.status === 409) { await showConflict(); return; }
+            if (!finalized.ok) { Swal.fire({ icon:'error', text: apiMessage(finalized, tr.server) }); return; }
+            await Swal.fire({ icon:'success', title: tr.finalizedTitle, text: tr.finalizedText, timer: 1200, showConfirmButton:false });
+            window.location.reload();
+        } catch (e) {
+            Swal.fire({ icon:'error', text: tr.network });
+        } finally {
+            finalizeBusy = false;
+            els.finalizeStart.disabled = false;
+        }
+    }
+
+    if (editable) {
+        els.type?.addEventListener('change', updateTransportVisibility);
+        els.save?.addEventListener('click', saveTransport);
+        els.carriersManage?.addEventListener('click', async () => { try { await loadCarriers(); await showCarrierManager(); } catch (e) { Swal.fire({ icon:'error', text: tr.network }); } });
+        els.finalizeStart?.addEventListener('click', finalizeOrder);
+    }
+    populateTransport();
+})();
+
+
+(() => {
+    const panel = document.getElementById('cmr-status-panel');
+    if (!panel) return;
+
+    const orderId = panel.dataset.orderId;
+    const badge = document.getElementById('cmr-status-badge');
+    const statusText = document.getElementById('cmr-status-text');
+    const missingList = document.getElementById('cmr-missing-list');
+    const generateButton = document.getElementById('cmr-generate');
+    const downloadButton = document.getElementById('cmr-download');
+    let busy = false;
+    let currentDocument = null;
+
+    const t = {
+        loading: {{ translations.orders_cmr_loading|json_encode|raw }},
+        notApplicable: {{ translations.orders_cmr_not_applicable|json_encode|raw }},
+        missingData: {{ translations.orders_cmr_missing_data|json_encode|raw }},
+        eligible: {{ translations.orders_cmr_eligible|json_encode|raw }},
+        generated: {{ translations.orders_cmr_generated|json_encode|raw }},
+        invalidated: {{ translations.orders_cmr_invalidated|json_encode|raw }},
+        unknown: {{ translations.orders_cmr_unknown|json_encode|raw }},
+        statusError: {{ translations.orders_cmr_status_error|json_encode|raw }},
+        generateTitle: {{ translations.orders_cmr_generate_title|json_encode|raw }},
+        generateText: {{ translations.orders_cmr_generate_text|json_encode|raw }},
+        generateConfirm: {{ translations.orders_cmr_generate_confirm|json_encode|raw }},
+        generateError: {{ translations.orders_cmr_generate_error|json_encode|raw }},
+        conflictTitle: {{ translations.orders_lifecycle_conflict_title|json_encode|raw }},
+        conflictText: {{ translations.orders_documents_conflict_text|json_encode|raw }},
+        refresh: {{ translations.orders_final_editor_refresh|json_encode|raw }},
+        close: {{ translations.orders_action_close|json_encode|raw }},
+        downloadError: {{ translations.orders_documents_download_error|json_encode|raw }},
+        missingPrefix: {{ translations.orders_cmr_missing_prefix|json_encode|raw }},
+        errorMap: {
+            ORDER_CMR_DOCUMENT_NOT_APPLICABLE: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_NOT_APPLICABLE|json_encode|raw }},
+            ORDER_CMR_DOCUMENT_MISSING_DATA: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_MISSING_DATA|json_encode|raw }},
+            ORDER_CMR_DOCUMENT_REQUIRES_FINALIZED: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_REQUIRES_FINALIZED|json_encode|raw }},
+            ORDER_CMR_DOCUMENT_TRANSPORT_REQUIRED: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_TRANSPORT_REQUIRED|json_encode|raw }},
+            ORDER_CMR_DOCUMENT_WEIGHT_REQUIRED: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_WEIGHT_REQUIRED|json_encode|raw }},
+            ORDER_DOCUMENT_NOT_FOUND: {{ translations.orders_document_error_ORDER_DOCUMENT_NOT_FOUND|json_encode|raw }},
+            ORDER_DOCUMENT_NOT_ACTIVE: {{ translations.orders_document_error_ORDER_DOCUMENT_NOT_ACTIVE|json_encode|raw }},
+            IDEMPOTENCY_KEY_CONFLICT: {{ translations.orders_document_error_IDEMPOTENCY_KEY_CONFLICT|json_encode|raw }}
+        }
+    };
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+    }
+
+    function normalizeList(value) {
+        if (!value) return [];
+        if (Array.isArray(value)) return value;
+        if (typeof value === 'object') return Object.values(value).flat();
+        return [value];
+    }
+
+    function hasGenerateAction(actions) {
+        const list = normalizeList(actions).map((action) => String(action?.code || action?.name || action).toLowerCase());
+        return list.some((action) => ['generate_cmr_document', 'generate_cmr'].includes(action));
+    }
+
+    function documentFrom(data) {
+        return data?.document || data?.active_document || data?.cmr_document || data?.latest_document || null;
+    }
+
+    function statusFrom(data, document) {
+        const raw = data?.qualification_status || data?.cmr_status || data?.status || data?.state || data?.result || '';
+        const docStatus = document?.status || '';
+        if (String(docStatus).toUpperCase() === 'INVALIDATED') return 'INVALIDATED';
+        if (!raw && String(docStatus).toUpperCase() === 'GENERATED') return 'GENERATED';
+        return String(raw || docStatus || 'UNKNOWN').toUpperCase();
+    }
+
+    function statusLabel(status) {
+        return ({
+            ELIGIBLE: t.eligible,
+            NOT_APPLICABLE: t.notApplicable,
+            MISSING_DATA: t.missingData,
+            GENERATED: t.generated,
+            INVALIDATED: t.invalidated
+        })[status] || t.unknown;
+    }
+
+    function badgeClass(status) {
+        return ({
+            ELIGIBLE: 'bg-success',
+            NOT_APPLICABLE: 'bg-secondary',
+            MISSING_DATA: 'bg-warning text-dark',
+            GENERATED: 'bg-success',
+            INVALIDATED: 'bg-secondary'
+        })[status] || 'bg-secondary';
+    }
+
+    function apiMessage(resp, fallback) {
+        const code = resp?.code || resp?.error_code || resp?.description || resp?.message;
+        if (typeof code === 'string' && t.errorMap[code]) return t.errorMap[code];
+        if (resp?.errors && typeof resp.errors === 'object') return Object.values(resp.errors).flat().join('\n') || fallback;
+        if (Array.isArray(resp?.message)) return resp.message.join('\n');
+        return resp?.description || resp?.message || fallback;
+    }
+
+    function render(data) {
+        currentDocument = documentFrom(data);
+        const status = statusFrom(data, currentDocument);
+        const missing = normalizeList(data?.missing_data || data?.missing || data?.missing_fields || data?.requirements_missing);
+        const canGenerate = panel.dataset.canGenerate === '1' || hasGenerateAction(data?.allowed_actions || data?.actions);
+        const documentId = currentDocument?.id || data?.document_id || null;
+        const activeDocument = documentId && !['INVALIDATED', 'VOIDED', 'CANCELLED'].includes(String(currentDocument?.status || '').toUpperCase());
+
+        badge.className = `badge ${badgeClass(status)}`;
+        badge.textContent = statusLabel(status);
+        statusText.textContent = statusLabel(status);
+
+        if (missing.length) {
+            missingList.classList.remove('d-none');
+            missingList.innerHTML = missing.map((item) => `<li>${escapeHtml(item?.label || item?.field || item?.message || item)}</li>`).join('');
+            statusText.textContent = t.missingPrefix;
+        } else {
+            missingList.classList.add('d-none');
+            missingList.innerHTML = '';
+        }
+
+        generateButton.classList.toggle('d-none', !canGenerate);
+        generateButton.disabled = busy;
+        downloadButton.classList.toggle('d-none', !activeDocument);
+        downloadButton.dataset.documentId = activeDocument ? documentId : '';
+        downloadButton.dataset.documentNumber = currentDocument?.number || currentDocument?.document_number || documentId || '';
+    }
+
+    async function loadStatus() {
+        statusText.textContent = t.loading;
+        try {
+            const resp = await api(`/ajax/orders/${orderId}/documents/cmr/status`);
+            if (!resp.ok) {
+                statusText.textContent = apiMessage(resp, t.statusError);
+                badge.className = 'badge bg-danger';
+                badge.textContent = t.statusError;
+                return;
+            }
+            render(resp.data || resp);
+        } catch (error) {
+            statusText.textContent = t.statusError;
+            badge.className = 'badge bg-danger';
+            badge.textContent = t.statusError;
+        }
+    }
+
+    generateButton.addEventListener('click', async () => {
+        if (busy) return;
+        const confirmed = await Swal.fire({
+            icon: 'question',
+            title: t.generateTitle,
+            text: t.generateText,
+            showCancelButton: true,
+            confirmButtonText: t.generateConfirm,
+            cancelButtonText: t.close
+        });
+        if (!confirmed.isConfirmed) return;
+
+        busy = true;
+        generateButton.disabled = true;
+        try {
+            const resp = await api(`/ajax/orders/${orderId}/documents/cmr`, { method: 'POST', data: {} });
+            if (resp.ok) {
+                await Swal.fire({ icon: 'success', title: {{ translations.orders_documents_generate_success_title|json_encode|raw }}, text: {{ translations.orders_documents_generate_success_text|json_encode|raw }}, timer: 1200, showConfirmButton: false });
+                window.location.reload();
+                return;
+            }
+            if (resp.status === 409) {
+                const result = await Swal.fire({ icon: 'warning', title: t.conflictTitle, text: t.conflictText, showCancelButton: true, confirmButtonText: t.refresh, cancelButtonText: t.close });
+                if (result.isConfirmed) window.location.reload();
+                return;
+            }
+            Swal.fire({ icon: 'error', text: apiMessage(resp, t.generateError) });
+            await loadStatus();
+        } catch (error) {
+            Swal.fire({ icon: 'error', text: t.generateError });
+        } finally {
+            busy = false;
+            generateButton.disabled = false;
+        }
+    });
+
+    downloadButton.addEventListener('click', async () => {
+        if (!downloadButton.dataset.documentId) return;
+        downloadButton.disabled = true;
+        try {
+            await downloadPdf(
+                `/orders/${orderId}/documents/${downloadButton.dataset.documentId}/download`,
+                {},
+                `order-${orderId}-cmr-${downloadButton.dataset.documentNumber || downloadButton.dataset.documentId}.pdf`,
+                'GET'
+            );
+        } catch (error) {
+            Swal.fire({ icon: 'error', text: error.message || t.downloadError });
+        } finally {
+            downloadButton.disabled = false;
+        }
+    });
+
+    loadStatus();
+})();
+
+(() => {
+    const panel = document.getElementById('order-documents-panel');
+    if (!panel) return;
+
+    const orderId = panel.dataset.orderId;
+    const generateButtons = Array.from(panel.querySelectorAll('.js-document-generate'));
+    let generateBusy = false;
+
+    const td = {
+        downloadError: {{ translations.orders_documents_download_error|json_encode|raw }},
+        generateSuccessTitle: {{ translations.orders_documents_generate_success_title|json_encode|raw }},
+        generateSuccessText: {{ translations.orders_documents_generate_success_text|json_encode|raw }},
+        generateError: {{ translations.orders_documents_generate_error|json_encode|raw }},
+        generateReleaseError: {{ translations.orders_documents_generate_release_error|json_encode|raw }},
+        releaseErrorMap: {
+            ORDER_RELEASE_DOCUMENT_REQUIRES_FINALIZED: {{ translations.orders_document_error_ORDER_RELEASE_DOCUMENT_REQUIRES_FINALIZED|json_encode|raw }},
+            ORDER_RELEASE_DOCUMENT_FINAL_ITEMS_REQUIRED: {{ translations.orders_document_error_ORDER_RELEASE_DOCUMENT_FINAL_ITEMS_REQUIRED|json_encode|raw }},
+            ORDER_RELEASE_DOCUMENT_TRANSPORT_REQUIRED: {{ translations.orders_document_error_ORDER_RELEASE_DOCUMENT_TRANSPORT_REQUIRED|json_encode|raw }},
+            ORDER_DOCUMENT_NOT_FOUND: {{ translations.orders_document_error_ORDER_DOCUMENT_NOT_FOUND|json_encode|raw }},
+            ORDER_DOCUMENT_NOT_ACTIVE: {{ translations.orders_document_error_ORDER_DOCUMENT_NOT_ACTIVE|json_encode|raw }},
+            IDEMPOTENCY_KEY_CONFLICT: {{ translations.orders_document_error_IDEMPOTENCY_KEY_CONFLICT|json_encode|raw }}
+        },
+        conflictTitle: {{ translations.orders_lifecycle_conflict_title|json_encode|raw }},
+        conflictText: {{ translations.orders_documents_conflict_text|json_encode|raw }},
+        refresh: {{ translations.orders_final_editor_refresh|json_encode|raw }},
+        close: {{ translations.orders_action_close|json_encode|raw }}
+    };
+
+    function apiMessage(resp, fallback) {
+        const code = resp?.code || resp?.error_code || resp?.description || resp?.message;
+        if (typeof code === 'string' && td.releaseErrorMap[code]) return td.releaseErrorMap[code];
+        if (resp?.errors && typeof resp.errors === 'object') return Object.values(resp.errors).flat().join('\n') || fallback;
+        if (Array.isArray(resp?.message)) return resp.message.join('\n');
+        return resp?.description || resp?.message || fallback;
+    }
+
+    panel.querySelectorAll('.js-document-download').forEach((button) => {
+        button.addEventListener('click', async () => {
+            button.disabled = true;
+            try {
+                await downloadPdf(
+                    `/orders/${orderId}/documents/${button.dataset.documentId}/download`,
+                    {},
+                    `order-${orderId}-${button.dataset.documentNumber || button.dataset.documentId}.pdf`,
+                    'GET'
+                );
+            } catch (error) {
+                Swal.fire({ icon: 'error', text: error.message || td.downloadError });
+            } finally {
+                button.disabled = false;
+            }
+        });
+    });
+
+    generateButtons.forEach((generateButton) => {
+        generateButton.addEventListener('click', async () => {
+            if (generateBusy) return;
+            const kind = generateButton.dataset.documentKind || 'differences';
+            const fallbackError = kind === 'release' ? td.generateReleaseError : td.generateError;
+            generateBusy = true;
+            generateButtons.forEach((button) => { button.disabled = true; });
+            try {
+                const resp = await api(`/ajax/orders/${orderId}/documents/${kind}`, { method: 'POST', data: {} });
+                if (resp.ok) {
+                    await Swal.fire({ icon: 'success', title: td.generateSuccessTitle, text: td.generateSuccessText, timer: 1200, showConfirmButton: false });
+                    window.location.reload();
+                    return;
+                }
+                if (resp.status === 409) {
+                    const result = await Swal.fire({ icon: 'warning', title: td.conflictTitle, text: td.conflictText, showCancelButton: true, confirmButtonText: td.refresh, cancelButtonText: td.close });
+                    if (result.isConfirmed) window.location.reload();
+                    return;
+                }
+                Swal.fire({ icon: 'error', text: apiMessage(resp, fallbackError) });
+            } catch (error) {
+                Swal.fire({ icon: 'error', text: fallbackError });
+            } finally {
+                generateBusy = false;
+                generateButtons.forEach((button) => { button.disabled = false; });
+            }
+        });
+    });
+})();
+
+</script>
+{% endblock %}

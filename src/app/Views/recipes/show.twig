@@ -284,7 +284,7 @@
                                 </td>
                                 <td class="text-end num">
                                     {% if ing.price_net_snapshot is not null %}
-                                        {{ (ing.quantity * ing.price_net_snapshot)|number_format(2, '.', '') }}
+                                        {{ (ing.quantity * ing.price_net_snapshot * (1 + (ing.waste_perc_snapshot ?? 0) / 100))|number_format(2, '.', '') }}
                                     {% else %}
                                         <span class="calc-no-price">—</span>
                                     {% endif %}
@@ -387,6 +387,7 @@
     </div>
 
     {# ===== SUMMARY AFTER TILE 2 ===== #}
+    {% set rmPricing = recipe.raw_material_pricing ?? {} %}
     {% if ingredients is not empty %}
     {% set _sum_g   = 0 %}
     {% set _sum_ml  = 0 %}
@@ -436,13 +437,94 @@
     </div>
     {% endif %}
 
-    {# ===== TILE 3: SALES UNIT ===== #}
+    {% if rmPricing.price_per_kg is not null %}
+    <div class="calc-summary-banner mb-3">
+        <div class="d-flex align-items-start gap-3">
+            <div class="calc-summary-icon flex-shrink-0">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="flex-grow-1">
+                <div class="fw-semibold text-indigo-800 mb-1">{{ translations.price_per_kg_tile_title }}</div>
+                <div class="calc-summary-text">
+                    {{ translations.summary_cost_per_kg_intro }}
+                    <span class="text-success fw-bold">{{ rmPricing.price_per_kg|number_format(4, '.', '') }} {{ currency }}</span>.
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {# ===== TILE 3: PRICE PER KG ===== #}
+    <div class="card mb-3">
+        <div class="card-header d-flex align-items-center gap-2">
+            <span class="calc-tile-num">3</span>
+            <span class="fw-semibold">{{ translations.price_per_kg_tile_title }}</span>
+        </div>
+        <div class="card-body">
+            <div id="rmPricingUnavailable" class="alert alert-warning d-flex align-items-center gap-2 {% if rmPricing.is_weight_recipe %}d-none{% endif %}" role="alert">
+                <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                <span>{{ translations.price_per_kg_unavailable }}</span>
+            </div>
+
+            <div class="row g-3{% if not rmPricing.is_weight_recipe %} d-none{% endif %}" id="rmPricingGrid">
+                <div class="col-12 col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <div class="text-muted small text-uppercase">{{ translations.price_per_kg_label }}</div>
+                        <div class="fw-bold fs-5 text-primary" id="rmPricePerKgOut">
+                            {% if rmPricing.price_per_kg is not null %}
+                                {{ rmPricing.price_per_kg|number_format(4, '.', '') }} {{ currency }}
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <div class="text-muted small text-uppercase">{{ translations.raw_material_cost_per_portion_label }}</div>
+                        <div class="fw-bold fs-5 text-primary" id="rmCostPerPortionOut">
+                            {% if rmPricing.raw_materials_per_portion is not null %}
+                                {{ rmPricing.raw_materials_per_portion|number_format(4, '.', '') }} {{ currency }}
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <div class="text-muted small text-uppercase">{{ translations.raw_material_cost_per_packaging_label }}</div>
+                        <div class="fw-bold fs-5 text-primary" id="rmCostPerPackagingOut">
+                            {% if rmPricing.raw_materials_per_packaging is not null %}
+                                {{ rmPricing.raw_materials_per_packaging|number_format(4, '.', '') }} {{ currency }}
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-3">
+                    <div class="border rounded p-3 bg-light h-100">
+                        <div class="text-muted small text-uppercase">{{ translations.raw_material_cost_per_carton_label }}</div>
+                        <div class="fw-bold fs-5 text-primary" id="rmCostPerCartonOut">
+                            {% if rmPricing.raw_materials_per_carton is not null %}
+                                {{ rmPricing.raw_materials_per_carton|number_format(4, '.', '') }} {{ currency }}
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-text mt-3" id="rmPricingHint">
+                {{ translations.price_per_kg_hint }}
+            </div>
+            <div class="form-text mt-2{% if not rmPricing.is_weight_recipe or rmPricing.raw_materials_per_portion is not null %} d-none{% endif %}" id="rmPricingDerivedHint">
+                {{ translations.price_per_kg_missing_sales_weight_unit }}
+            </div>
+        </div>
+    </div>
+
+    {# ===== TILE 4: SALES UNIT ===== #}
     {% set su = recipe.sales_unit %}
     {# Default portion_unit is resolved in PHP (RecipeController::resolveDefaultPortionUnit) #}
     {% set _portionUnit = defaultPortionUnit %}
     <div class="card mb-3">
         <div class="card-header d-flex align-items-center gap-2">
-            <span class="calc-tile-num">3</span>
+            <span class="calc-tile-num">4</span>
             <span class="fw-semibold">{{ translations.sales_unit_tile_title }}</span>
         </div>
         <div class="card-body">
@@ -532,6 +614,10 @@
             <div class="form-text mt-3">
                 {{ translations.sales_unit_hierarchy_hint }}
             </div>
+            <div id="suYieldWarning" class="alert alert-warning d-flex align-items-center gap-2 mt-3 d-none" role="alert">
+                <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+                <span id="suYieldWarningText"></span>
+            </div>
         </div>
         <div class="card-footer text-end">
             <button class="btn btn-sm btn-primary" id="btnSaveSalesUnit">
@@ -540,11 +626,11 @@
         </div>
     </div>
 
-    {# ===== TILE 4: LABOR ===== #}
+    {# ===== TILE 5: LABOR ===== #}
     <div class="card mb-3">
         <div class="card-header d-flex align-items-center justify-content-between gap-2">
             <div class="d-flex align-items-center gap-2">
-                <span class="calc-tile-num">4</span>
+                <span class="calc-tile-num">5</span>
                 <span class="fw-semibold">{{ translations.labor_tile_title }}</span>
             </div>
             <div class="d-flex gap-2">
@@ -648,7 +734,7 @@
     {% set oh = recipe.overhead %}
     <div class="card mb-3">
         <div class="card-header d-flex align-items-center gap-2">
-            <span class="calc-tile-num">5</span>
+            <span class="calc-tile-num">6</span>
             <span class="fw-semibold">{{ translations.overhead_tile_title }}</span>
         </div>
         <div class="card-body">
@@ -719,7 +805,7 @@
     {% set pack = recipe.packaging %}
     <div class="card mb-3">
         <div class="card-header d-flex align-items-center gap-2">
-            <span class="calc-tile-num">6</span>
+            <span class="calc-tile-num">7</span>
             <span class="fw-semibold">{{ translations.packaging_tile_title }}</span>
         </div>
         <div class="card-body">
@@ -777,7 +863,7 @@
     {% set vid = recipe.vidanges %}
     <div class="card mb-3">
         <div class="card-header d-flex align-items-center gap-2">
-            <span class="calc-tile-num">7</span>
+            <span class="calc-tile-num">8</span>
             <span class="fw-semibold">{{ translations.vidanges_tile_title }}</span>
         </div>
         <div class="card-body">
@@ -856,14 +942,15 @@
     {# ===== TILE 8: P&L SUMMARY ===== #}
     {% set pnl = recipe.pnl %}
     {% set _pnl_ppp = pnl.portions_per_packaging %}
+    {% set _pnl_ppc = pnl.packagings_per_carton %}
     <div class="card mb-3">
         <div class="card-header d-flex align-items-center gap-2">
-            <span class="calc-tile-num">8</span>
+            <span class="calc-tile-num">9</span>
             <span class="fw-semibold">{{ translations.pnl_tile_title }}</span>
             <div class="ms-auto">
                 <div class="btn-group btn-group-sm" role="group" id="pnlViewToggleGroup">
-                    <button type="button" class="btn btn-outline-primary" id="btnPnlViewPack">
-                        <i class="bi bi-box me-1"></i>{{ translations.pnl_view_per_pack }}
+                    <button type="button" class="btn btn-outline-primary" id="btnPnlViewCarton">
+                        <i class="bi bi-box-seam me-1"></i>{{ translations.pnl_view_per_carton }}
                     </button>
                     <button type="button" class="btn btn-primary" id="btnPnlViewPortion">
                         <i class="bi bi-cup-straw me-1"></i>{{ translations.pnl_view_per_portion }}
@@ -873,58 +960,58 @@
         </div>
         <div class="card-body">
             <p class="text-muted small mb-3" id="pnlSuInfo">
-                {{ translations.pnl_computed_per_packaging }}:
+                {{ translations.pnl_computed_per_carton }}:
                 <strong>
-                    {% if pnl.portions_per_packaging is not null %}
-                        {{ pnl.portions_per_packaging }} {{ translations.pnl_portions }}
+                    {% if pnl.portions_per_carton is not null %}
+                        {{ pnl.portions_per_carton }} {{ translations.pnl_portions }}
                     {% else %}
                         <span class="text-warning">{{ translations.pnl_missing_portions }}</span>
                     {% endif %}
                 </strong>
             </p>
 
-            {# ===== PANEL: PER PACKAGING ===== #}
-            <div id="pnlPackView" class="d-none">
+            {# ===== PANEL: PER CARTON ===== #}
+            <div id="pnlCartonView" class="d-none">
                 <div class="table-responsive mb-3">
                     <table class="table table-sm table-borderless mb-0" id="pnlCostTable">
                         <tbody>
                             <tr>
                                 <td class="text-muted">{{ translations.pnl_raw_materials }}</td>
                                 <td class="text-end fw-semibold" id="pnlRowMat">
-                                    {% if pnl.raw_materials_per_packaging is not null %}
-                                        {{ pnl.raw_materials_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.raw_materials_per_carton is not null %}
+                                        {{ pnl.raw_materials_per_carton|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted">—</span>{% endif %}
                                 </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">{{ translations.pnl_labor }}</td>
                                 <td class="text-end fw-semibold" id="pnlRowLabor">
-                                    {% if pnl.labor_per_packaging is not null %}
-                                        {{ pnl.labor_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.labor_per_carton is not null %}
+                                        {{ pnl.labor_per_carton|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted">—</span>{% endif %}
                                 </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">{{ translations.pnl_overhead }}</td>
                                 <td class="text-end fw-semibold" id="pnlRowOverhead">
-                                    {% if pnl.overhead_per_packaging is not null %}
-                                        {{ pnl.overhead_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.overhead_per_carton is not null %}
+                                        {{ pnl.overhead_per_carton|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted">—</span>{% endif %}
                                 </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">{{ translations.pnl_packaging }}</td>
                                 <td class="text-end fw-semibold" id="pnlRowPackaging">
-                                    {% if pnl.packaging_per_packaging is not null %}
-                                        {{ pnl.packaging_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.packaging_per_carton is not null %}
+                                        {{ pnl.packaging_per_carton|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted text-muted-sm">{{ translations.pnl_packaging_not_set }}</span>{% endif %}
                                 </td>
                             </tr>
                             <tr class="table-light border-top">
-                                <td class="fw-bold">{{ translations.pnl_total_cost }}</td>
+                                <td class="fw-bold">{{ translations.pnl_total_cost_per_carton }}</td>
                                 <td class="text-end fw-bold fs-6" id="pnlRowTotal">
-                                    {% if pnl.total_cost_per_packaging is not null %}
-                                        {{ pnl.total_cost_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.total_cost_per_carton is not null %}
+                                        {{ pnl.total_cost_per_carton|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted">—</span>{% endif %}
                                 </td>
                             </tr>
@@ -934,21 +1021,21 @@
 
                 <div class="alert alert-secondary py-2 px-3 small mb-3" id="pnlVidangesNote">
                     + <strong id="pnlVidVal">
-                        {% if pnl.vidanges_per_packaging is not null %}
-                            {{ pnl.vidanges_per_packaging|number_format(2, '.', '') }} {{ currency }}
+                        {% if pnl.vidanges_per_carton is not null %}
+                            {{ pnl.vidanges_per_carton|number_format(2, '.', '') }} {{ currency }}
                         {% else %}—{% endif %}
                     </strong>
-                    {{ translations.pnl_vidanges_passthrough }}
+                    {{ translations.pnl_vidanges_passthrough_carton }}
                 </div>
 
                 <div class="table-responsive mb-0">
                     <table class="table table-sm table-borderless mb-0">
                         <tbody>
                             <tr class="table-primary">
-                                <td class="fw-bold">{{ translations.pnl_recommended_price }}</td>
+                                <td class="fw-bold">{{ translations.pnl_recommended_carton_price }}</td>
                                 <td class="text-end fw-bold fs-5 text-primary" id="pnlRecommendedPrice">
-                                    {% if pnl.recommended_packaging_price is not null %}
-                                        {{ pnl.recommended_packaging_price|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.recommended_carton_price is not null %}
+                                        {{ pnl.recommended_carton_price|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted fs-6">—</span>{% endif %}
                                 </td>
                             </tr>
@@ -978,40 +1065,40 @@
                             <tr>
                                 <td class="text-muted">{{ translations.pnl_raw_materials }}</td>
                                 <td class="text-end fw-semibold" id="pnlPortRowMat">
-                                    {% if _pnl_ppp and pnl.raw_materials_per_packaging is not null %}
-                                        {{ (pnl.raw_materials_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.raw_materials_per_portion is not null %}
+                                        {{ pnl.raw_materials_per_portion|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted">—</span>{% endif %}
                                 </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">{{ translations.pnl_labor }}</td>
                                 <td class="text-end fw-semibold" id="pnlPortRowLabor">
-                                    {% if _pnl_ppp and pnl.labor_per_packaging is not null %}
-                                        {{ (pnl.labor_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.portions_per_carton and pnl.labor_per_carton is not null %}
+                                        {{ (pnl.labor_per_carton / pnl.portions_per_carton)|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted">—</span>{% endif %}
                                 </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">{{ translations.pnl_overhead }}</td>
                                 <td class="text-end fw-semibold" id="pnlPortRowOverhead">
-                                    {% if _pnl_ppp and pnl.overhead_per_packaging is not null %}
-                                        {{ (pnl.overhead_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.portions_per_carton and pnl.overhead_per_carton is not null %}
+                                        {{ (pnl.overhead_per_carton / pnl.portions_per_carton)|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted">—</span>{% endif %}
                                 </td>
                             </tr>
                             <tr>
                                 <td class="text-muted">{{ translations.pnl_packaging }}</td>
                                 <td class="text-end fw-semibold" id="pnlPortRowPackaging">
-                                    {% if _pnl_ppp and pnl.packaging_per_packaging is not null %}
-                                        {{ (pnl.packaging_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.portions_per_carton and pnl.packaging_per_carton is not null %}
+                                        {{ (pnl.packaging_per_carton / pnl.portions_per_carton)|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted text-muted-sm">{{ translations.pnl_packaging_not_set }}</span>{% endif %}
                                 </td>
                             </tr>
                             <tr class="table-light border-top">
                                 <td class="fw-bold">{{ translations.pnl_total_cost }}</td>
                                 <td class="text-end fw-bold fs-6" id="pnlPortRowTotal">
-                                    {% if _pnl_ppp and pnl.total_cost_per_packaging is not null %}
-                                        {{ (pnl.total_cost_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                                    {% if pnl.portions_per_carton and pnl.total_cost_per_carton is not null %}
+                                        {{ (pnl.total_cost_per_carton / pnl.portions_per_carton)|number_format(2, '.', '') }} {{ currency }}
                                     {% else %}<span class="text-muted">—</span>{% endif %}
                                 </td>
                             </tr>
@@ -1021,8 +1108,8 @@
 
                 <div class="alert alert-secondary py-2 px-3 small mb-3">
                     + <strong id="pnlPortVidVal">
-                        {% if _pnl_ppp and pnl.vidanges_per_packaging is not null %}
-                            {{ (pnl.vidanges_per_packaging / _pnl_ppp)|number_format(2, '.', '') }} {{ currency }}
+                        {% if pnl.portions_per_carton and pnl.vidanges_per_carton is not null %}
+                            {{ (pnl.vidanges_per_carton / pnl.portions_per_carton)|number_format(2, '.', '') }} {{ currency }}
                         {% else %}—{% endif %}
                     </strong>
                     {{ translations.pnl_vidanges_passthrough }}
@@ -1311,8 +1398,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const CURRENCY  = {{ currency|json_encode|raw }};
     const PRODUCTS  = {{ products|json_encode|raw }};
     const IS_ARCHIVED = {{ recipe.is_archived ? 'true' : 'false' }};
-    // Raw materials cost per portion (snapshot aggregate from DB — static for this page load)
-    const RAW_MAT_PER_UNIT = {{ recipe.pnl.raw_materials_per_unit is not null ? recipe.pnl.raw_materials_per_unit|json_encode|raw : 'null' }};
+    // Raw materials pricing derived from the total recipe cost with waste.
+    const RAW_MAT_PRICE_PER_KG = {{ recipe.raw_material_pricing.price_per_kg is not null ? recipe.raw_material_pricing.price_per_kg|json_encode|raw : 'null' }};
+    const IS_WEIGHT_RECIPE = {{ recipe.raw_material_pricing.is_weight_recipe ? 'true' : 'false' }};
     // Packaging cost per packaging unit (from DB — updated after save)
     const PACK_COST_PER_PACK_INIT = {{ recipe.packaging.cost_per_packaging is not null ? recipe.packaging.cost_per_packaging|json_encode|raw : 'null' }};
     // PnL incomplete warning — translation strings for dynamic alert
@@ -1320,6 +1408,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const T_MISSING_RAW_MAT  = {{ translations.recipe_missing_raw_materials|json_encode|raw }};
     const T_MISSING_LABOR    = {{ translations.recipe_missing_labor|json_encode|raw }};
     const T_MISSING_OVERHEAD = {{ translations.recipe_missing_overhead|json_encode|raw }};
+    {% set _jsIngrG = 0 %}{% set _jsIngrMl = 0 %}{% set _jsIngrSzt = 0 %}
+    {% for _si in ingredients %}
+        {% if _si.unit_symbol_snapshot == 'g' %}{% set _jsIngrG = _jsIngrG + _si.quantity %}
+        {% elseif _si.unit_symbol_snapshot == 'kg' %}{% set _jsIngrG = _jsIngrG + (_si.quantity * 1000) %}
+        {% elseif _si.unit_symbol_snapshot == 'ml' %}{% set _jsIngrMl = _jsIngrMl + _si.quantity %}
+        {% elseif _si.unit_symbol_snapshot == 'l' %}{% set _jsIngrMl = _jsIngrMl + (_si.quantity * 1000) %}
+        {% elseif _si.unit_symbol_snapshot == 'szt' %}{% set _jsIngrSzt = _jsIngrSzt + _si.quantity %}
+        {% endif %}
+    {% endfor %}
+    const INGR_TOTAL_G   = {{ _jsIngrG }};
+    const INGR_TOTAL_ML  = {{ _jsIngrMl }};
+    const INGR_TOTAL_SZT = {{ _jsIngrSzt }};
+    const T_YIELD_EXCEEDS = {{ translations.sales_unit_carton_exceeds_ingredients|json_encode|raw }};
 
     const productMap = new Map((PRODUCTS || []).map(p => [String(p.id), p]));
 
@@ -1331,14 +1432,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }[m]));
     }
 
-    function updatePnlIncompleteAlert(ppp, laborTime, laborRate, ohForecast, ohPool) {
+    function updatePnlIncompleteAlert(rawMatPack, ppp, laborTime, laborRate, ohForecast, ohPool) {
         const alertEl = el('pnlIncompleteAlert');
         const listEl  = el('pnlIncompleteList');
         if (!alertEl || !listEl) return;
 
         const missing = [];
         if (ppp === null || ppp <= 0)                                     missing.push({ key: 'portions',     text: T_MISSING_PORTIONS });
-        if (RAW_MAT_PER_UNIT === null)                                     missing.push({ key: 'raw_materials', text: T_MISSING_RAW_MAT });
+        if (rawMatPack === null)                                           missing.push({ key: 'raw_materials', text: T_MISSING_RAW_MAT });
         if (laborTime === null || laborRate === null)                      missing.push({ key: 'labor',         text: T_MISSING_LABOR });
         if (ohForecast === null || ohForecast <= 0 || ohPool === null)     missing.push({ key: 'overhead',      text: T_MISSING_OVERHEAD });
 
@@ -1359,6 +1460,86 @@ document.addEventListener('DOMContentLoaded', function () {
         return noDecUnits.includes(String(unit ?? '').toLowerCase())
             ? Math.round(value).toLocaleString('en-US', {maximumFractionDigits: 0})
             : value.toFixed(2);
+    }
+
+    function portionSizeToKg(value, unit) {
+        if (value === null || value === undefined || value <= 0) return null;
+        if (unit === 'g')  return value / 1000.0;
+        if (unit === 'kg') return value;
+        return null;
+    }
+
+    function getRawMaterialPricingFromInputs() {
+        if (!IS_WEIGHT_RECIPE || RAW_MAT_PRICE_PER_KG === null) {
+            return {
+                pricePerKg: null,
+                perPortion: null,
+                perPackaging: null,
+                perCarton: null,
+                portionWeightKg: null,
+            };
+        }
+
+        const portionSize = parseDecimalOrNull(el('suPortionSize').value);
+        const portionUnit = el('suPortionUnit').value;
+        const ppp         = parseIntOrNull(el('suPortionsPerPack').value);
+        const ppc         = parseIntOrNull(el('suPacksPerCarton').value);
+        const portionWeightKg = portionSizeToKg(portionSize, portionUnit);
+        const perPortion = portionWeightKg !== null ? RAW_MAT_PRICE_PER_KG * portionWeightKg : null;
+        const perPackaging = (perPortion !== null && ppp !== null && ppp > 0) ? perPortion * ppp : null;
+        const perCarton = (perPackaging !== null && ppc !== null && ppc > 0) ? perPackaging * ppc : null;
+
+        return {
+            pricePerKg: RAW_MAT_PRICE_PER_KG,
+            perPortion,
+            perPackaging,
+            perCarton,
+            portionWeightKg,
+        };
+    }
+
+    function recomputeRawMaterialPricing() {
+        const unavailable = el('rmPricingUnavailable');
+        const grid = el('rmPricingGrid');
+        const derivedHint = el('rmPricingDerivedHint');
+        const pricing = getRawMaterialPricingFromInputs();
+
+        if (!IS_WEIGHT_RECIPE || pricing.pricePerKg === null) {
+            unavailable.classList.remove('d-none');
+            grid.classList.add('d-none');
+            derivedHint.classList.add('d-none');
+            return pricing;
+        }
+
+        unavailable.classList.add('d-none');
+        grid.classList.remove('d-none');
+        el('rmPricePerKgOut').textContent = pricing.pricePerKg.toFixed(4) + ' ' + CURRENCY;
+
+        if (pricing.perPortion !== null) {
+            el('rmCostPerPortionOut').textContent = pricing.perPortion.toFixed(4) + ' ' + CURRENCY;
+        } else {
+            el('rmCostPerPortionOut').innerHTML = '<span class="text-muted">—</span>';
+        }
+
+        if (pricing.perPackaging !== null) {
+            el('rmCostPerPackagingOut').textContent = pricing.perPackaging.toFixed(4) + ' ' + CURRENCY;
+        } else {
+            el('rmCostPerPackagingOut').innerHTML = '<span class="text-muted">—</span>';
+        }
+
+        if (pricing.perCarton !== null) {
+            el('rmCostPerCartonOut').textContent = pricing.perCarton.toFixed(4) + ' ' + CURRENCY;
+        } else {
+            el('rmCostPerCartonOut').innerHTML = '<span class="text-muted">—</span>';
+        }
+
+        if (pricing.portionWeightKg !== null) {
+            derivedHint.classList.add('d-none');
+        } else {
+            derivedHint.classList.remove('d-none');
+        }
+
+        return pricing;
     }
 
     // -----------------------------------------------------------------------
@@ -1583,7 +1764,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // -----------------------------------------------------------------------
-    //  Tile 3 — Labor (live calc + save)
+    //  Tile 5 — Labor (live calc + save)
     // -----------------------------------------------------------------------
     function parseDecimalOrNull(v) {
         if (v === null || v === undefined) return null;
@@ -1718,18 +1899,64 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             cartonWeightOut.innerHTML = '<span class="text-muted">—</span>';
         }
+
+        // Yield validation: carton total must not exceed total ingredient quantity
+        const yieldWarning     = el('suYieldWarning');
+        const yieldWarningText = el('suYieldWarningText');
+        if (portionSize !== null && portionSize > 0 && ppp !== null && ppp >= 1 && ppc !== null && ppc >= 1) {
+            const cartonTotal = portionSize * ppp * ppc;
+            let ingrTotal = null;
+            let cartonInBaseUnit = cartonTotal;
+            let displayUnit = portionUnit;
+            if (portionUnit === 'g') {
+                ingrTotal = INGR_TOTAL_G;
+            } else if (portionUnit === 'kg') {
+                cartonInBaseUnit = cartonTotal * 1000;
+                ingrTotal = INGR_TOTAL_G;
+                displayUnit = 'g';
+            } else if (portionUnit === 'ml') {
+                ingrTotal = INGR_TOTAL_ML;
+            } else if (portionUnit === 'l') {
+                cartonInBaseUnit = cartonTotal * 1000;
+                ingrTotal = INGR_TOTAL_ML;
+                displayUnit = 'ml';
+            } else if (portionUnit === 'szt') {
+                ingrTotal = INGR_TOTAL_SZT;
+            }
+            if (ingrTotal !== null && ingrTotal > 0 && cartonInBaseUnit > ingrTotal) {
+                const cartonFmt = Number.isInteger(cartonInBaseUnit) ? cartonInBaseUnit : cartonInBaseUnit.toFixed(2);
+                const ingrFmt   = Number.isInteger(ingrTotal)        ? ingrTotal        : ingrTotal.toFixed(2);
+                yieldWarningText.textContent = T_YIELD_EXCEEDS
+                    .replace('{carton}', cartonFmt + ' ' + displayUnit)
+                    .replace('{total}',  ingrFmt   + ' ' + displayUnit);
+                yieldWarning.classList.remove('d-none');
+            } else {
+                yieldWarning.classList.add('d-none');
+            }
+        } else {
+            yieldWarning.classList.add('d-none');
+        }
     }
 
     el('suPortionSize').addEventListener('input',   recomputeSalesUnit);
     el('suPortionUnit').addEventListener('change',  recomputeSalesUnit);
     el('suPortionsPerPack').addEventListener('input', recomputeSalesUnit);
     el('suPacksPerCarton').addEventListener('input',  recomputeSalesUnit);
+    el('suPortionSize').addEventListener('input', recomputeRawMaterialPricing);
+    el('suPortionUnit').addEventListener('change', recomputeRawMaterialPricing);
+    el('suPortionsPerPack').addEventListener('input', recomputeRawMaterialPricing);
+    el('suPacksPerCarton').addEventListener('input', recomputeRawMaterialPricing);
 
     el('btnSaveSalesUnit').addEventListener('click', async () => {
         ['errSuPortionSize','errSuPortionUnit','errSuPortionsPerPack','errSuPacksPerCarton']
             .forEach(id => { el(id).textContent = ''; });
         ['suPortionSize','suPortionUnit','suPortionsPerPack','suPacksPerCarton']
             .forEach(id => el(id).classList.remove('is-invalid'));
+
+        if (!el('suYieldWarning').classList.contains('d-none')) {
+            Swal.fire('{{ translations.error }}', el('suYieldWarningText').textContent, 'error');
+            return;
+        }
 
         const sizeRaw = el('suPortionSize').value.trim();
         const pppRaw  = el('suPortionsPerPack').value.trim();
@@ -1932,7 +2159,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // -----------------------------------------------------------------------
-    //  Tile 6 — Vidanges (live calc + save)
+    //  Tile 8 — Vidanges (live calc + save)
     // -----------------------------------------------------------------------
     function recomputeVidanges() {
         const deposit       = parseDecimalOrNull(el('vidDepositPerCarton').value);
@@ -2002,7 +2229,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     // -----------------------------------------------------------------------
-    //  Tile 7 — P&L summary (live calc + save target_margin)
+    //  Tile 9 — P&L summary (live calc + save target_margin)
     // -----------------------------------------------------------------------
     function recomputePnl() {
         const ppp          = parseIntOrNull(el('suPortionsPerPack').value);
@@ -2012,6 +2239,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const ohForecast   = parseIntOrNull(el('ohForecast').value);
         const ohPool       = parseDecimalOrNull(el('ohPool').value);
         const marginPct    = parseFloat(el('pnlMarginSlider').value) || 0;
+        const rawMaterialPricing = getRawMaterialPricingFromInputs();
 
         el('pnlMarginOut').textContent     = marginPct.toFixed(2) + '%';
         el('pnlMarginContext').textContent = '({{ translations.pnl_margin }} ' + marginPct.toFixed(2) + '%)';
@@ -2019,95 +2247,114 @@ document.addEventListener('DOMContentLoaded', function () {
         // portionsPerCarton is needed for overhead
         const portionsPerCarton = (ppp !== null && ppc !== null) ? ppp * ppc : null;
 
-        // raw materials per packaging
-        const rawMatPack = (RAW_MAT_PER_UNIT !== null && ppp !== null)
-            ? RAW_MAT_PER_UNIT * ppp : null;
+        // raw materials
+        const rawMatPack = rawMaterialPricing.perPackaging;
+        const rawMatCarton = rawMaterialPricing.perCarton;
+        const rawMatPortion = rawMaterialPricing.perPortion;
 
-        // labor per packaging
+        // labor
         const laborPerUnit = (laborTime !== null && laborRate !== null)
             ? (laborTime / 60.0) * laborRate : null;
         const laborPack = (laborPerUnit !== null && ppp !== null)
             ? laborPerUnit * ppp : null;
+        const laborCarton = (laborPack !== null && ppc !== null && ppc > 0)
+            ? laborPack * ppc : null;
+        const laborPortion = (laborCarton !== null && portionsPerCarton !== null && portionsPerCarton > 0)
+            ? laborCarton / portionsPerCarton : null;
 
-        // overhead per packaging
+        // overhead
         let ohPack = null;
         if (ohForecast !== null && ohForecast > 0 && ohPool !== null && portionsPerCarton !== null && portionsPerCarton > 0 && ppp !== null) {
             const ohPerPortion = ohPool / ohForecast / portionsPerCarton;
             ohPack = ohPerPortion * ppp;
         }
+        const ohCarton = (ohPack !== null && ppc !== null && ppc > 0) ? ohPack * ppc : null;
+        const ohPortion = (ohCarton !== null && portionsPerCarton !== null && portionsPerCarton > 0)
+            ? ohCarton / portionsPerCarton : null;
+
+        const packagingCost = parseDecimalOrNull(el('packCost').value);
+        const packagingCarton = (packagingCost !== null && ppc !== null && ppc > 0) ? packagingCost * ppc : null;
+        const packagingPortion = (packagingCarton !== null && portionsPerCarton !== null && portionsPerCarton > 0)
+            ? packagingCarton / portionsPerCarton : null;
 
         // cost totals
         const allCosts = rawMatPack !== null && laborPack !== null && ohPack !== null;
-        const packagingCost = parseDecimalOrNull(el('packCost').value);
         const totalPack = allCosts ? rawMatPack + laborPack + ohPack + (packagingCost ?? 0) : null;
+        const totalCarton = (totalPack !== null && ppc !== null && ppc > 0) ? totalPack * ppc : null;
+        const totalPortion = (totalCarton !== null && portionsPerCarton !== null && portionsPerCarton > 0)
+            ? totalCarton / portionsPerCarton : null;
 
-        // update cost table — per packaging
+        // update cost table — per carton
         const fmt = v => v !== null ? v.toFixed(2) + ' ' + CURRENCY : '—';
-        el('pnlRowMat').textContent      = fmt(rawMatPack);
-        el('pnlRowLabor').textContent    = fmt(laborPack);
-        el('pnlRowOverhead').textContent = fmt(ohPack);
-        el('pnlRowPackaging').textContent = packagingCost !== null ? fmt(packagingCost) : '{{ translations.pnl_packaging_not_set }}';
-        el('pnlRowTotal').textContent   = fmt(totalPack);
+        el('pnlRowMat').textContent      = fmt(rawMatCarton);
+        el('pnlRowLabor').textContent    = fmt(laborCarton);
+        el('pnlRowOverhead').textContent = fmt(ohCarton);
+        el('pnlRowPackaging').textContent = packagingCarton !== null ? fmt(packagingCarton) : '{{ translations.pnl_packaging_not_set }}';
+        el('pnlRowTotal').textContent   = fmt(totalCarton);
 
         // recommended price
         let recPrice = null;
-        if (totalPack !== null) {
+        if (totalCarton !== null) {
             const mf = marginPct / 100.0;
-            recPrice = mf >= 0.9899 ? totalPack * 100.0 : totalPack / (1.0 - mf);
+            recPrice = mf >= 0.9899 ? totalCarton * 100.0 : totalCarton / (1.0 - mf);
         }
-        const perPortionPrice = (recPrice !== null && ppp !== null && ppp > 0)
-            ? recPrice / ppp : null;
+        const perPortionPrice = (recPrice !== null && portionsPerCarton !== null && portionsPerCarton > 0)
+            ? recPrice / portionsPerCarton : null;
 
         el('pnlRecommendedPrice').textContent = fmt(recPrice);
         el('pnlPerPortionPrice').textContent  = fmt(perPortionPrice);
 
-        // vidanges (read live from the vidanges readout — deposit per packaging)
+        // vidanges
         const depPerCart = parseDecimalOrNull(el('vidDepositPerCarton').value);
-        const vidPack = (depPerCart !== null && ppc !== null && ppc > 0) ? depPerCart / ppc : null;
-        el('pnlVidVal').textContent = fmt(vidPack);
+        const vidCarton = depPerCart;
+        const vidPortion = (depPerCart !== null && portionsPerCarton !== null && portionsPerCarton > 0)
+            ? depPerCart / portionsPerCarton : null;
+        el('pnlVidVal').textContent = fmt(vidCarton);
 
         // update cost table — per portion
-        const portFmt = v => (v !== null && ppp !== null && ppp > 0) ? (v / ppp).toFixed(2) + ' ' + CURRENCY : '—';
-        el('pnlPortRowMat').textContent       = portFmt(rawMatPack);
-        el('pnlPortRowLabor').textContent     = portFmt(laborPack);
-        el('pnlPortRowOverhead').textContent  = portFmt(ohPack);
-        el('pnlPortRowPackaging').textContent = packagingCost !== null ? portFmt(packagingCost) : '{{ translations.pnl_packaging_not_set }}';
-        el('pnlPortRowTotal').textContent     = portFmt(totalPack);
+        const portFmt = v => v !== null ? v.toFixed(2) + ' ' + CURRENCY : '—';
+        el('pnlPortRowMat').textContent       = portFmt(rawMatPortion);
+        el('pnlPortRowLabor').textContent     = portFmt(laborPortion);
+        el('pnlPortRowOverhead').textContent  = portFmt(ohPortion);
+        el('pnlPortRowPackaging').textContent = packagingPortion !== null ? portFmt(packagingPortion) : '{{ translations.pnl_packaging_not_set }}';
+        el('pnlPortRowTotal').textContent     = portFmt(totalPortion);
         el('pnlPortRecommendedPrice').textContent = fmt(perPortionPrice);
-        el('pnlPortVidVal').textContent = portFmt(vidPack);
+        el('pnlPortVidVal').textContent = portFmt(vidPortion);
 
         // context info
-        if (ppp !== null) {
-            el('pnlSuInfo').querySelector('strong').textContent = ppp + ' {{ translations.pnl_portions }}';
+        if (portionsPerCarton !== null) {
+            el('pnlSuInfo').querySelector('strong').textContent = portionsPerCarton + ' {{ translations.pnl_portions }}';
         }
 
-        updatePnlIncompleteAlert(ppp, laborTime, laborRate, ohForecast, ohPool);
+        updatePnlIncompleteAlert(rawMatCarton, portionsPerCarton, laborTime, laborRate, ohForecast, ohPool);
     }
 
-    // Hook Tile 8 slider to live compute
+    // Hook Tile 9 slider to live compute
     el('pnlMarginSlider').addEventListener('input', recomputePnl);
 
-    // P&L view toggle: per packaging ↔ per portion
-    el('btnPnlViewPack').addEventListener('click', () => {
-        el('pnlPackView').classList.remove('d-none');
+    // P&L view toggle: per carton ↔ per portion
+    el('btnPnlViewCarton').addEventListener('click', () => {
+        el('pnlCartonView').classList.remove('d-none');
         el('pnlPortionView').classList.add('d-none');
-        el('btnPnlViewPack').classList.replace('btn-outline-primary', 'btn-primary');
+        el('btnPnlViewCarton').classList.replace('btn-outline-primary', 'btn-primary');
         el('btnPnlViewPortion').classList.replace('btn-primary', 'btn-outline-primary');
     });
     el('btnPnlViewPortion').addEventListener('click', () => {
         el('pnlPortionView').classList.remove('d-none');
-        el('pnlPackView').classList.add('d-none');
+        el('pnlCartonView').classList.add('d-none');
         el('btnPnlViewPortion').classList.replace('btn-outline-primary', 'btn-primary');
-        el('btnPnlViewPack').classList.replace('btn-primary', 'btn-outline-primary');
+        el('btnPnlViewCarton').classList.replace('btn-primary', 'btn-outline-primary');
     });
 
     // Also recompute when upstream tiles change
-    ['suPortionsPerPack', 'suPacksPerCarton', 'laborTime', 'laborRate', 'ohForecast', 'ohPool', 'vidDepositPerCarton', 'packCost'].forEach(id => {
+    ['suPortionSize', 'suPortionUnit', 'suPortionsPerPack', 'suPacksPerCarton', 'laborTime', 'laborRate', 'ohForecast', 'ohPool', 'vidDepositPerCarton', 'packCost'].forEach(id => {
         const node = el(id);
-        if (node) node.addEventListener('input', recomputePnl);
+        if (!node) return;
+        node.addEventListener(node.tagName === 'SELECT' ? 'change' : 'input', recomputePnl);
     });
 
     // Initial run — sync alert with current input state on page load
+    recomputeRawMaterialPricing();
     recomputePnl();
 
     el('btnSavePnl').addEventListener('click', async () => {

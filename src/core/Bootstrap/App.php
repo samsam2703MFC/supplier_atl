@@ -42,7 +42,17 @@ class App {
 
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
-                break; // idziemy do fallbacku
+                if (str_starts_with($uri, '/ajax/')) {
+                    header_remove('Set-Cookie');
+                    header('Content-Type: application/json');
+                    http_response_code(404);
+                    echo json_encode(['description' => 'Route not found']);
+                    exit;
+                }
+
+                http_response_code(404);
+                echo '404 Not Found';
+                exit;
             case Dispatcher::METHOD_NOT_ALLOWED:
                 header('HTTP/1.1 405 Method Not Allowed');
                 exit;

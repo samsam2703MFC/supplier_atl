@@ -13,7 +13,6 @@
 
     {% include "page_components/messages.twig" %}
 
-    {# Filters #}
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" action="{{ ROOT }}/orders" class="row g-3 align-items-end">
@@ -21,11 +20,11 @@
                     <label class="form-label">{{ translations.orders_filter_status }}</label>
                     <select name="status" class="form-select">
                         <option value="">{{ translations.orders_status_all }}</option>
-                        <option value="NEW"        {% if filters.status == 'NEW' %}selected{% endif %}>{{ translations.orders_status_new }}</option>
+                        <option value="NEW" {% if filters.status == 'NEW' %}selected{% endif %}>{{ translations.orders_status_new }}</option>
                         <option value="IN_TRANSIT" {% if filters.status == 'IN_TRANSIT' %}selected{% endif %}>{{ translations.orders_status_in_transit }}</option>
-                        <option value="DELIVERED"  {% if filters.status == 'DELIVERED' %}selected{% endif %}>{{ translations.orders_status_delivered }}</option>
-                        <option value="CANCELLED"  {% if filters.status == 'CANCELLED' %}selected{% endif %}>{{ translations.orders_status_cancelled }}</option>
-                        <option value="ARCHIVED"   {% if filters.status == 'ARCHIVED' %}selected{% endif %}>{{ translations.orders_status_archived }}</option>
+                        <option value="DELIVERED" {% if filters.status == 'DELIVERED' %}selected{% endif %}>{{ translations.orders_status_delivered }}</option>
+                        <option value="CANCELLED" {% if filters.status == 'CANCELLED' %}selected{% endif %}>{{ translations.orders_status_cancelled }}</option>
+                        <option value="ARCHIVED" {% if filters.status == 'ARCHIVED' %}selected{% endif %}>{{ translations.orders_status_archived }}</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
@@ -45,51 +44,390 @@
         </div>
     </div>
 
-    {# Orders table #}
     <div class="card">
         <div class="card-body">
             {% if orders is empty %}
                 <p class="text-muted text-center py-4">{{ translations.orders_empty }}</p>
             {% else %}
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th>{{ translations.orders_col_order_key }}</th>
-                                <th>{{ translations.orders_col_shop }}</th>
-                                <th>{{ translations.orders_col_order_date }}</th>
-                                <th>{{ translations.orders_col_expected_date }}</th>
-                                <th class="text-end">{{ translations.orders_col_value_net }}</th>
-                                <th>{{ translations.orders_col_status }}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for order in orders %}
+                <form method="POST" action="{{ ROOT }}/orders/documents/download" id="orders-bulk-form">
+                    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-3">
+                        <div>
+                            <h6 class="mb-1">{{ translations.orders_bulk_heading }}</h6>
+                            <p class="text-muted mb-0">{{ translations.orders_bulk_subtitle }}</p>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-light text-dark" id="selected-orders-count">0</span>
+                            <button type="submit" class="btn btn-outline-primary" id="download-selected-btn" disabled>
+                                <i class="bi bi-file-earmark-pdf me-1"></i>{{ translations.orders_bulk_download }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
                                 <tr>
-                                    <td><code>{{ order.order_key }}</code></td>
-                                    <td>{{ order.shop_name ?? '—' }}</td>
-                                    <td>{{ order.order_date ? order.order_date|date('d.m.Y') : '—' }}</td>
-                                    <td>{{ order.expected_date ? order.expected_date|date('d.m.Y') : '—' }}</td>
-                                    <td class="text-end">{{ order.approximate_value_net is not null ? order.approximate_value_net|number_format(2, '.', ' ') : '—' }}</td>
-                                    <td>
-                                        {% set statusMap = {
-                                            'NEW':        'primary',
-                                            'IN_TRANSIT': 'info',
-                                            'DELIVERED':  'success',
-                                            'CANCELLED':  'danger',
-                                            'ARCHIVED':   'secondary'
-                                        } %}
-                                        {% set badgeColor = statusMap[order.status] ?? 'secondary' %}
-                                        {% set statusLabel = translations['orders_status_' ~ order.status|lower|replace({'-': '_', ' ': '_'})] ?? order.status %}
-                                        <span class="badge bg-{{ badgeColor }}">{{ statusLabel }}</span>
-                                    </td>
+                                    <th class="text-center" style="width: 48px;">
+                                        <input class="form-check-input" type="checkbox" id="select-all-orders" aria-label="{{ translations.orders_select_all }}">
+                                    </th>
+                                    <th>{{ translations.orders_col_order_key }}</th>
+                                    <th>{{ translations.orders_col_shop }}</th>
+                                    <th>{{ translations.orders_col_order_date }}</th>
+                                    <th>{{ translations.orders_col_expected_date }}</th>
+                                    <th class="text-end">{{ translations.orders_col_value_net }}</th>
+                                    <th>{{ translations.orders_col_status }}</th>
+                                    <th class="text-end">{{ translations.orders_col_actions }}</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                    {% set statusMap = {
+                                        'NEW': 'primary',
+                                        'IN_TRANSIT': 'info',
+                                        'DELIVERED': 'success',
+                                        'CANCELLED': 'danger',
+                                        'ARCHIVED': 'secondary'
+                                    } %}
+                                    {% set badgeColor = statusMap[order.status] ?? 'secondary' %}
+                                    {% set statusLabel = translations['orders_status_' ~ order.status|lower|replace({'-': '_', ' ': '_'})] ?? order.status %}
+                                    <tr>
+                                        <td class="text-center">
+                                            <input class="form-check-input order-checkbox" type="checkbox" name="order_ids[]" value="{{ order.id }}" aria-label="{{ translations.orders_select_one }} {{ order.order_key }}">
+                                        </td>
+                                        <td><code>{{ order.order_key }}</code></td>
+                                        <td>{{ order.shop_name ?? '—' }}</td>
+                                        <td>{{ order.order_date ? order.order_date|date('d.m.Y') : '—' }}</td>
+                                        <td>{{ order.expected_date ? order.expected_date|date('d.m.Y') : '—' }}</td>
+                                        <td class="text-end">{{ order.approximate_value_net is not null ? order.approximate_value_net|number_format(2, '.', ' ') : '—' }}</td>
+                                        <td><span class="badge bg-{{ badgeColor }}">{{ statusLabel }}</span></td>
+                                        <td>
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <a href="{{ ROOT }}/orders/{{ order.id }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-layout-text-window-reverse me-1"></i>{{ translations.orders_action_details }}
+                                                </a>
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-secondary js-order-details"
+                                                    data-order-id="{{ order.id }}"
+                                                    data-order-key="{{ order.order_key }}"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#orderDetailsModal">
+                                                    <i class="bi bi-eye me-1"></i>{{ translations.orders_action_preview }}
+                                                </button>
+                                                <a href="{{ ROOT }}/orders/{{ order.id }}/document" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-download me-1"></i>{{ translations.orders_action_pdf }}
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </form>
             {% endif %}
         </div>
     </div>
 
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h5 class="modal-title">{{ translations.orders_modal_title }}</h5>
+                        <p class="text-muted mb-0 small" id="order-details-subtitle"></p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="order-details-body">
+                    <div class="text-muted">{{ translations.orders_details_loading }}</div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <a href="#" class="btn btn-outline-primary d-none" id="order-details-pdf-link">
+                        <i class="bi bi-download me-1"></i>{{ translations.orders_action_pdf }}
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ translations.orders_action_close }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (() => {
+        const root = {{ ROOT|json_encode|raw }};
+        const modalBody = document.getElementById('order-details-body');
+        const modalSubtitle = document.getElementById('order-details-subtitle');
+        const pdfLink = document.getElementById('order-details-pdf-link');
+        const detailButtons = document.querySelectorAll('.js-order-details');
+        const selectAll = document.getElementById('select-all-orders');
+        const orderCheckboxes = Array.from(document.querySelectorAll('.order-checkbox'));
+        const downloadSelectedBtn = document.getElementById('download-selected-btn');
+        const selectedOrdersCount = document.getElementById('selected-orders-count');
+
+        const translations = {
+            loading: {{ translations.orders_details_loading|json_encode|raw }},
+            error: {{ translations.orders_details_error|json_encode|raw }},
+            shop: {{ translations.orders_details_shop|json_encode|raw }},
+            supplier: {{ translations.orders_details_supplier|json_encode|raw }},
+            expectedDate: {{ translations.orders_details_expected_date|json_encode|raw }},
+            deliveredOn: {{ translations.orders_details_delivered_on|json_encode|raw }},
+            valueNet: {{ translations.orders_col_value_net|json_encode|raw }},
+            valueWithFees: {{ translations.orders_details_total_with_fees|json_encode|raw }},
+            batch: {{ translations.orders_details_batch|json_encode|raw }},
+            products: {{ translations.orders_details_products|json_encode|raw }},
+            fees: {{ translations.orders_details_fees|json_encode|raw }},
+            noProducts: {{ translations.orders_details_no_products|json_encode|raw }},
+            noFees: {{ translations.orders_details_no_fees|json_encode|raw }},
+            relatedOrders: {{ translations.orders_details_related_orders|json_encode|raw }},
+            unknown: {{ translations.orders_details_unknown|json_encode|raw }},
+            sku: {{ translations.orders_details_col_sku|json_encode|raw }},
+            name: {{ translations.orders_details_col_name|json_encode|raw }},
+            qty: {{ translations.orders_details_col_qty|json_encode|raw }},
+            unitPrice: {{ translations.orders_details_col_price|json_encode|raw }},
+            feeLabel: {{ translations.orders_details_col_fee|json_encode|raw }},
+            feeAmount: {{ translations.orders_details_col_amount|json_encode|raw }}
+        };
+
+        const statusMap = {
+            NEW: 'primary',
+            IN_TRANSIT: 'info',
+            DELIVERED: 'success',
+            CANCELLED: 'danger',
+            ARCHIVED: 'secondary'
+        };
+
+        const statusLabels = {
+            NEW: {{ translations.orders_status_new|json_encode|raw }},
+            IN_TRANSIT: {{ translations.orders_status_in_transit|json_encode|raw }},
+            DELIVERED: {{ translations.orders_status_delivered|json_encode|raw }},
+            CANCELLED: {{ translations.orders_status_cancelled|json_encode|raw }},
+            ARCHIVED: {{ translations.orders_status_archived|json_encode|raw }}
+        };
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return '—';
+            }
+
+            const raw = String(value).split(' ')[0].split('T')[0];
+            const parts = raw.split('-');
+            if (parts.length !== 3) {
+                return raw;
+            }
+
+            return `${parts[2]}.${parts[1]}.${parts[0]}`;
+        }
+
+        function formatNumber(value, decimals = 2) {
+            const number = Number(value ?? 0);
+            if (Number.isNaN(number)) {
+                return '—';
+            }
+
+            return number.toLocaleString(undefined, {
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals
+            });
+        }
+
+        function renderBadge(status) {
+            const color = statusMap[status] ?? 'secondary';
+            const label = statusLabels[status] ?? status ?? translations.unknown;
+            return `<span class="badge bg-${color}">${escapeHtml(label)}</span>`;
+        }
+
+        function renderProducts(products) {
+            if (!Array.isArray(products) || products.length === 0) {
+                return `<p class="text-muted mb-0">${escapeHtml(translations.noProducts)}</p>`;
+            }
+
+            const rows = products.map((product) => `
+                <tr>
+                    <td>${escapeHtml(product.supplier_sku ?? '—')}</td>
+                    <td>${escapeHtml(product.material_name ?? '—')}</td>
+                    <td class="text-center">${escapeHtml(product.pack_quantity ?? '—')}</td>
+                    <td class="text-end">${formatNumber(product.pack_price_net)}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>${escapeHtml(translations.sku)}</th>
+                                <th>${escapeHtml(translations.name)}</th>
+                                <th class="text-center">${escapeHtml(translations.qty)}</th>
+                                <th class="text-end">${escapeHtml(translations.unitPrice)}</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderFees(fees) {
+            if (!Array.isArray(fees) || fees.length === 0) {
+                return `<p class="text-muted mb-0">${escapeHtml(translations.noFees)}</p>`;
+            }
+
+            const rows = fees.map((fee) => `
+                <tr>
+                    <td>${escapeHtml(fee.label || translations.unknown)}</td>
+                    <td class="text-end">${formatNumber(fee.fee_amount)} ${escapeHtml(fee.currency_code ?? 'EUR')}</td>
+                </tr>
+            `).join('');
+
+            return `
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>${escapeHtml(translations.feeLabel)}</th>
+                                <th class="text-end">${escapeHtml(translations.feeAmount)}</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderRelatedOrders(orders) {
+            if (!Array.isArray(orders) || orders.length === 0) {
+                return '';
+            }
+
+            const items = orders.map((order) => `
+                <li>
+                    <code>${escapeHtml(order.order_key ?? '')}</code>
+                    ${order.batch_index ? ` <span class="text-muted">(#${escapeHtml(order.batch_index)})</span>` : ''}
+                </li>
+            `).join('');
+
+            return `
+                <div class="mt-4">
+                    <h6>${escapeHtml(translations.relatedOrders)}</h6>
+                    <ul class="mb-0 ps-3">${items}</ul>
+                </div>
+            `;
+        }
+
+        function renderOrderDetails(order) {
+            const batchText = order.order_batch_key
+                ? `${escapeHtml(order.order_batch_key)}${order.batch_index ? ` / #${escapeHtml(order.batch_index)}` : ''}`
+                : '—';
+
+            return `
+                <div class="row g-4">
+                    <div class="col-12 col-lg-6">
+                        <div class="border rounded p-3 h-100">
+                            <div class="d-flex justify-content-between align-items-start mb-3 gap-3">
+                                <div>
+                                    <h6 class="mb-1"><code>${escapeHtml(order.order_key ?? '')}</code></h6>
+                                    <div class="text-muted small">${formatDate(order.order_date)}</div>
+                                </div>
+                                <div>${renderBadge(order.status)}</div>
+                            </div>
+                            <dl class="row mb-0 small">
+                                <dt class="col-sm-4">${escapeHtml(translations.shop)}</dt>
+                                <dd class="col-sm-8">${escapeHtml(order.shop_name ?? '—')}</dd>
+                                <dt class="col-sm-4">${escapeHtml(translations.supplier)}</dt>
+                                <dd class="col-sm-8">${escapeHtml(order.supplier_name ?? '—')}</dd>
+                                <dt class="col-sm-4">${escapeHtml(translations.expectedDate)}</dt>
+                                <dd class="col-sm-8">${formatDate(order.expected_date)}</dd>
+                                <dt class="col-sm-4">${escapeHtml(translations.deliveredOn)}</dt>
+                                <dd class="col-sm-8">${formatDate(order.delivered_on)}</dd>
+                                <dt class="col-sm-4">${escapeHtml(translations.valueNet)}</dt>
+                                <dd class="col-sm-8">${formatNumber(order.approximate_value_net)}</dd>
+                                <dt class="col-sm-4">${escapeHtml(translations.valueWithFees)}</dt>
+                                <dd class="col-sm-8">${formatNumber(order.total_with_fees ?? order.approximate_value_net)}</dd>
+                                <dt class="col-sm-4">${escapeHtml(translations.batch)}</dt>
+                                <dd class="col-sm-8">${batchText}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-6">
+                        <div class="border rounded p-3 h-100">
+                            <h6>${escapeHtml(translations.fees)}</h6>
+                            ${renderFees(order.fees)}
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="border rounded p-3">
+                            <h6>${escapeHtml(translations.products)}</h6>
+                            ${renderProducts(order.products)}
+                            ${renderRelatedOrders(order.related_orders)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadOrderDetails(orderId, orderKey) {
+            modalSubtitle.textContent = orderKey || '';
+            modalBody.innerHTML = `<div class="text-muted">${escapeHtml(translations.loading)}</div>`;
+            pdfLink.classList.add('d-none');
+            pdfLink.setAttribute('href', '#');
+
+            try {
+                const response = await api(`/ajax/orders/${orderId}`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                modalBody.innerHTML = renderOrderDetails(response);
+                pdfLink.setAttribute('href', `${root}/orders/${orderId}/document`);
+                pdfLink.classList.remove('d-none');
+            } catch (error) {
+                modalBody.innerHTML = `<div class="alert alert-danger mb-0">${escapeHtml(translations.error)}</div>`;
+            }
+        }
+
+        function updateBulkSelectionState() {
+            const selectedCount = orderCheckboxes.filter((checkbox) => checkbox.checked).length;
+            selectedOrdersCount.textContent = String(selectedCount);
+            downloadSelectedBtn.disabled = selectedCount === 0;
+
+            if (selectAll) {
+                selectAll.checked = selectedCount > 0 && selectedCount === orderCheckboxes.length;
+                selectAll.indeterminate = selectedCount > 0 && selectedCount < orderCheckboxes.length;
+            }
+        }
+
+        detailButtons.forEach((button) => {
+            button.addEventListener('click', () => {
+                loadOrderDetails(button.dataset.orderId, button.dataset.orderKey);
+            });
+        });
+
+        if (selectAll) {
+            selectAll.addEventListener('change', () => {
+                orderCheckboxes.forEach((checkbox) => {
+                    checkbox.checked = selectAll.checked;
+                });
+                updateBulkSelectionState();
+            });
+        }
+
+        orderCheckboxes.forEach((checkbox) => {
+            checkbox.addEventListener('change', updateBulkSelectionState);
+        });
+
+        updateBulkSelectionState();
+    })();
+</script>
 {% endblock %}

@@ -112,6 +112,7 @@ class ApiClient
 
         curl_close($ch);
 
+
         $response['data'] = [];
         $response['success'] = false;
         $response['error'] = [];
@@ -122,13 +123,15 @@ class ApiClient
             $response['data'] = $body;
             $response['success'] = true;
 
-            if (preg_match('/Content-Disposition:.*filename="([^"]+)"/', $header, $matches)) {
+            if (preg_match('/content-disposition:.*filename="([^"]+)"/', $header, $matches)) {
                 $response['filename'] = $matches[1];
             }
 
         } else {
             $response['error'] = $response_code;
         }
+
+
         return $response;
     }
 
@@ -172,22 +175,26 @@ class ApiClient
 
         curl_close($ch);
 
+        $decoded_data = json_decode($result, true);
+        if (!is_array($decoded_data)) {
+            $decoded_data = [];
+        }
+
         $response['message'] = "";
         $response['inserted_id'] = -1;
         $response['success'] = false;
         $response['error'] = [];
         $response['code'] = $response_code;
+        $response['data'] = $decoded_data;
 
         if($response_code == 200 || $response_code == 201 || $response_code == 204)
         {
-            $decoded_data = json_decode($result, true);
             $response['message'] = $decoded_data['message'] ?? null;
             $response['inserted_id'] = $decoded_data['inserted_id'] ?? null;
             $response['success'] = true;
 
         } else {
-            $decoded_data = json_decode($result, true);
-            $response['description'] = $decoded_data['description'] ?? null;
+            $response['description'] = $decoded_data['description'] ?? $decoded_data['message'] ?? null;
         }
 
 
@@ -270,22 +277,26 @@ class ApiClient
         $result = curl_exec($ch);
 
         $response_code = curl_getinfo($ch)['http_code'];
+        $decoded_data = json_decode($result, true);
+        if (!is_array($decoded_data)) {
+            $decoded_data = [];
+        }
+
         $response['message'] = "";
         $response['inserted_id'] = -1;
         $response['success'] = false;
         $response['error'] = [];
         $response['code'] = $response_code;
+        $response['data'] = $decoded_data;
 
         if($response_code == 200 || $response_code == 201 || $response_code == 204)
         {
-            $decoded_data = json_decode($result, true);
             $response['message'] = $decoded_data['message'] ?? null;
             $response['inserted_id'] = $decoded_data['inserted_id'] ?? null;
             $response['success'] = true;
 
         } else {
-            $decoded_data = json_decode($result, true);
-            $response['description'] = $decoded_data['description'] ?? null;
+            $response['description'] = $decoded_data['description'] ?? $decoded_data['message'] ?? null;
         }
 
 

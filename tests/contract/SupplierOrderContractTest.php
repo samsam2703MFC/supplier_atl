@@ -96,7 +96,7 @@ $repository->updateTransport(7, 11, [
     'delivery_place' => 'Paris',
     'delivery_country' => 'FR',
 ]);
-$repository->updateCarrier(7, 12, ['name' => 'Carrier']);
+$repository->updateCarrier(7, 12, ['name' => 'Carrier', 'driver_name' => 'Jan Kowalski', 'vehicle_registration_number' => 'PO 12345']);
 $repository->deleteCarrier(7, 12);
 $repository->finalizationCheck(7, 11, ['version' => 3]);
 $repository->generateDifferencesDocument(7, 11);
@@ -112,6 +112,9 @@ assertSameContract('EXTERNAL', $client->calls[3]['payload']['mode'], 'EXTERNAL t
 assertSameContract(12, $client->calls[3]['payload']['carrier_id'], 'EXTERNAL carrier mismatch');
 assertSameContract('PATCH', $client->calls[4]['method'], 'carrier update method mismatch');
 assertSameContract('/material-suppliers/7/carriers/12', $client->calls[4]['endpoint'], 'carrier update endpoint mismatch');
+assertSameContract(false, array_key_exists('code', $client->calls[4]['payload']), 'carrier payload still contains code');
+assertSameContract('Jan Kowalski', $client->calls[4]['payload']['driver_name'], 'carrier driver payload mismatch');
+assertSameContract('PO 12345', $client->calls[4]['payload']['vehicle_registration_number'], 'carrier vehicle payload mismatch');
 assertSameContract('DELETE', $client->calls[5]['method'], 'carrier delete method mismatch');
 assertSameContract('/material-suppliers/7/carriers/12', $client->calls[5]['endpoint'], 'carrier delete endpoint mismatch');
 assertSameContract(['version' => 3], $client->calls[6]['payload'], 'finalization-check payload mismatch');
@@ -121,6 +124,29 @@ $view = file_get_contents(__DIR__ . '/../../src/app/Views/orders/show.twig');
 assertSameContract(false, str_contains($view, 'documents/differences'), 'view still references plural differences endpoint');
 assertSameContract(false, str_contains($view, '/deactivate'), 'view still references carrier deactivate alias');
 assertSameContract(false, str_contains($view, "method = carrier ? 'PUT'"), 'view still updates carriers with PUT');
+assertSameContract(false, str_contains($view, 'carrier-code'), 'view still renders carrier-code field');
+assertSameContract(false, str_contains($view, 'carrier.code'), 'view still reads carrier.code');
+assertSameContract(true, str_contains($view, 'carrier-driver-name'), 'view does not render carrier driver field');
+assertSameContract(true, str_contains($view, 'carrier-vehicle-registration-number'), 'view does not render carrier vehicle registration field');
+assertSameContract(false, str_contains($view, 'persistTransport(false)'), 'view still persists transport automatically before finalization');
+assertSameContract(true, str_contains($view, 'normalizeApiList(resp)'), 'view does not normalize carrier list response');
+assertSameContract(true, str_contains($view, 'updateTransportVisibility(false)'), 'view does not load initial transport carriers silently');
+assertSameContract(true, str_contains($view, 'updateTransportVisibility(true)'), 'view does not surface carrier loading errors after user transport changes');
+assertSameContract(false, str_contains($view, 'catch(() => {})'), 'view still swallows carrier loading errors');
+assertSameContract(true, str_contains($view, 'order-detail-supplier-value'), 'view does not expose supplier display for carrier selection');
+assertSameContract(true, str_contains($view, 'updateOrderValueNet'), 'view does not update net value live');
+assertSameContract(true, str_contains($view, 'carrierSavedTitle'), 'view does not show carrier save success message');
+assertSameContract(true, str_contains($view, 'dripicons-trash'), 'view does not use trash icon for carrier deactivate');
+assertSameContract(true, str_contains($view, '<thead><tr><th'), 'view does not render carrier table headers');
 assertSameContract(true, substr_count($view, 'window.location.reload()') >= 8, 'view does not refetch after expected mutations');
+
+$routes = file_get_contents(__DIR__ . '/../../src/core/Bootstrap/Routes/OrdersRoutes.php');
+assertSameContract(false, str_contains($routes, 'documents/differences'), 'routes still expose plural differences endpoint');
+assertSameContract(false, str_contains($routes, '/deactivate'), 'routes still expose carrier deactivate alias');
+assertSameContract(false, str_contains($routes, "addRoute('PUT', '/ajax/orders/carriers"), 'routes still update carriers with PUT');
+assertSameContract(true, str_contains($routes, "addRoute('PATCH', '/ajax/orders/carriers"), 'routes do not expose PATCH carrier update');
+assertSameContract(true, str_contains($routes, "addRoute('DELETE', '/ajax/orders/carriers"), 'routes do not expose DELETE carrier deactivate');
+assertSameContract(true, str_contains($routes, '/documents/difference'), 'routes do not expose singular difference endpoint');
+assertSameContract(true, str_contains(file_get_contents(__DIR__ . '/../../src/app/Repositories/Me/SupplierOrderRepository.php'), 'include_inactive=1'), 'carrier list proxy does not request inactive records');
 
 echo "Supplier order contract tests passed.\n";

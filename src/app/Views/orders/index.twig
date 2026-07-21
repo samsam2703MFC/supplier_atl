@@ -81,15 +81,16 @@
                             </thead>
                             <tbody>
                                 {% for order in orders %}
+                                    {% set fulfillmentStatus = order.supplier_fulfillment_status ?? order.fulfillment_status ?? order.status %}
                                     {% set statusMap = {
                                         'NEW': 'primary',
-                                        'IN_TRANSIT': 'info',
-                                        'DELIVERED': 'success',
-                                        'CANCELLED': 'danger',
-                                        'ARCHIVED': 'secondary'
+                                        'ACCEPTED': 'info',
+                                        'FINALIZED': 'success',
+                                        'REJECTED': 'danger',
+                                        'CANCELLED': 'danger'
                                     } %}
-                                    {% set badgeColor = statusMap[order.status] ?? 'secondary' %}
-                                    {% set statusLabel = translations['orders_status_' ~ order.status|lower|replace({'-': '_', ' ': '_'})] ?? order.status %}
+                                    {% set badgeColor = statusMap[fulfillmentStatus] ?? 'secondary' %}
+                                    {% set statusLabel = translations['orders_fulfillment_status_' ~ fulfillmentStatus|lower|replace({'-': '_', ' ': '_'})] ?? fulfillmentStatus %}
                                     <tr>
                                         <td class="text-center">
                                             <input class="form-check-input order-checkbox" type="checkbox" name="order_ids[]" value="{{ order.id }}" aria-label="{{ translations.orders_select_one }} {{ order.order_key }}">
@@ -192,18 +193,18 @@
 
         const statusMap = {
             NEW: 'primary',
-            IN_TRANSIT: 'info',
-            DELIVERED: 'success',
-            CANCELLED: 'danger',
-            ARCHIVED: 'secondary'
+            ACCEPTED: 'info',
+            FINALIZED: 'success',
+            REJECTED: 'danger',
+            CANCELLED: 'danger'
         };
 
         const statusLabels = {
-            NEW: {{ translations.orders_status_new|json_encode|raw }},
-            IN_TRANSIT: {{ translations.orders_status_in_transit|json_encode|raw }},
-            DELIVERED: {{ translations.orders_status_delivered|json_encode|raw }},
-            CANCELLED: {{ translations.orders_status_cancelled|json_encode|raw }},
-            ARCHIVED: {{ translations.orders_status_archived|json_encode|raw }}
+            NEW: {{ translations.orders_fulfillment_status_new|json_encode|raw }},
+            ACCEPTED: {{ translations.orders_fulfillment_status_accepted|json_encode|raw }},
+            FINALIZED: {{ translations.orders_fulfillment_status_finalized|json_encode|raw }},
+            REJECTED: {{ translations.orders_fulfillment_status_rejected|json_encode|raw }},
+            CANCELLED: {{ translations.orders_fulfillment_status_cancelled|json_encode|raw }}
         };
 
         function escapeHtml(value) {
@@ -339,7 +340,7 @@
                                     <h6 class="mb-1"><code>${escapeHtml(order.order_key ?? '')}</code></h6>
                                     <div class="text-muted small">${formatDate(order.order_date)}</div>
                                 </div>
-                                <div>${renderBadge(order.status)}</div>
+                                <div>${renderBadge(order.supplier_fulfillment_status ?? order.fulfillment_status ?? order.status)}</div>
                             </div>
                             <dl class="row mb-0 small">
                                 <dt class="col-sm-4">${escapeHtml(translations.shop)}</dt>

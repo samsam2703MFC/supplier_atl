@@ -64,14 +64,14 @@ return function (RouteCollector $r) {
         'method'     => 'createCarrier',
     ]);
 
-    $r->addRoute('PUT', '/ajax/orders/carriers/{carrierId:\d+}', [
+    $r->addRoute('PATCH', '/ajax/orders/carriers/{carrierId:\d+}', [
         'controller' => \App\Supplier\app\Http\Controllers\Orders\OrdersController::class,
         'method'     => 'updateCarrier',
     ]);
 
-    $r->addRoute('POST', '/ajax/orders/carriers/{carrierId:\d+}/deactivate', [
+    $r->addRoute('DELETE', '/ajax/orders/carriers/{carrierId:\d+}', [
         'controller' => \App\Supplier\app\Http\Controllers\Orders\OrdersController::class,
-        'method'     => 'deactivateCarrier',
+        'method'     => 'deleteCarrier',
     ]);
 
     $r->addRoute('GET', '/ajax/orders/{orderId:\d+}/documents', [
@@ -84,7 +84,7 @@ return function (RouteCollector $r) {
         'method'     => 'cmrStatus',
     ]);
 
-    $r->addRoute('POST', '/ajax/orders/{orderId:\d+}/documents/differences', [
+    $r->addRoute('POST', '/ajax/orders/{orderId:\d+}/documents/difference', [
         'controller' => \App\Supplier\app\Http\Controllers\Orders\OrdersController::class,
         'method'     => 'generateDifferencesDocument',
     ]);

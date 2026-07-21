@@ -67,7 +67,7 @@ class SupplierOrderRepository
 
     public function getCarriers(int $supplierId): array
     {
-        return $this->apiClient->get("/material-suppliers/{$supplierId}/carriers");
+        return $this->apiClient->get("/material-suppliers/{$supplierId}/carriers?include_inactive=1");
     }
 
     public function createCarrier(int $supplierId, array $payload): array

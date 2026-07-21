@@ -252,7 +252,7 @@ class ApiClient
         curl_setopt($ch, CURLOPT_HTTPHEADER, array_merge($headers, ['Content-Type: application/json']));
 
         $result = curl_exec($ch);
-
+show($result); exit();
         $response_code = curl_getinfo($ch)['http_code'];
         $response['message'] = "";
         $response['inserted_id'] = -1;

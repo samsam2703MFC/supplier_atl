@@ -7,17 +7,19 @@
 # next request — no build or cache-clear step is required.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
-#   DEPLOY_HOST  server host/IP        e.g. 85.180.206.46
-#   DEPLOY_USER  SSH user              e.g. deploy
-#   DEPLOY_KEY   private SSH key       full PEM contents of a key whose public
-#                                      half is in the server user's authorized_keys
-#   DEPLOY_PATH  app root on disk      filesystem path served at /supplier/
-#                                      (optional; defaults to /var/www/supplier)
-#   DEPLOY_PORT  SSH port              (optional; defaults to 22)
+#   DEPLOY_HOST     server host/IP        e.g. 185.180.206.46
+#   DEPLOY_USER     SSH user              e.g. deploy
+#   DEPLOY_KEY_B64  private SSH key, base64-encoded — ONE line, no newlines.
+#                   Produce it with:  base64 -w0 deploy_key
+#                   (the private key whose public half is in the server
+#                    user's authorized_keys). Base64 avoids the newline
+#                    mangling that breaks a pasted multi-line key.
+#   DEPLOY_PATH     app root on disk      filesystem path served at /supplier/
+#                                         (optional; defaults to /var/www/supplier)
+#   DEPLOY_PORT     SSH port              (optional; defaults to 22)
 #
-# Server prerequisites (one-time): the app directory is a git clone of this
-# repo with `origin` pointing at it and credentials (deploy key or the repo is
-# accessible) allowing `git fetch`.
+# Server prerequisite (one-time): the app directory is a git clone of this
+# repo with `origin` set and credentials allowing `git fetch`.
 
 name: Deploy to server
 
@@ -26,7 +28,6 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
-# Never run two deploys at once; let an in-flight deploy finish.
 concurrency:
   group: deploy-production
   cancel-in-progress: false
@@ -35,19 +36,40 @@ jobs:
   deploy:
     name: Deploy /supplier
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
+      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/var/www/supplier' }}
+      DEPLOY_KEY_B64: ${{ secrets.DEPLOY_KEY_B64 }}
     steps:
       - name: Update server to latest master
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
-          script_stop: true
-          script: |
-            set -euo pipefail
-            cd "${{ secrets.DEPLOY_PATH || '/var/www/supplier' }}"
-            echo "Before: $(git rev-parse --short HEAD)"
-            git fetch origin master --prune
-            git reset --hard origin/master
-            echo "After:  $(git rev-parse --short HEAD)"
+        run: |
+          set -euo pipefail
+
+          if [ -z "${DEPLOY_KEY_B64:-}" ]; then
+            echo "::error::DEPLOY_KEY_B64 secret is empty. Set it with: base64 -w0 deploy_key"
+            exit 1
+          fi
+
+          # Decode the base64 key to a file (no newline pitfalls).
+          mkdir -p ~/.ssh
+          printf '%s' "$DEPLOY_KEY_B64" | base64 -d > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          # Fail early with a clear message if the decoded content isn't a key.
+          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
+            echo "::error::Decoded DEPLOY_KEY_B64 is not a valid OpenSSH private key. Re-run: base64 -w0 deploy_key (on the PRIVATE key file, not the .pub)."
+            exit 1
+          fi
+
+          # Trust the host key on first contact.
+          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" \
+              -o IdentitiesOnly=yes \
+              -o BatchMode=yes \
+              -o ConnectTimeout=20 \
+              -o StrictHostKeyChecking=accept-new \
+              "$DEPLOY_USER@$DEPLOY_HOST" \
+              "set -eu; cd \"$DEPLOY_PATH\"; echo \"Before: \$(git rev-parse --short HEAD)\"; git fetch origin master --prune; git reset --hard origin/master; echo \"After:  \$(git rev-parse --short HEAD)\""

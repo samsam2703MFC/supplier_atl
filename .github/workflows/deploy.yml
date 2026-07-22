@@ -63,6 +63,11 @@ jobs:
 
             cd "$APP_DIR"
             echo "App dir: $APP_DIR"
+
+            # The SSH user may differ from the checkout's owner; without this
+            # git aborts every command with "detected dubious ownership".
+            git config --global --add safe.directory "$APP_DIR"
+
             echo "Before: $(git rev-parse --short HEAD)"
             git fetch origin master --prune
             git reset --hard origin/master

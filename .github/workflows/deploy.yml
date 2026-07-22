@@ -9,11 +9,11 @@
 # Required repository secrets (Settings → Secrets and variables → Actions):
 #   DEPLOY_HOST     server host/IP        e.g. 185.180.206.46
 #   DEPLOY_USER     SSH user              e.g. deploy
-#   DEPLOY_KEY_B64  private SSH key, base64-encoded — ONE line, no newlines.
-#                   Produce it with:  base64 -w0 deploy_key
-#                   (the private key whose public half is in the server
-#                    user's authorized_keys). Base64 avoids the newline
-#                    mangling that breaks a pasted multi-line key.
+#   DEPLOY_KEY_B64  the SSH PRIVATE key, in EITHER form:
+#                     • the raw key file, pasted whole (BEGIN/END lines incl.), OR
+#                     • its base64, one line:  base64 -w0 deploy_key
+#                       (macOS:  base64 -i deploy_key | tr -d '\n')
+#                   (its public half must be in the server user's authorized_keys)
 #   DEPLOY_PATH     app root on disk      filesystem path served at /supplier/
 #                                         (optional; defaults to /var/www/supplier)
 #   DEPLOY_PORT     SSH port              (optional; defaults to 22)
@@ -48,18 +48,24 @@ jobs:
           set -euo pipefail
 
           if [ -z "${DEPLOY_KEY_B64:-}" ]; then
-            echo "::error::DEPLOY_KEY_B64 secret is empty. Set it with: base64 -w0 deploy_key"
+            echo "::error::DEPLOY_KEY_B64 secret is empty."
             exit 1
           fi
 
-          # Decode the base64 key to a file (no newline pitfalls).
           mkdir -p ~/.ssh
-          printf '%s' "$DEPLOY_KEY_B64" | base64 -d > ~/.ssh/deploy_key
+          chmod 700 ~/.ssh
+
+          # Accept EITHER a raw PEM private key pasted whole, OR a base64 blob.
+          if printf '%s' "$DEPLOY_KEY_B64" | grep -q 'PRIVATE KEY'; then
+            printf '%s\n' "$DEPLOY_KEY_B64" > ~/.ssh/deploy_key
+          else
+            printf '%s' "$DEPLOY_KEY_B64" | tr -d '[:space:]' | base64 -d > ~/.ssh/deploy_key 2>/dev/null || true
+          fi
           chmod 600 ~/.ssh/deploy_key
 
-          # Fail early with a clear message if the decoded content isn't a key.
+          # Fail early with a clear message if we couldn't get a usable key.
           if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
-            echo "::error::Decoded DEPLOY_KEY_B64 is not a valid OpenSSH private key. Re-run: base64 -w0 deploy_key (on the PRIVATE key file, not the .pub)."
+            echo "::error::DEPLOY_KEY_B64 is not a usable SSH private key. Paste EITHER the raw private key file (BEGIN/END lines included) OR its base64 (base64 -w0 deploy_key)."
             exit 1
           fi
 

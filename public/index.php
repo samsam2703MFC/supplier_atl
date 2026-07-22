@@ -7,9 +7,11 @@ use Dotenv\Dotenv;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// Załaduj .env
-//$dotenv = Dotenv::createImmutable(__DIR__ . '/../../', null, false);
-//$dotenv->load();
+// Załaduj .env z katalogu głównego aplikacji (o poziom wyżej niż public/).
+// safeLoad(): nie rzuca wyjątku, gdy pliku .env brak (np. gdy zmienne są
+// ustawione bezpośrednio w środowisku serwera).
+$dotenv = Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->safeLoad();
 
 require __DIR__ . '/../config/app.php';
 require __DIR__ . '/../src/core/Support/functions.php';

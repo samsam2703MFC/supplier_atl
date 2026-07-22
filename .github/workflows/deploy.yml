@@ -1,18 +1,24 @@
 name: Deploy to server (SSH / rsync)
 
 # Mirrors back_office_ws_franchisee's deploy: password SSH auth (sshpass)
-# + rsync WITHOUT --delete, so nothing else on the server is wiped. Deploys
-# the supplier app files; vendor/, .env and logs/ are excluded so the
-# server's dependencies and secrets are left intact. Twig cache is off, so
-# updated templates/CSS go live on the next request — no build step.
+# + rsync WITHOUT --delete, so nothing else on the server is wiped.
+#
+# Build: Composer dependencies are installed on the runner (the server has no
+# Composer) and vendor/ IS deployed. .env and logs/ are excluded so the
+# server's secrets/logs are left intact. Twig cache is off, so updated
+# templates/CSS go live on the next request.
+#
+# The app reads its config from .env ($_ENV[...] in config/app.php); that file
+# is NOT in the repo — create it once on the server at <DEPLOY_DIR>/.env
+# (sibling of vendor/). public/index.php loads it via Dotenv safeLoad().
 #
 # Secrets (same as back_office_ws_franchisee — copy the same values):
 #   SSH_HOST · SSH_USER · SSH_PASSWORD
 # Vars:
 #   SSH_PORT    SSH port (default 22)
 #   DEPLOY_DIR  absolute server dir = the APP ROOT that contains public/ and
-#               src/ (the folder served at /supplier/).
-#               Default: /var/www/html/supplier
+#               src/ (the folder Apache serves /supplier from, via an Alias to
+#               its public/ subdir). Default: /var/www/html/supplier
 
 on:
   push:
@@ -29,6 +35,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up PHP 8.1 (matches the server)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: curl, mbstring
+          tools: composer:v2
+
+      - name: Install PHP dependencies (production)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --no-progress
+
       - name: Install sshpass
         run: sudo apt-get update && sudo apt-get install -y sshpass
 
@@ -42,8 +58,6 @@ jobs:
           DIR="${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}"
           echo "== current contents of $DIR =="
           ls -la "$DIR" 2>/dev/null || echo "(does not exist yet — will be created)"
-          echo "== parent =="
-          ls -la "$(dirname "$DIR")" 2>/dev/null || true
           mkdir -p "$DIR"
           command -v rsync >/dev/null || { echo 'rsync missing on server — apt-get install -y rsync'; exit 1; }
           REMOTE
@@ -54,12 +68,12 @@ jobs:
         run: |
           sshpass -e rsync -rltDz --omit-dir-times \
             --exclude '.git' --exclude '.github' --exclude '.idea' \
-            --exclude 'vendor' --exclude 'node_modules' \
+            --exclude 'node_modules' \
             --exclude '.env' --exclude '.env.*' --exclude 'logs' --exclude '*.log' \
             -e "ssh -p ${{ vars.SSH_PORT || '22' }} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
             ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}/"
 
-      - name: Verify the reskin files landed on the server
+      - name: Verify app files + dependencies landed on the server
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
         run: |
@@ -69,11 +83,16 @@ jobs:
           DIR="${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}"
           fail=0
           for f in \
+            "vendor/autoload.php" \
+            "public/index.php" \
             "public/assets/css/design-system.css" \
             "public/assets/css/components/sidebar.css" \
             "src/app/Views/page_components/sidebar.twig" \
             "src/app/Views/price_list/index.twig"; do
-            if [ -f "$DIR/$f" ]; then echo "  OK  $f"; else echo "  MISSING  $f"; fail=1; fi
+            if [ -e "$DIR/$f" ]; then echo "  OK  $f"; else echo "  MISSING  $f"; fail=1; fi
           done
-          [ "$fail" = "0" ] && echo "ALL RESKIN FILES PRESENT" || { echo "SOME FILES MISSING — check DEPLOY_DIR"; exit 1; }
+          if [ ! -f "$DIR/.env" ]; then
+            echo "  NOTE: $DIR/.env is absent — create it (the app reads config from it)."
+          fi
+          [ "$fail" = "0" ] && echo "ALL APP FILES + VENDOR PRESENT" || { echo "SOME FILES MISSING — check DEPLOY_DIR"; exit 1; }
           REMOTE

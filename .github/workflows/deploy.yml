@@ -1,27 +1,18 @@
-# Deploy the supplier app to the production server over SSH.
-#
-# What it does: connects to the server and updates the checked-out git repo
-# to the latest `master` (fetch + hard reset). Because vendor/, .env and
-# logs/ are gitignored, a hard reset never touches dependencies or secrets,
-# and Twig runs with cache disabled so template/CSS changes go live on the
-# next request — no build or cache-clear step is required.
-#
-# Required repository secrets (Settings → Secrets and variables → Actions):
-#   DEPLOY_HOST     server host/IP        e.g. 185.180.206.46
-#   DEPLOY_USER     SSH user              e.g. deploy
-#   DEPLOY_KEY_B64  the SSH PRIVATE key, in EITHER form:
-#                     • the raw key file, pasted whole (BEGIN/END lines incl.), OR
-#                     • its base64, one line:  base64 -w0 deploy_key
-#                       (macOS:  base64 -i deploy_key | tr -d '\n')
-#                   (its public half must be in the server user's authorized_keys)
-#   DEPLOY_PATH     app root on disk      filesystem path served at /supplier/
-#                                         (optional; defaults to /var/www/supplier)
-#   DEPLOY_PORT     SSH port              (optional; defaults to 22)
-#
-# Server prerequisite (one-time): the app directory is a git clone of this
-# repo with `origin` set and credentials allowing `git fetch`.
+name: Deploy to server (SSH / rsync)
 
-name: Deploy to server
+# Mirrors back_office_ws_franchisee's deploy: password SSH auth (sshpass)
+# + rsync WITHOUT --delete, so nothing else on the server is wiped. Deploys
+# the supplier app files; vendor/, .env and logs/ are excluded so the
+# server's dependencies and secrets are left intact. Twig cache is off, so
+# updated templates/CSS go live on the next request — no build step.
+#
+# Secrets (same as back_office_ws_franchisee — copy the same values):
+#   SSH_HOST · SSH_USER · SSH_PASSWORD
+# Vars:
+#   SSH_PORT    SSH port (default 22)
+#   DEPLOY_DIR  absolute server dir = the APP ROOT that contains public/ and
+#               src/ (the folder served at /supplier/).
+#               Default: /var/www/html/supplier
 
 on:
   push:
@@ -34,48 +25,55 @@ concurrency:
 
 jobs:
   deploy:
-    name: Deploy /supplier
     runs-on: ubuntu-latest
-    env:
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-      DEPLOY_PORT: ${{ secrets.DEPLOY_PORT || '22' }}
-      DEPLOY_PATH: ${{ secrets.DEPLOY_PATH || '/var/www/supplier' }}
-      DEPLOY_KEY_B64: ${{ secrets.DEPLOY_KEY_B64 }}
     steps:
-      - name: Update server to latest master
+      - uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get update && sudo apt-get install -y sshpass
+
+      - name: Prepare remote directory (validates SSH login + shows layout)
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
         run: |
-          set -euo pipefail
+          sshpass -e ssh -p ${{ vars.SSH_PORT || '22' }} \
+            -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -s <<'REMOTE'
+          DIR="${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}"
+          echo "== current contents of $DIR =="
+          ls -la "$DIR" 2>/dev/null || echo "(does not exist yet — will be created)"
+          echo "== parent =="
+          ls -la "$(dirname "$DIR")" 2>/dev/null || true
+          mkdir -p "$DIR"
+          command -v rsync >/dev/null || { echo 'rsync missing on server — apt-get install -y rsync'; exit 1; }
+          REMOTE
 
-          if [ -z "${DEPLOY_KEY_B64:-}" ]; then
-            echo "::error::DEPLOY_KEY_B64 secret is empty."
-            exit 1
-          fi
+      - name: Deploy → ${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -e rsync -rltDz --omit-dir-times \
+            --exclude '.git' --exclude '.github' --exclude '.idea' \
+            --exclude 'vendor' --exclude 'node_modules' \
+            --exclude '.env' --exclude '.env.*' --exclude 'logs' --exclude '*.log' \
+            -e "ssh -p ${{ vars.SSH_PORT || '22' }} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
+            ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}/"
 
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-
-          # Accept EITHER a raw PEM private key pasted whole, OR a base64 blob.
-          if printf '%s' "$DEPLOY_KEY_B64" | grep -q 'PRIVATE KEY'; then
-            printf '%s\n' "$DEPLOY_KEY_B64" > ~/.ssh/deploy_key
-          else
-            printf '%s' "$DEPLOY_KEY_B64" | tr -d '[:space:]' | base64 -d > ~/.ssh/deploy_key 2>/dev/null || true
-          fi
-          chmod 600 ~/.ssh/deploy_key
-
-          # Fail early with a clear message if we couldn't get a usable key.
-          if ! ssh-keygen -y -f ~/.ssh/deploy_key > /dev/null 2>&1; then
-            echo "::error::DEPLOY_KEY_B64 is not a usable SSH private key. Paste EITHER the raw private key file (BEGIN/END lines included) OR its base64 (base64 -w0 deploy_key)."
-            exit 1
-          fi
-
-          # Trust the host key on first contact.
-          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
-
-          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" \
-              -o IdentitiesOnly=yes \
-              -o BatchMode=yes \
-              -o ConnectTimeout=20 \
-              -o StrictHostKeyChecking=accept-new \
-              "$DEPLOY_USER@$DEPLOY_HOST" \
-              "set -eu; cd \"$DEPLOY_PATH\"; echo \"Before: \$(git rev-parse --short HEAD)\"; git fetch origin master --prune; git reset --hard origin/master; echo \"After:  \$(git rev-parse --short HEAD)\""
+      - name: Verify the reskin files landed on the server
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -e ssh -p ${{ vars.SSH_PORT || '22' }} \
+            -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -s <<'REMOTE'
+          DIR="${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}"
+          fail=0
+          for f in \
+            "public/assets/css/design-system.css" \
+            "public/assets/css/components/sidebar.css" \
+            "src/app/Views/page_components/sidebar.twig" \
+            "src/app/Views/price_list/index.twig"; do
+            if [ -f "$DIR/$f" ]; then echo "  OK  $f"; else echo "  MISSING  $f"; fail=1; fi
+          done
+          [ "$fail" = "0" ] && echo "ALL RESKIN FILES PRESENT" || { echo "SOME FILES MISSING — check DEPLOY_DIR"; exit 1; }
+          REMOTE

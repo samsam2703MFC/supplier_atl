@@ -68,7 +68,14 @@ jobs:
             # git aborts every command with "detected dubious ownership".
             git config --global --add safe.directory "$APP_DIR"
 
+            echo "Remote: $(git remote get-url origin)"
             echo "Before: $(git rev-parse --short HEAD)"
+
+            # Reset to exactly what we just fetched. Using FETCH_HEAD (not the
+            # origin/master remote-tracking ref) is deliberate: `git fetch origin
+            # master` only updates FETCH_HEAD, leaving refs/remotes/origin/master
+            # stale, so `reset --hard origin/master` would silently pin the
+            # server to the clone-time commit.
             git fetch origin master --prune
-            git reset --hard origin/master
+            git reset --hard FETCH_HEAD
             echo "After:  $(git rev-parse --short HEAD)"

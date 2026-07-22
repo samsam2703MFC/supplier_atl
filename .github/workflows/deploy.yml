@@ -10,8 +10,9 @@
 #   SSH_HOST      server host/IP        e.g. 185.180.206.46
 #   SSH_USER      SSH user              e.g. deploy
 #   SSH_PASSWORD  SSH password          password for SSH_USER on the server
-#   DEPLOY_PATH   app root on disk      filesystem path served at /supplier/
-#                                       (optional; defaults to /var/www/supplier)
+#   DEPLOY_PATH   app root on disk      filesystem path of the git checkout
+#                                       (optional; auto-detected when unset by
+#                                       locating the thaizu/supplier composer.json)
 #   SSH_PORT      SSH port              (optional; defaults to 22)
 #
 # Server prerequisites (one-time): the app directory is a git clone of this
@@ -44,7 +45,24 @@ jobs:
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             set -euo pipefail
-            cd "${{ secrets.DEPLOY_PATH || '/var/www/supplier' }}"
+
+            # Resolve the app's git checkout. Prefer the DEPLOY_PATH secret when
+            # set; otherwise auto-detect by locating the composer.json that
+            # declares this project ("thaizu/supplier").
+            APP_DIR="${{ secrets.DEPLOY_PATH }}"
+            if [ -z "$APP_DIR" ] || [ ! -d "$APP_DIR/.git" ]; then
+              APP_DIR="$(grep -rls --include=composer.json 'thaizu/supplier' \
+                          /var/www /home /srv /usr/share/nginx 2>/dev/null \
+                          | head -n1 | xargs -r dirname || true)"
+            fi
+            if [ -z "$APP_DIR" ] || [ ! -d "$APP_DIR/.git" ]; then
+              echo "ERROR: could not locate the supplier git checkout on the server." >&2
+              echo "Set the DEPLOY_PATH secret to the directory containing composer.json." >&2
+              exit 1
+            fi
+
+            cd "$APP_DIR"
+            echo "App dir: $APP_DIR"
             echo "Before: $(git rev-parse --short HEAD)"
             git fetch origin master --prune
             git reset --hard origin/master

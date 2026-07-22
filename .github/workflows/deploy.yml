@@ -30,46 +30,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  screenshot-login:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Install Playwright + Chromium
-        run: |
-          npm init -y >/dev/null 2>&1
-          npm i -D playwright@latest >/dev/null 2>&1
-          npx playwright install chromium >/dev/null 2>&1
-      - name: Capture the supplier login page (185.180.206.46/supplier)
-        run: |
-          cat > shot.cjs <<'EOF'
-          const { chromium } = require('playwright');
-          const fs = require('fs');
-          (async () => {
-            const browser = await chromium.launch({ args: ['--no-sandbox'] });
-            const page = await browser.newPage({ viewport: { width: 1366, height: 900 } });
-            let status = 'n/a';
-            try {
-              const r = await page.goto('http://185.180.206.46/supplier/', { waitUntil: 'domcontentloaded', timeout: 45000 });
-              status = r ? r.status() : 'null';
-            } catch (e) { console.log('GOTO_ERR', e.message); }
-            await page.waitForTimeout(3500);
-            console.log('PAGE_STATUS', status, 'TITLE', await page.title());
-            await page.screenshot({ path: 'login.png', fullPage: true });
-            await browser.close();
-            const b64 = fs.readFileSync('login.png').toString('base64');
-            console.log('PNG_BYTES', fs.statSync('login.png').size);
-            console.log('PNG_B64_START');
-            process.stdout.write(b64 + '\n');
-            console.log('PNG_B64_END');
-          })();
-          EOF
-          node shot.cjs
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: supplier-login-screenshot
-          path: login.png
-          if-no-files-found: warn
-
   deploy:
     runs-on: ubuntu-latest
     steps:

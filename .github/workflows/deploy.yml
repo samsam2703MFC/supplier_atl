@@ -84,16 +84,3 @@ jobs:
             git fetch origin master --prune
             git reset --hard FETCH_HEAD
             echo "After:  $(git rev-parse --short HEAD)"
-
-            # --- TEMP DIAGNOSTICS (remove once prod path is confirmed) ---------
-            echo "==== DIAG: state of each supplier checkout ===="
-            for d in /var/www/html/tfb/supplier /var/www/html/supplier /var/www/html/tfb_cc/supplier; do
-              echo "-- $d"
-              echo "   HEAD:   $(git -C "$d" rev-parse --short HEAD 2>/dev/null || echo 'not-a-git-repo')"
-              echo "   origin: $(git -C "$d" remote get-url origin 2>/dev/null || echo none)"
-              echo "   dc-login in login.twig: $(grep -c 'dc-login' "$d/src/app/Views/auth/login.twig" 2>/dev/null || echo 0)"
-              echo "   public/index.php: $([ -f "$d/public/index.php" ] && echo yes || echo no) | root index.php: $([ -f "$d/index.php" ] && echo yes || echo no)"
-            done
-            echo "==== DIAG: apache vhost resolution ===="
-            (apachectl -S 2>&1 || apache2ctl -S 2>&1) | head -50 || true
-            echo "==== DIAG END ===="

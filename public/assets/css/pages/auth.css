@@ -1,1 +1,254 @@
-body{background-color:#fff}#auth{height:100vh;overflow-x:hidden}#auth #auth-right{height:100%;background:url(../../images/bg/4853433.jpg),linear-gradient(90deg,#2d499d,#3f5491)}#auth #auth-left{padding:5rem 8rem}#auth #auth-left .auth-title{font-size:4rem;margin-bottom:1rem}#auth #auth-left .auth-subtitle{font-size:1.7rem;line-height:2.5rem;color:#a8aebb}#auth #auth-left .auth-logo{margin-bottom:7rem}#auth #auth-left .auth-logo img{height:2rem}@media screen and (max-width:767px){#auth #auth-left{padding:5rem}}
+/* ==========================================================================
+   Login (Connexion) — L'Atelier by design system
+   Adapted from claude.ai/design "L'Atelier by" · Connexion.dc.html
+   Self-contained: relies only on design-system.css tokens + bootstrap-icons.
+   ========================================================================== */
+
+html, body { margin: 0; height: 100%; }
+
+.dc-login {
+  display: flex;
+  min-height: 100vh;
+  font-family: var(--font-ui);
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+/* --------------------------------------------------------------------------
+   LEFT — branding panel (ruby)
+   -------------------------------------------------------------------------- */
+.dc-login__brand {
+  flex: 1 1 50%;
+  background: var(--color-primary);
+  color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  padding: 64px;
+  box-sizing: border-box;
+}
+
+.dc-login__brand-inner {
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.dc-login__logo {
+  height: 60px;
+  width: fit-content;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+.dc-login__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-surface) 12%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--color-surface) 25%, transparent);
+  font-size: var(--font-size-small);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-nav);
+  text-transform: uppercase;
+}
+
+.dc-login__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-display);
+}
+
+.dc-login__subtitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: var(--line-height-body);
+  color: color-mix(in srgb, var(--color-surface) 82%, transparent);
+}
+
+.dc-login__points {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.dc-login__point {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  font-size: 14px;
+  color: color-mix(in srgb, var(--color-surface) 85%, transparent);
+}
+.dc-login__point i { margin-top: 2px; }
+
+.dc-login__hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-surface) 60%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   RIGHT — auth card
+   -------------------------------------------------------------------------- */
+.dc-login__auth {
+  flex: 1 1 50%;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  box-sizing: border-box;
+}
+
+.dc-login__card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-surface);
+  border: 0.5px solid var(--color-border-tertiary);
+  border-radius: var(--radius-lg);
+  padding: 30px 28px;
+  box-sizing: border-box;
+}
+
+.dc-login__card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dc-login__card-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--font-size-page-title);
+  font-weight: var(--weight-regular);
+  color: var(--color-text);
+}
+
+.dc-login__card-sub { margin: 4px 0 0; }
+
+.dc-login__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--color-primary) 9%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+  font-weight: var(--weight-medium);
+}
+
+.dc-login__divider {
+  border-top: 0.5px solid var(--color-border-tertiary);
+  margin: 20px 0;
+}
+
+.dc-login__alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  border: 0.5px solid color-mix(in srgb, var(--color-primary) 25%, transparent);
+  color: var(--color-primary);
+  font-size: 13px;
+}
+
+.dc-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.dc-login__field { position: relative; }
+
+.dc-login__field-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-size: 15px;
+  pointer-events: none;
+}
+
+.dc-login__input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px 13px 40px;
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--color-border-secondary);
+  background: var(--color-background-secondary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--color-text);
+  outline: none;
+  transition: border-color .15s ease, background .15s ease;
+}
+
+.dc-login__input::placeholder { color: var(--color-text-muted); }
+
+.dc-login__input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+.dc-login__input.is-invalid {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+
+.dc-login__error {
+  margin-top: -6px;
+  font-size: 12px;
+  color: var(--color-primary);
+}
+
+.dc-login__submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding: 13px 16px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-surface);
+  font-family: var(--font-ui);
+  font-size: var(--font-size-button);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  transition: background .15s ease;
+}
+
+.dc-login__submit:hover,
+.dc-login__submit:focus { background: #6d1622; }
+
+.dc-login__form-hint { text-align: center; }
+
+.dc-login__copy {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 11px;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive — collapse to single column
+   -------------------------------------------------------------------------- */
+@media (max-width: 991.98px) {
+  .dc-login { flex-direction: column; }
+  .dc-login__brand { display: none; }
+  .dc-login__auth { flex: 1 1 auto; background: var(--color-bg); }
+}

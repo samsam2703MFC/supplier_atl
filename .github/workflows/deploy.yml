@@ -86,15 +86,14 @@ jobs:
             echo "After:  $(git rev-parse --short HEAD)"
 
             # --- TEMP DIAGNOSTICS (remove once prod path is confirmed) ---------
-            echo "==== DIAG: clones containing this app ===="
-            grep -rls --include=composer.json 'thaizu/supplier' /var/www /home /srv 2>/dev/null || true
-            echo "==== DIAG: does the deployed login.twig have the new markup? ===="
-            grep -c 'dc-login' "$APP_DIR/src/app/Views/auth/login.twig" 2>/dev/null || echo "0 (no dc-login)"
-            echo "==== DIAG: web-server mappings mentioning 'supplier' ===="
-            grep -rEins 'supplier|documentroot|alias|root ' \
-              /etc/apache2/sites-enabled /etc/apache2/sites-available \
-              /etc/nginx/sites-enabled /etc/nginx/conf.d /etc/nginx/nginx.conf \
-              2>/dev/null | grep -iE 'supplier|documentroot|alias|root ' | head -60 || true
-            echo "==== DIAG: twig cache dirs under the checkout ===="
-            find "$APP_DIR" -type d \( -name cache -o -name twig \) 2>/dev/null | head -20 || true
+            echo "==== DIAG: state of each supplier checkout ===="
+            for d in /var/www/html/tfb/supplier /var/www/html/supplier /var/www/html/tfb_cc/supplier; do
+              echo "-- $d"
+              echo "   HEAD:   $(git -C "$d" rev-parse --short HEAD 2>/dev/null || echo 'not-a-git-repo')"
+              echo "   origin: $(git -C "$d" remote get-url origin 2>/dev/null || echo none)"
+              echo "   dc-login in login.twig: $(grep -c 'dc-login' "$d/src/app/Views/auth/login.twig" 2>/dev/null || echo 0)"
+              echo "   public/index.php: $([ -f "$d/public/index.php" ] && echo yes || echo no) | root index.php: $([ -f "$d/index.php" ] && echo yes || echo no)"
+            done
+            echo "==== DIAG: apache vhost resolution ===="
+            (apachectl -S 2>&1 || apache2ctl -S 2>&1) | head -50 || true
             echo "==== DIAG END ===="

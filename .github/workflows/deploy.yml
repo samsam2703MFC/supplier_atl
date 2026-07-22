@@ -7,13 +7,12 @@
 # next request — no build or cache-clear step is required.
 #
 # Required repository secrets (Settings → Secrets and variables → Actions):
-#   DEPLOY_HOST  server host/IP        e.g. 85.180.206.46
-#   DEPLOY_USER  SSH user              e.g. deploy
-#   DEPLOY_KEY   private SSH key       full PEM contents of a key whose public
-#                                      half is in the server user's authorized_keys
-#   DEPLOY_PATH  app root on disk      filesystem path served at /supplier/
-#                                      (optional; defaults to /var/www/supplier)
-#   DEPLOY_PORT  SSH port              (optional; defaults to 22)
+#   SSH_HOST      server host/IP        e.g. 185.180.206.46
+#   SSH_USER      SSH user              e.g. deploy
+#   SSH_PASSWORD  SSH password          password for SSH_USER on the server
+#   DEPLOY_PATH   app root on disk      filesystem path served at /supplier/
+#                                       (optional; defaults to /var/www/supplier)
+#   SSH_PORT      SSH port              (optional; defaults to 22)
 #
 # Server prerequisites (one-time): the app directory is a git clone of this
 # repo with `origin` pointing at it and credentials (deploy key or the repo is
@@ -39,10 +38,10 @@ jobs:
       - name: Update server to latest master
         uses: appleboy/ssh-action@v1.2.2
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || 22 }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             set -euo pipefail
             cd "${{ secrets.DEPLOY_PATH || '/var/www/supplier' }}"

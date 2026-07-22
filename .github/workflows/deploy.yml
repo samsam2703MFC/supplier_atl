@@ -96,3 +96,35 @@ jobs:
           fi
           [ "$fail" = "0" ] && echo "ALL APP FILES + VENDOR PRESENT" || { echo "SOME FILES MISSING — check DEPLOY_DIR"; exit 1; }
           REMOTE
+
+      - name: Probe what the server actually SERVES (diagnostic, non-fatal)
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -e ssh -p ${{ vars.SSH_PORT || '22' }} \
+            -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -s <<'REMOTE'
+          DIR="${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}"
+          BASE="http://localhost/supplier"
+          echo "===== 1. app root (follow redirects) ====="
+          curl -s -o /dev/null -w "  code=%{http_code}  final=%{url_effective}\n" -L "$BASE/" || echo "  (curl failed)"
+          echo "===== 2. CSS asset HTTP status at the SERVED urls ====="
+          for a in assets/css/bootstrap.css assets/css/app.css \
+                   assets/css/design-system.css assets/css/components/sidebar.css \
+                   assets/css/pages/price_list.css; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/$a")
+            echo "  $code  $a"
+          done
+          echo "===== 3. served root HTML signals ====="
+          H=$(curl -s -L "$BASE/")
+          echo "  ROOT resolved in HTML:   $(printf '%s' "$H" | grep -oE 'https?://[^\"]+/supplier' | head -1)"
+          echo "  links design-system.css: $(printf '%s' "$H" | grep -c 'design-system.css')"
+          echo "  uses ds-side classes:    $(printf '%s' "$H" | grep -c 'ds-side')"
+          echo "  <title>:                 $(printf '%s' "$H" | grep -oiE '<title>[^<]*' | head -1)"
+          echo "===== 4. disk: CSS actually present in public/assets/css ====="
+          ls -la "$DIR/public/assets/css/" 2>&1 | head -20
+          echo "  -- design-system.css head --"; head -3 "$DIR/public/assets/css/design-system.css" 2>&1
+          echo "===== 5. Apache mapping for /supplier (if readable) ====="
+          grep -rniE "supplier|Alias|DocumentRoot" /etc/apache2/sites-enabled/ /etc/apache2/conf-enabled/ /etc/httpd/conf.d/ /etc/apache2/apache2.conf 2>/dev/null | head -20 || echo "  (apache config not readable by this user)"
+          echo "===== done ====="
+          REMOTE

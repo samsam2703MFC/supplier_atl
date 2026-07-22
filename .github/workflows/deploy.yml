@@ -105,26 +105,18 @@ jobs:
             -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -s <<'REMOTE'
           DIR="${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}"
-          echo "===== A. full production vhost (l-atelierby 443) ====="
-          grep -nvE '^\s*#' /etc/apache2/sites-enabled/l-atelierby.tfbuddy.com-le-ssl.conf 2>/dev/null \
-            | grep -iE 'ServerName|DocumentRoot|Alias|<Directory|Rewrite|supplier' | head -40
-          echo "===== B. ANY 'supplier' string anywhere in /etc/apache2 ====="
-          grep -rniE 'supplier' /etc/apache2/ 2>/dev/null | head -20 || echo "  none found"
-          echo "===== C. what does the PRODUCTION url actually serve? ====="
-          for u in "https://l-atelierby.tfbuddy.com/supplier/" \
-                   "https://l-atelierby.tfbuddy.com/supplier/login" \
-                   "https://l-atelierby.tfbuddy.com/supplier/price-list"; do
-            code=$(curl -sk -o /tmp/p.html -w "%{http_code}" "$u")
-            echo "  code=$code  $u"
-            echo "    title=$(grep -oiE '<title>[^<]*' /tmp/p.html | head -1 | tr -d '\n')  design-system=$(grep -c design-system.css /tmp/p.html)  ds-side=$(grep -c ds-side /tmp/p.html)"
+          echo "===== P1. DECISIVE: does PRODUCTION serve OUR design css? ====="
+          for a in "assets/css/design-system.css" "assets/css/components/sidebar.css" "assets/css/pages/price_list.css"; do
+            code=$(curl -sk -o /dev/null -w "%{http_code}" "https://l-atelierby.tfbuddy.com/supplier/$a")
+            echo "  $code  https://l-atelierby.tfbuddy.com/supplier/$a"
           done
-          echo "===== D. where do supplier apps physically live? ====="
-          echo "  -- /var/www (top) --"; ls -la /var/www/ 2>/dev/null | grep -iE 'supplier|latelier|html|webshop'
-          echo "  -- docroot /var/www/latelierby-landing has a supplier/ ? --"
-          ls -la /var/www/latelierby-landing/supplier 2>/dev/null | head -8 || echo "    (no /var/www/latelierby-landing/supplier)"
-          echo "  -- all public/ dirs that look like supplier --"
-          find /var/www -maxdepth 3 -type d \( -iname '*supplier*' -o -path '*supplier*/public' \) 2>/dev/null | head -20
-          echo "  -- newest index.twig for price_list on the box (old vs new copies) --"
-          find /var/www -maxdepth 6 -path '*price_list/index.twig' 2>/dev/null -printf '%TY-%Tm-%Td %TH:%TM  %p\n' | head -20
+          echo "===== P2. which confs/sites are ENABLED (symlinks) ====="
+          echo "  -- conf-enabled --"; ls -la /etc/apache2/conf-enabled/ 2>/dev/null | grep -iE 'supplier|->' | head
+          echo "  -- sites-enabled --"; ls -la /etc/apache2/sites-enabled/ 2>/dev/null
+          echo "===== P3. vhost -> docroot / alias map (authoritative) ====="
+          (apache2ctl -S 2>&1 || apachectl -S 2>&1) | head -30
+          echo "===== P4. does the OLD tfb copy exist / have design-system.css? ====="
+          ls -la /var/www/html/tfb/supplier/public/assets/css/design-system.css 2>&1 || echo "  (old tfb copy has NO design-system.css)"
+          ls -la /var/www/html/tfb/supplier/public/index.php 2>&1 | head -1
           echo "===== done ====="
           REMOTE

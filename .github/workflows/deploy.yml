@@ -120,18 +120,15 @@ jobs:
             -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -s <<'REMOTE'
           DIR="${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}"
-          echo "===== P1. design css on both domains, WITH headers ====="
-          for host in atelierby.tfbuddy.com l-atelierby.tfbuddy.com; do
-            for a in "assets/css/design-system.css" "assets/css/bootstrap.css"; do
-              line=$(curl -skI "https://$host/supplier/$a" | tr -d '\r' | grep -iE '^HTTP/|^server:|^cf-cache-status:|^age:|^x-cache' | tr '\n' ' | ')
-              echo "  https://$host/supplier/$a"
-              echo "      $line"
-            done
+          echo "===== U1. is THIS deploy box == 185.180.206.46 ? ====="
+          echo "  this box public IP: $(curl -s --max-time 10 https://api.ipify.org 2>/dev/null)"
+          echo "  hostname -I:        $(hostname -I 2>/dev/null)"
+          echo "  185.180.206.46 in apache config here? $(grep -rniE '185\.180\.206\.46' /etc/apache2/ 2>/dev/null | head -3)"
+          echo "===== U2. what does the USER's url (185.180.206.46/supplier) serve? ====="
+          for a in "assets/css/design-system.css" "assets/css/components/sidebar.css" "assets/css/bootstrap.css"; do
+            line=$(curl -sSI --max-time 15 "http://185.180.206.46/supplier/$a" 2>&1 | tr -d '\r' | grep -iE '^HTTP/|^server:|^content-length' | tr '\n' ' | ')
+            echo "  /$a -> $line"
           done
-          echo "===== P2. enabled atelierby vhost: how it handles /supplier ====="
-          grep -nvE '^\s*#' /etc/apache2/sites-enabled/atelierby.tfbuddy.com-le-ssl.conf 2>/dev/null \
-            | grep -iE 'ServerName|DocumentRoot|Alias|<Directory|Rewrite|Redirect|Require|Options|supplier|ProxyPass' | head -50
-          echo "===== P3. file really on disk at atelierby's alias target? ====="
-          ls -la /var/www/html/tfb/supplier/public/assets/css/design-system.css 2>&1
+          echo "  title @ 185.180.206.46/supplier/: $(curl -sSL --max-time 15 http://185.180.206.46/supplier/ 2>&1 | grep -oiE '<title>[^<]*' | head -1)"
           echo "===== done ====="
           REMOTE

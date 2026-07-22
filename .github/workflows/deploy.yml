@@ -120,20 +120,18 @@ jobs:
             -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -s <<'REMOTE'
           DIR="${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}"
-          echo "===== P1. DECISIVE: does PRODUCTION serve OUR design css? ====="
+          echo "===== P1. design css on both domains, WITH headers ====="
           for host in atelierby.tfbuddy.com l-atelierby.tfbuddy.com; do
-            for a in "assets/css/design-system.css" "assets/css/components/sidebar.css"; do
-              code=$(curl -sk -o /dev/null -w "%{http_code}" "https://$host/supplier/$a")
-              echo "  $code  https://$host/supplier/$a"
+            for a in "assets/css/design-system.css" "assets/css/bootstrap.css"; do
+              line=$(curl -skI "https://$host/supplier/$a" | tr -d '\r' | grep -iE '^HTTP/|^server:|^cf-cache-status:|^age:|^x-cache' | tr '\n' ' | ')
+              echo "  https://$host/supplier/$a"
+              echo "      $line"
             done
           done
-          echo "===== P2. which confs/sites are ENABLED (symlinks) ====="
-          echo "  -- conf-enabled --"; ls -la /etc/apache2/conf-enabled/ 2>/dev/null | grep -iE 'supplier|->' | head
-          echo "  -- sites-enabled --"; ls -la /etc/apache2/sites-enabled/ 2>/dev/null
-          echo "===== P3. vhost -> docroot / alias map (authoritative) ====="
-          (apache2ctl -S 2>&1 || apachectl -S 2>&1) | head -30
-          echo "===== P4. does the OLD tfb copy exist / have design-system.css? ====="
-          ls -la /var/www/html/tfb/supplier/public/assets/css/design-system.css 2>&1 || echo "  (old tfb copy has NO design-system.css)"
-          ls -la /var/www/html/tfb/supplier/public/index.php 2>&1 | head -1
+          echo "===== P2. enabled atelierby vhost: how it handles /supplier ====="
+          grep -nvE '^\s*#' /etc/apache2/sites-enabled/atelierby.tfbuddy.com-le-ssl.conf 2>/dev/null \
+            | grep -iE 'ServerName|DocumentRoot|Alias|<Directory|Rewrite|Redirect|Require|Options|supplier|ProxyPass' | head -50
+          echo "===== P3. file really on disk at atelierby's alias target? ====="
+          ls -la /var/www/html/tfb/supplier/public/assets/css/design-system.css 2>&1
           echo "===== done ====="
           REMOTE

@@ -68,6 +68,11 @@ jobs:
             # git aborts every command with "detected dubious ownership".
             git config --global --add safe.directory "$APP_DIR"
 
+            # This repo (samsam2703MFC/supplier_atl) is the deploy source of
+            # truth. The server was originally cloned from a different upstream,
+            # so pin origin here to guarantee we pull the right master.
+            git remote set-url origin https://github.com/samsam2703MFC/supplier_atl.git
+
             echo "Remote: $(git remote get-url origin)"
             echo "Before: $(git rev-parse --short HEAD)"
 

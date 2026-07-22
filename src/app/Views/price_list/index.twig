@@ -2,10 +2,15 @@
 
 {% block title %}{{ translations.global_price_list_title|default('Cennik') }}{% endblock %}
 
+{% block head %}
+    <link rel="stylesheet" href="{{ ROOT }}/assets/css/design-system.css">
+    <link rel="stylesheet" href="{{ ROOT }}/assets/css/pages/price_list.css">
+{% endblock %}
+
 {% block page_heading %}
-    <div class="page-heading">
-        <h3>{{ translations.global_price_list_title|default('Cennik') }}</h3>
-        <p class="text-subtitle text-muted">{{ translations.global_price_list_subtitle|default('Zarządzaj cenami dla wszystkich sklepów jednocześnie') }}</p>
+    <div class="page-heading tarifs-page">
+        <h1 class="tarifs-title">{{ translations.global_price_list_title|default('Cennik') }}</h1>
+        <p class="tarifs-subtitle">{{ translations.global_price_list_subtitle|default('Zarządzaj cenami dla wszystkich sklepów jednocześnie') }}</p>
     </div>
 {% endblock %}
 
@@ -13,22 +18,22 @@
 
     {% include "page_components/alerts.twig" %}
 
-    <div class="row">
+    <div class="row tarifs-page">
         <div class="col-12">
 
-            <div class="alert alert-light-primary d-flex align-items-start gap-2">
-                <i class="bi bi-info-circle mt-1"></i>
+            <div class="tarifs-banner">
+                <i class="bi bi-info-circle"></i>
                 <div>
-                    <div class="fw-bold">{{ translations.price_schedule_help_title }}</div>
-                    <div class="small">{{ translations.global_price_schedule_help_body }}</div>
+                    <span class="fw-bold">{{ translations.price_schedule_help_title }}</span>
+                    {{ translations.global_price_schedule_help_body }}
                 </div>
             </div>
 
-            <div class="alert alert-light-warning d-flex align-items-start gap-2" id="missingPricesAlert" style="display:none;">
-                <i class="bi bi-exclamation-triangle mt-1"></i>
+            <div class="tarifs-banner tarifs-banner--warning" id="missingPricesAlert" style="display:none;">
+                <i class="bi bi-exclamation-triangle"></i>
                 <div>
-                    <div class="fw-bold">{{ translations.missing_prices_title }}</div>
-                    <div class="small">{{ translations.missing_prices_body }}</div>
+                    <span class="fw-bold">{{ translations.missing_prices_title }}</span>
+                    {{ translations.missing_prices_body }}
                 </div>
             </div>
 
@@ -76,19 +81,19 @@
                     <div id="badgeFiltersBar" class="mb-3 pb-2" style="border-bottom:1px solid #e9ecef;">
                         <div class="d-flex flex-wrap gap-3 align-items-center">
                             <div class="d-flex align-items-center gap-1 flex-wrap">
-                                <span class="small text-muted fw-semibold me-1" style="white-space:nowrap;">{{ translations.filter_badge_margin_label|default('Marża:') }}</span>
+                                <span class="badge-filter-label me-1">{{ translations.filter_badge_margin_label|default('Marża:') }}</span>
                                 <button class="btn btn-sm btn-outline-success badge-filter-btn" data-filter-group="margin" data-filter-value="above" type="button">{{ translations.filter_badge_margin_above|default('Powyżej celu') }}</button>
                                 <button class="btn btn-sm btn-outline-warning badge-filter-btn" data-filter-group="margin" data-filter-value="at" type="button">{{ translations.filter_badge_margin_at|default('W okolicach celu') }}</button>
                                 <button class="btn btn-sm btn-outline-danger badge-filter-btn" data-filter-group="margin" data-filter-value="below" type="button">{{ translations.filter_badge_margin_below|default('Poniżej celu') }}</button>
                             </div>
                             <div class="d-flex align-items-center gap-1 flex-wrap">
-                                <span class="small text-muted fw-semibold me-1" style="white-space:nowrap;">{{ translations.filter_badge_recipe_label|default('Receptura:') }}</span>
+                                <span class="badge-filter-label me-1">{{ translations.filter_badge_recipe_label|default('Receptura:') }}</span>
                                 <button class="btn btn-sm btn-outline-success badge-filter-btn" data-filter-group="recipe" data-filter-value="has" type="button">{{ translations.filter_badge_recipe_has|default('Pełna') }}</button>
                                 <button class="btn btn-sm btn-outline-warning badge-filter-btn" data-filter-group="recipe" data-filter-value="incomplete" type="button">{{ translations.filter_badge_recipe_incomplete|default('Niepełna') }}</button>
                                 <button class="btn btn-sm btn-outline-secondary badge-filter-btn" data-filter-group="recipe" data-filter-value="none" type="button">{{ translations.filter_badge_recipe_none|default('Brak') }}</button>
                             </div>
                             <div class="d-flex align-items-center gap-1 flex-wrap">
-                                <span class="small text-muted fw-semibold me-1" style="white-space:nowrap;">{{ translations.filter_badge_schedule_label|default('Harmonogram:') }}</span>
+                                <span class="badge-filter-label me-1">{{ translations.filter_badge_schedule_label|default('Harmonogram:') }}</span>
                                 <button class="btn btn-sm btn-outline-primary badge-filter-btn" data-filter-group="schedule" data-filter-value="has" type="button">{{ translations.filter_badge_schedule_has|default('Zaplanowane') }}</button>
                                 <button class="btn btn-sm btn-outline-secondary badge-filter-btn" data-filter-group="schedule" data-filter-value="none" type="button">{{ translations.filter_badge_schedule_none|default('Brak zmian') }}</button>
                             </div>
@@ -103,7 +108,6 @@
                         <table class="table table-hover align-middle" id="priceListTable">
                             <thead>
                             <tr>
-                                <th style="width:40px;">#</th>
                                 <th>{{ translations.product }}</th>
                                 <th style="width:155px;">{{ translations.current_price }}</th>
                                 <th style="width:110px;text-align:center;">{{ translations.margin_column|default('Marża') }}</th>
@@ -113,15 +117,15 @@
                             </thead>
                             <tbody id="priceListTbody">
                             <tr>
-                                <td colspan="6" class="text-muted">{{ translations.loading|default('Ładowanie...') }}</td>
+                                <td colspan="5" class="text-muted">{{ translations.loading|default('Ładowanie...') }}</td>
                             </tr>
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="d-flex justify-content-between align-items-center mt-2">
-                        <div class="small text-muted" id="tableMeta">{{ translations.price_list_meta_default }}</div>
-                        <div class="small text-muted">{{ translations.ajax_hint }}</div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div class="table-meta-label" id="tableMeta">{{ translations.price_list_meta_default }}</div>
+                        <div class="table-meta-label">{{ translations.ajax_hint }}</div>
                     </div>
 
                 </div>
@@ -132,7 +136,7 @@
 
 
     {# MODAL: ADD PRICE #}
-    <div class="modal fade" id="priceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade tarifs-modal" id="priceModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -203,7 +207,7 @@
 
 
     {# MODAL: IMPORT PRICE LIST #}
-    <div class="modal fade" id="importPriceListModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade tarifs-modal" id="importPriceListModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -291,7 +295,7 @@
         </div>
     </div>
     {# MODAL: SCHEDULE #}
-    <div class="modal fade" id="scheduleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade tarifs-modal" id="scheduleModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -312,7 +316,7 @@
         </div>
     </div>
     {# MODAL: MARGIN CALCULATOR #}
-    <div class="modal fade" id="marginCalcModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade tarifs-modal" id="marginCalcModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
@@ -1046,7 +1050,7 @@
                 }
 
                 return `<tr class="cost-insight-row" data-product-id="${pid}" data-sale-status="${saleStatus}">
-                    <td colspan="6" style="padding:0 16px 4px 56px;background:#f8fafc;border-top:0;">${inner}</td>
+                    <td colspan="5" style="padding:0 16px 8px 12px;border-top:0;">${inner}</td>
                 </tr>`;
             }
 
@@ -1117,7 +1121,7 @@
                     .sort((a,b) => String(a.name||"").localeCompare(String(b.name||"")));
 
                 if (!products.length) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="text-muted">{{ translations.no_products }}</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-muted">{{ translations.no_products }}</td></tr>`;
                     el("tableMeta").textContent = `0`;
                     return;
                 }
@@ -1204,7 +1208,7 @@
                         const gross = netToGross(cur.price_net, p.vat_rate);
                         currentHtml = `
                             <div class="small">
-                                <div><span class="text-muted">{{ translations.net }}:</span> <span class="fw-semibold">${money(cur.price_net)}</span></div>
+                                <div><span class="text-muted">{{ translations.net }}:</span> <span class="fw-semibold price-net">${money(cur.price_net)}</span></div>
                                 <div><span class="text-muted">{{ translations.gross }}:</span> <span class="fw-semibold">${gross}</span></div>
                                 <div class="text-muted">{{ translations.valid_from }}: ${escapeHtml(cur.valid_from || "")}</div>
                                 ${perPortionChip}
@@ -1257,7 +1261,6 @@
 
                     rows.push(`
                         <tr data-product-id="${escapeHtml(p.product_id)}" data-sale-status="${escapeHtml(saleStatusRaw)}">
-                            <td class="text-muted">${idx + 1}</td>
                             <td>
                                 <div class="fw-semibold">${escapeHtml(p.name || "")}</div>
                                 <div class="small text-muted">

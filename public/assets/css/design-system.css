@@ -1,0 +1,180 @@
+/* ==========================================================================
+   L'Atelier By — Design System (app adaptation)
+   Adapted from claude.ai/design "TFB Supplier portal redesign"
+   _ds/l-atelier-by-8504a4e3-7796-44da-b087-3fbd9dcb8dcd/global.css
+
+   App-safe subset: tokens, brand fonts and typography utilities only.
+   Webshop-specific component rules (.navbar, .btn-primary, section{...})
+   are intentionally NOT copied here — they would clash with Bootstrap.
+   Page-level skins live in assets/css/pages/*.css, scoped per page.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Brand fonts — Gotham (UI) + Vank (display)
+   Partial set: only the cuts used by the back-office pages are shipped.
+   Weight mapping follows the design system (700 -> Black, 600 -> Regular).
+   -------------------------------------------------------------------------- */
+@font-face {
+  font-family: 'Gotham';
+  src: url('../fonts/design-system/Gotham_Regular_New.otf') format('opentype');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Gotham';
+  src: url('../fonts/design-system/Gotham_Medium.otf') format('opentype');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Gotham';
+  src: url('../fonts/design-system/Gotham_Regular.otf') format('opentype');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Gotham';
+  src: url('../fonts/design-system/Gotham_Black.otf') format('opentype');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Vank';
+  src: url('../fonts/design-system/GC_Vank.ttf') format('truetype');
+  font-weight: 400; font-style: normal; font-display: swap;
+  unicode-range: U+0020-007E;
+}
+
+/* ==========================================================================
+   TOKENS — :root
+   ========================================================================== */
+:root {
+  /* --- Brand palette ----------------------------------------------------- */
+  --color-primary:            #8D1D2C;   /* Ruby Red — primary actions, badges, borders */
+  --color-secondary:          #F2C9A0;   /* Abricot — linked state, scheduled badges */
+  --color-bg:                 #EAE4DC;   /* Beige — page background */
+  --color-surface:            #FFFFFF;   /* Blanc — cards, panels */
+  --color-text:               #222222;   /* Noir — body text */
+  --color-text-muted:         #666666;   /* Muted grey — secondary text, placeholders */
+
+  /* Semantic aliases used by components */
+  --color-text-primary:       var(--color-text);
+  --color-text-secondary:     var(--color-text-muted);
+  --color-background-secondary: #F4EFE8;         /* faint beige — input / secondary surfaces */
+  --color-border-secondary:   rgba(34, 34, 34, 0.18);
+  --color-border-tertiary:    rgba(34, 34, 34, 0.10);
+
+  /* State + accent colors */
+  --color-linked:             #F2C9A0;
+  --color-collect:            #8D1D2C;
+  --color-on-abricot:         #6b4420;   /* Dark amber — text on Abricot backgrounds */
+  --color-collection-border:  #c17a2a;   /* Deep amber */
+  --color-collection-fill:    #FAC775;   /* Collection badge background */
+  --color-collection-icon:    #6b3d0a;   /* Collection badge icon/label */
+  --color-popup:              #78554B;   /* Third color — markers & badges */
+  --color-ink:                #222222;
+
+  /* Functional greens/accents used across redesigned pages */
+  --ds-green:                 #2d7a3e;   /* positive margin / success text */
+  --ds-lavande:               #9A8FBF;   /* packaging segment accent */
+
+  /* --- Typography -------------------------------------------------------- */
+  --font-display:             'Vank', 'Gotham', Georgia, serif;
+  --font-ui:                  'Gotham', 'Nunito', system-ui, -apple-system, sans-serif;
+
+  /* Type scale (px) */
+  --font-size-page-title:     32px;
+  --font-size-section-title:  20px;
+  --font-size-body:           16px;
+  --font-size-label:          13px;
+  --font-size-small:          11px;
+  --font-size-button:         14px;
+  --font-size-price:          14px;
+  --font-size-admin-label:    11px;
+
+  /* Line heights */
+  --line-height-display:      1.2;
+  --line-height-section:      1.3;
+  --line-height-body:         1.6;
+
+  /* Letter spacing */
+  --tracking-nav:             0.06em;
+  --tracking-admin:           0.08em;
+
+  /* Font weights */
+  --weight-regular:           400;
+  --weight-medium:            500;
+
+  /* --- Border radius ---------------------------------------------------- */
+  --radius-sm:                6px;
+  --radius-md:                8px;
+  --radius-lg:                12px;
+  --radius-pill:              999px;
+
+  /* --- Spacing ---------------------------------------------------------- */
+  --spacing-xs:               4px;
+  --spacing-sm:               8px;
+  --spacing-md:               16px;
+  --spacing-lg:               24px;
+  --spacing-xl:               32px;
+}
+
+/* ==========================================================================
+   TYPOGRAPHY UTILITIES
+   ========================================================================== */
+.t-page-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-page-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-display);
+  color: var(--color-text-primary);
+}
+
+.t-section-title {
+  font-family: var(--font-display);
+  font-size: var(--font-size-section-title);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-section);
+  color: var(--color-text-primary);
+}
+
+.t-body {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-body);
+  color: var(--color-text-primary);
+}
+
+.t-label {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-label);
+  font-weight: var(--weight-regular);
+  color: var(--color-text-secondary);
+}
+
+.t-small {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-small);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-nav);
+}
+
+.t-button {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-button);
+  font-weight: var(--weight-medium);
+}
+
+.t-price {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-price);
+  font-weight: var(--weight-medium);
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.t-admin-label {
+  font-family: var(--font-ui);
+  font-size: var(--font-size-admin-label);
+  font-weight: var(--weight-regular);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-admin);
+  color: var(--color-text-secondary);
+}

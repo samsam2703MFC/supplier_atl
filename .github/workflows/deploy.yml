@@ -84,3 +84,17 @@ jobs:
             git fetch origin master --prune
             git reset --hard FETCH_HEAD
             echo "After:  $(git rev-parse --short HEAD)"
+
+            # --- TEMP DIAGNOSTICS (remove once prod path is confirmed) ---------
+            echo "==== DIAG: clones containing this app ===="
+            grep -rls --include=composer.json 'thaizu/supplier' /var/www /home /srv 2>/dev/null || true
+            echo "==== DIAG: does the deployed login.twig have the new markup? ===="
+            grep -c 'dc-login' "$APP_DIR/src/app/Views/auth/login.twig" 2>/dev/null || echo "0 (no dc-login)"
+            echo "==== DIAG: web-server mappings mentioning 'supplier' ===="
+            grep -rEins 'supplier|documentroot|alias|root ' \
+              /etc/apache2/sites-enabled /etc/apache2/sites-available \
+              /etc/nginx/sites-enabled /etc/nginx/conf.d /etc/nginx/nginx.conf \
+              2>/dev/null | grep -iE 'supplier|documentroot|alias|root ' | head -60 || true
+            echo "==== DIAG: twig cache dirs under the checkout ===="
+            find "$APP_DIR" -type d \( -name cache -o -name twig \) 2>/dev/null | head -20 || true
+            echo "==== DIAG END ===="

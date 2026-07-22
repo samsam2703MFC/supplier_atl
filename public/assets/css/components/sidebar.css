@@ -1,0 +1,154 @@
+/* ==========================================================================
+   Sidebar — L'Atelier design skin
+   Reskins the shared sidebar (page_components/sidebar.twig) to the
+   claude.ai/design "TFB Supplier portal redesign" — Sidebar.dc.html.
+
+   Scoped under #sidebar so only the sidebar changes. The outer #sidebar /
+   .sidebar-wrapper elements and every .sidebar-item / .active hook that
+   main.js and app.css rely on are preserved; this file only restyles.
+   Requires design-system.css (tokens + brand fonts) loaded globally.
+   ========================================================================== */
+
+/* Wrapper → brand surface, flex column so the footer pins to the bottom.
+   (.sidebar-wrapper keeps its app.css width / fixed positioning / mobile
+   off-canvas behaviour; we only layer layout + brand look on top.) */
+#sidebar .sidebar-wrapper.ds-side {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--color-surface);
+  border-right: 0.5px solid var(--color-border-tertiary);
+  font-family: var(--font-ui);
+}
+
+/* --- Brand header -------------------------------------------------------- */
+#sidebar .ds-side__brand {
+  padding: 24px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+#sidebar .ds-side__logo-link { display: inline-flex; max-width: 100%; }
+#sidebar .ds-side__brand img {
+  max-width: 160px;
+  height: auto;
+  object-fit: contain;
+}
+#sidebar .ds-side__portal { text-align: center; }
+
+/* --- Nav ----------------------------------------------------------------- */
+#sidebar .ds-side__nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 6px 12px 16px;
+}
+#sidebar .ds-side__group-title { padding: 14px 10px 6px; }
+#sidebar .ds-side__list {
+  list-style: none;
+  margin: 0 0 2px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+#sidebar .ds-side__list .sidebar-item { list-style: none; margin: 0; }
+
+/* Link — inactive = muted; hover = secondary surface */
+#sidebar .ds-side__link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.4;
+  text-decoration: none;
+  color: var(--color-text-muted);
+  font-weight: var(--weight-regular);
+  transition: background .12s ease, color .12s ease;
+}
+#sidebar .ds-side__link i {
+  font-size: 15px;
+  width: 18px;
+  text-align: center;
+  flex: 0 0 auto;
+  color: inherit;
+}
+#sidebar .ds-side__link > span:not(.ds-side__badge) { flex: 1; min-width: 0; }
+#sidebar .ds-side__link:hover {
+  background: var(--color-background-secondary);
+  color: var(--color-text);
+}
+
+/* Active — ruby tint, ruby text (overrides app.css blue active state) */
+#sidebar .sidebar-item.active > .ds-side__link,
+#sidebar .sidebar-item.active > .ds-side__link:hover {
+  background: color-mix(in srgb, var(--color-primary) 9%, transparent);
+  color: var(--color-primary);
+  font-weight: var(--weight-medium);
+}
+
+/* Count badge (e.g. open complaints) */
+#sidebar .ds-side__badge {
+  margin-left: auto;
+  flex: 0 0 auto;
+  background: var(--color-collection-fill);
+  color: var(--color-collection-icon);
+  border: 1px solid var(--color-collection-border);
+  border-radius: var(--radius-pill);
+  font-size: 10px;
+  font-weight: var(--weight-medium);
+  padding: 1px 7px;
+  line-height: 1.5;
+}
+
+/* --- Footer user block --------------------------------------------------- */
+#sidebar .ds-side__footer {
+  border-top: 0.5px solid var(--color-border-tertiary);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+#sidebar .ds-side__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-secondary);
+  color: var(--color-on-abricot);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: var(--weight-medium);
+  flex: 0 0 auto;
+}
+#sidebar .ds-side__user { flex: 1; min-width: 0; }
+#sidebar .ds-side__user-name {
+  font-size: 13px;
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#sidebar .ds-side__user-role { line-height: 1.3; }
+#sidebar .ds-side__logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+#sidebar .ds-side__logout:hover {
+  color: var(--color-primary);
+  background: var(--color-background-secondary);
+}

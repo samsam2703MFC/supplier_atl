@@ -73,6 +73,21 @@ jobs:
             -e "ssh -p ${{ vars.SSH_PORT || '22' }} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
             ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}/"
 
+      # The LIVE production vhost atelierby.tfbuddy.com aliases /supplier to
+      # /var/www/html/tfb/supplier/public (an older copy). Deploy the reskinned
+      # app there too so the design system actually goes live on that URL.
+      # .env / logs excluded → the server's existing config is preserved.
+      - name: Also deploy to the LIVE /supplier target (tfb/supplier)
+        env:
+          SSHPASS: ${{ secrets.SSH_PASSWORD }}
+        run: |
+          sshpass -e rsync -rltDz --omit-dir-times \
+            --exclude '.git' --exclude '.github' --exclude '.idea' \
+            --exclude 'node_modules' \
+            --exclude '.env' --exclude '.env.*' --exclude 'logs' --exclude '*.log' \
+            -e "ssh -p ${{ vars.SSH_PORT || '22' }} -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
+            ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/tfb/supplier/"
+
       - name: Verify app files + dependencies landed on the server
         env:
           SSHPASS: ${{ secrets.SSH_PASSWORD }}
@@ -106,9 +121,11 @@ jobs:
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -s <<'REMOTE'
           DIR="${{ vars.DEPLOY_DIR || '/var/www/html/supplier' }}"
           echo "===== P1. DECISIVE: does PRODUCTION serve OUR design css? ====="
-          for a in "assets/css/design-system.css" "assets/css/components/sidebar.css" "assets/css/pages/price_list.css"; do
-            code=$(curl -sk -o /dev/null -w "%{http_code}" "https://l-atelierby.tfbuddy.com/supplier/$a")
-            echo "  $code  https://l-atelierby.tfbuddy.com/supplier/$a"
+          for host in atelierby.tfbuddy.com l-atelierby.tfbuddy.com; do
+            for a in "assets/css/design-system.css" "assets/css/components/sidebar.css"; do
+              code=$(curl -sk -o /dev/null -w "%{http_code}" "https://$host/supplier/$a")
+              echo "  $code  https://$host/supplier/$a"
+            done
           done
           echo "===== P2. which confs/sites are ENABLED (symlinks) ====="
           echo "  -- conf-enabled --"; ls -la /etc/apache2/conf-enabled/ 2>/dev/null | grep -iE 'supplier|->' | head

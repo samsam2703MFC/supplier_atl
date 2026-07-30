@@ -1,0 +1,100 @@
+{
+  "key": "supplier",
+  "slug": "supplier",
+  "group": "Logistique",
+  "icon": "truck",
+  "isNew": true,
+  "sortOrder": 6,
+  "name": {
+    "fr": "Fournisseur",
+    "en": "Supplier",
+    "ar": "المورّد"
+  },
+  "description": {
+    "fr": "L'atelier de production vu du fournisseur : matières, recettes, cennik client et commandes.",
+    "en": "The production workshop from the supplier's side: raw materials, recipes, per-client price lists and orders.",
+    "ar": "ورشة الإنتاج من جانب المورّد: المواد الخام والوصفات وقوائم الأسعار والطلبات."
+  },
+  "overview": {
+    "fr": "Le module que fait tourner l'atelier qui produit pour le réseau. Il tient la chaîne complète : matières premières et ingrédients, recettes et fiches techniques, coût de revient, puis catalogue et liste de prix négociée client par client. Les commandes des points de vente arrivent dedans, la logistique les expédie, et les réclamations reviennent au même endroit.",
+    "en": "The module that runs the workshop producing for the network. It holds the whole chain: raw materials and ingredients, recipes and technical sheets, cost price, then catalogue and a price list negotiated client by client. Store orders land in it, logistics ships them, and complaints come back to the same place."
+  },
+  "metric": {
+    "value": "1",
+    "label": { "fr": "coût de revient par recette", "en": "cost price per recipe" }
+  },
+  "features": [
+    {
+      "key": "matieres",
+      "icon": "layers",
+      "name": { "fr": "Matières premières et ingrédients", "en": "Raw materials and ingredients" },
+      "description": {
+        "fr": "Le référentiel amont : matières, ingrédients, unités et prix d'achat. C'est ce qui donne un coût de revient à chaque recette au lieu d'un prix décidé au doigt mouillé.",
+        "en": "The upstream reference data: materials, ingredients, units and purchase prices. It is what gives every recipe a cost price instead of a number picked by feel."
+      }
+    },
+    {
+      "key": "recettes",
+      "icon": "chef-hat",
+      "name": { "fr": "Recettes et fiches techniques", "en": "Recipes and technical sheets" },
+      "description": {
+        "fr": "Chaque produit fabriqué a sa recette et sa fiche technique : composants, quantités, process. La fiche sert autant à produire qu'à répondre à un client sur ce qu'il y a dedans.",
+        "en": "Every manufactured product has its recipe and technical sheet: components, quantities, process. The sheet serves production as much as it answers a customer asking what is inside."
+      }
+    },
+    {
+      "key": "catalogue",
+      "icon": "book-open",
+      "name": { "fr": "Catalogue fournisseur", "en": "Supplier catalogue" },
+      "description": {
+        "fr": "Ce que l'atelier propose au réseau, avec l'accès client au catalogue : le point de vente commande sur le vrai référentiel, pas sur un PDF envoyé une fois.",
+        "en": "What the workshop offers the network, with client access to the catalogue: the store orders from the real reference data, not from a PDF sent once."
+      }
+    },
+    {
+      "key": "cennik",
+      "icon": "tag",
+      "name": { "fr": "Liste de prix par client", "en": "Per-client price list" },
+      "description": {
+        "fr": "Chaque client a sa grille négociée. Elle se saisit à la main ou s'importe en JSON, validée avant écriture — reprendre un tarif annuel ne veut plus dire retaper deux cents lignes.",
+        "en": "Every client has a negotiated grid. It is keyed in or imported as JSON, validated before writing — rolling over a yearly tariff no longer means retyping two hundred lines."
+      }
+    },
+    {
+      "key": "commandes",
+      "icon": "receipt",
+      "name": { "fr": "Commandes des points de vente", "en": "Store orders" },
+      "description": {
+        "fr": "Les commandes arrivent du réseau, sont préparées et suivies jusqu'à l'expédition, au tarif du client qui les a passées.",
+        "en": "Orders arrive from the network, get prepared and tracked through to dispatch, at the price list of the client who placed them."
+      }
+    },
+    {
+      "key": "logistique",
+      "icon": "truck",
+      "name": { "fr": "Logistique et expéditions", "en": "Logistics and dispatch" },
+      "description": {
+        "fr": "Les départs, les regroupements et ce qui part vers quel point de vente — l'écran qui dit ce qui est réellement sorti de l'atelier aujourd'hui.",
+        "en": "Departures, consolidation and what goes to which store — the screen that says what actually left the workshop today."
+      }
+    },
+    {
+      "key": "reclamations",
+      "icon": "message-square",
+      "name": { "fr": "Réclamations", "en": "Complaints" },
+      "description": {
+        "fr": "Les retours du réseau sur un produit ou une livraison, tracés avec leur suite. Le fournisseur et le point de vente parlent du même dossier.",
+        "en": "The network's feedback on a product or a delivery, tracked with its follow-up. Supplier and store talk about the same case."
+      }
+    },
+    {
+      "key": "analytics",
+      "icon": "chart-line",
+      "name": { "fr": "Analyse des ventes", "en": "Sales analysis" },
+      "description": {
+        "fr": "Ce qui se vend, à qui, à quelle marge, sur la base des vraies commandes et des vrais coûts de revient plutôt que d'un export retravaillé.",
+        "en": "What sells, to whom, at what margin — from real orders and real cost prices rather than a reworked export."
+      }
+    }
+  ]
+}

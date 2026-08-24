@@ -112,14 +112,14 @@
                         </div>
 
                         <div class="col-12 col-md-4">
-                            <label class="form-label">{{ translations.status|default('Status') }}</label>
+                            <label class="form-label">{{ translations.status|default('Statut') }}</label>
                             <select id="filterStatus" class="form-select">
-                                <option value="all">{{ translations.all|default('All') }}</option>
+                                <option value="all">{{ translations.all|default('Tous') }}</option>
                                 <option value="active" selected>{{ translations.active }}</option>
                                 <option value="inactive">{{ translations.inactive }}</option>
                             </select>
                             <div class="form-text">
-                                {{ translations.filter_by_status|default('Filter by product status') }}
+                                {{ translations.filter_by_status|default('Filtrer par statut du produit') }}
                             </div>
                         </div>
                     </div>
@@ -160,7 +160,7 @@
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="bi bi-camera me-2"></i>
-                        <span id="photoModalTitle">{{ translations.catalog_photo_manage|default('Zdjęcie produktu') }}</span>
+                        <span id="photoModalTitle">{{ translations.catalog_photo_manage|default('Photo du produit') }}</span>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -172,18 +172,18 @@
                             <img id="photoCurrentImg" src="" alt="" style="display:none;">
                             <div class="photo-no-img" id="photoNoImgPlaceholder">
                                 <i class="bi bi-image"></i>
-                                <span class="small text-muted">{{ translations.catalog_no_photo|default('Brak zdjęcia') }}</span>
+                                <span class="small text-muted">{{ translations.catalog_no_photo|default('Aucune photo') }}</span>
                             </div>
                         </div>
                         <div class="d-flex gap-2">
                             <label class="btn btn-primary mb-0">
                                 <i class="bi bi-upload me-1"></i>
-                                {{ translations.catalog_photo_upload_new|default('Wgraj zdjęcie') }}
+                                {{ translations.catalog_photo_upload_new|default('Téléverser une photo') }}
                                 <input type="file" id="photoFileInput" accept="image/*" style="display:none">
                             </label>
                             <button type="button" class="btn btn-outline-danger" id="btnDeletePhoto" style="display:none">
                                 <i class="bi bi-trash me-1"></i>
-                                {{ translations.catalog_photo_delete|default('Usuń zdjęcie') }}
+                                {{ translations.catalog_photo_delete|default('Supprimer la photo') }}
                             </button>
                         </div>
                     </div>
@@ -196,10 +196,10 @@
                         <div class="d-flex gap-2 mt-3">
                             <button type="button" class="btn btn-success" id="btnCropSave">
                                 <i class="bi bi-check-lg me-1"></i>
-                                {{ translations.catalog_photo_crop_save|default('Przytnij i zapisz') }}
+                                {{ translations.catalog_photo_crop_save|default('Recadrer et enregistrer') }}
                             </button>
                             <button type="button" class="btn btn-outline-secondary" id="btnCropCancel">
-                                {{ translations.cancel|default('Anuluj') }}
+                                {{ translations.cancel|default('Annuler') }}
                             </button>
                         </div>
                     </div>
@@ -207,7 +207,7 @@
                 </div>
                 <div class="modal-footer" id="photoModalFooter">
                     <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                        {{ translations.close|default('Zamknij') }}
+                        {{ translations.close|default('Fermer') }}
                     </button>
                 </div>
             </div>
@@ -348,13 +348,13 @@
 
                 const tLoading   = {{ translations.loading|json_encode|raw }};
                 const tNoResults = {{ translations.no_results|json_encode|raw }};
-                const tNoPhoto   = {{ translations.catalog_no_photo|default('Brak zdjęcia')|json_encode|raw }};
+                const tNoPhoto   = {{ translations.catalog_no_photo|default('Aucune photo')|json_encode|raw }};
                 const tActive    = {{ translations.active|json_encode|raw }};
                 const tInactive  = {{ translations.inactive|json_encode|raw }};
                 const tEdit      = {{ translations.edit|json_encode|raw }};
                 const tAllergens = {{ translations.allergens|json_encode|raw }};
-                const tSpec      = {{ translations.specification|default('Specification')|json_encode|raw }};
-                const tUploadPhoto = {{ translations.catalog_upload_photo|default('Dodaj zdjęcie')|json_encode|raw }};
+                const tSpec      = {{ translations.specification|default('Fiche technique')|json_encode|raw }};
+                const tUploadPhoto = {{ translations.catalog_upload_photo|default('Ajouter une photo')|json_encode|raw }};
 
                 if (state.loading) {
                     grid.innerHTML = `<div class="pg-empty"><i class="bi bi-hourglass-split"></i><span>${escapeHtml(tLoading)}</span></div>`;
@@ -460,7 +460,7 @@
                 const name = (window.SUPPLIER_NAME || '').trim();
                 // Wyodrębnij inicjały z nazwy: bierz pierwsze litery słów o długości > 1,
                 // pomijając typowe człony prawne (sp, z, o.o., ltd, sa, bv itp.)
-                const skipWords = new Set(['sp', 'z', 'oo', 'o.o.', 'ltd', 'sa', 's.a.', 'srl', 'gmbh', 'bv', 'nv', 'inc', 'co', 'spolka', 'spółka']);
+                const skipWords = new Set(['sp', 'z', 'oo', 'o.o.', 'ltd', 'sa', 's.a.', 'srl', 'gmbh', 'bv', 'nv', 'inc', 'co', 'spolka', 'société']);
                 const words = name.split(/[\s.,&/\\]+/).filter(w => w.length > 1 && !skipWords.has(w.toLowerCase()));
                 const prefix = words.slice(0, 3).map(w => w[0].toUpperCase()).join('') || 'P';
                 const num = String(state.products.length + 1).padStart(3, '0');
@@ -550,10 +550,10 @@
 
                 // Walidacja nowych pól
                 if (payload.weight_grams !== null && payload.weight_grams <= 0) {
-                    errors.weight_grams = "Waga musi być większa od 0";
+                    errors.weight_grams = "Le poids doit être supérieur à 0";
                 }
                 if (payload.shelf_life_days !== null && payload.shelf_life_days <= 0) {
-                    errors.shelf_life_days = "Termin przydatności musi być większy od 0";
+                    errors.shelf_life_days = "La durée de conservation doit être supérieure à 0";
                 }
 
                 if (Object.keys(errors).length) {
@@ -701,7 +701,7 @@
 
                 el("allergensMeta").textContent =
                     `${items.length} {{ translations.items|json_encode|raw }} · ` +
-                    `${selectedCount} {{ translations.selected|default('selected')|json_encode|raw }}`;
+                    `${selectedCount} {{ translations.selected|default('sélectionné(s)')|json_encode|raw }}`;
 
                 updateAllergensCounters(items.length, selectedCount);
 
@@ -802,7 +802,7 @@
                 };
                 const currentLangInfoEl = el("currentLangInfo");
                 if (currentLangInfoEl) {
-                    currentLangInfoEl.innerHTML = `{{ translations.current_language|default('Current language')|raw }}: <strong>${langNames[lang] || lang.toUpperCase()}</strong>`;
+                    currentLangInfoEl.innerHTML = `{{ translations.current_language|default('Langue actuelle')|raw }}: <strong>${langNames[lang] || lang.toUpperCase()}</strong>`;
                 }
             }
 
@@ -873,8 +873,8 @@
                 if (!storageInfo && !preparationInfo && !composition) {
                     Swal.fire({
                         icon: 'warning',
-                        title: {{ translations.warning|default('Warning')|json_encode|raw }},
-                        text: {{ translations.at_least_one_field_required|default('At least one field must be filled')|json_encode|raw }}
+                        title: {{ translations.warning|default('Attention')|json_encode|raw }},
+                        text: {{ translations.at_least_one_field_required|default('Au moins un champ doit être rempli')|json_encode|raw }}
                     });
                     return;
                 }
@@ -899,7 +899,7 @@
                         Swal.fire({
                             icon: 'success',
                             title: {{ translations.success|json_encode|raw }},
-                            text: {{ translations.specification_saved_for_language|default('Specification saved for selected language')|json_encode|raw }},
+                            text: {{ translations.specification_saved_for_language|default('Fiche enregistrée pour la langue sélectionnée')|json_encode|raw }},
                             timer: 1500,
                             showConfirmButton: false
                         });
@@ -977,7 +977,7 @@
                 // Validate file type
                 if (!file.name.endsWith('.json') && file.type !== 'application/json') {
                     el("importFileInput").classList.add("is-invalid");
-                    el("errImportFile").textContent = {{ translations.invalid_file_format|default('Invalid file format. Please select a JSON file.')|json_encode|raw }};
+                    el("errImportFile").textContent = {{ translations.invalid_file_format|default('Format de fichier invalide. Choisissez un fichier JSON.')|json_encode|raw }};
                     selectedImportFile = null;
                     el("btnStartImport").disabled = true;
                     return;
@@ -987,7 +987,7 @@
                 const maxSize = 10 * 1024 * 1024; // 10MB
                 if (file.size > maxSize) {
                     el("importFileInput").classList.add("is-invalid");
-                    el("errImportFile").textContent = {{ translations.file_too_large|default('File is too large. Maximum size is 10MB.')|json_encode|raw }};
+                    el("errImportFile").textContent = {{ translations.file_too_large|default('Fichier trop volumineux. Taille maximale : 10 Mo.')|json_encode|raw }};
                     selectedImportFile = null;
                     el("btnStartImport").disabled = true;
                     return;
@@ -1005,8 +1005,8 @@
                 if (!selectedImportFile) {
                     Swal.fire({
                         icon: 'warning',
-                        title: {{ translations.warning|default('Warning')|json_encode|raw }},
-                        text: {{ translations.no_file_selected|default('Please select a file first.')|json_encode|raw }}
+                        title: {{ translations.warning|default('Attention')|json_encode|raw }},
+                        text: {{ translations.no_file_selected|default('Choisissez d’abord un fichier.')|json_encode|raw }}
                     });
                     return;
                 }
@@ -1060,8 +1060,8 @@
                             // Show success message with stats
                             const stats = resp.data || {};
                             const message = stats.imported
-                                ? `{{ translations.import_success_message|default('Successfully imported')|raw }}: ${stats.imported} {{ translations.products|default('products')|raw }}`
-                                : {{ translations.import_completed|default('Import completed successfully.')|json_encode|raw }};
+                                ? `{{ translations.import_success_message|default('Import réussi')|raw }}: ${stats.imported} {{ translations.products|default('produits')|raw }}`
+                                : {{ translations.import_completed|default('Import terminé avec succès.')|json_encode|raw }};
 
                             Swal.fire({
                                 icon: 'success',
@@ -1077,7 +1077,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: {{ translations.error|json_encode|raw }},
-                                text: resp.message || {{ translations.import_failed|default('Import failed. Please check the file format.')|json_encode|raw }}
+                                text: resp.message || {{ translations.import_failed|default('L’import a échoué. Vérifiez le format du fichier.')|json_encode|raw }}
                             });
                         }
                     } catch (parseErr) {
@@ -1085,7 +1085,7 @@
                         Swal.fire({
                             icon: 'error',
                             title: {{ translations.error|json_encode|raw }},
-                            text: {{ translations.invalid_json_file|default('Invalid JSON file. Please check the file content.')|json_encode|raw }}
+                            text: {{ translations.invalid_json_file|default('Fichier JSON invalide. Vérifiez son contenu.')|json_encode|raw }}
                         });
                     } finally {
                         el("btnStartImport").disabled = false;
@@ -1098,7 +1098,7 @@
                     Swal.fire({
                         icon: 'error',
                         title: {{ translations.error|json_encode|raw }},
-                        text: {{ translations.file_read_error|default('Error reading file. Please try again.')|json_encode|raw }}
+                        text: {{ translations.file_read_error|default('Erreur de lecture du fichier. Réessayez.')|json_encode|raw }}
                     });
                 };
 
@@ -1154,7 +1154,7 @@
 
                 function openPhotoModal(product) {
                     _photoProductId = product.id;
-                    el('photoModalTitle').textContent = product.name || {{ translations.catalog_photo_manage|default('Zdjęcie produktu')|json_encode|raw }};
+                    el('photoModalTitle').textContent = product.name || {{ translations.catalog_photo_manage|default('Photo du produit')|json_encode|raw }};
 
                     // reset — pokaż widok podglądu
                     _showPhotoViewMode();
@@ -1224,7 +1224,7 @@
                         const productId = _photoProductId;
 
                         Swal.fire({
-                            title: {{ translations.catalog_photo_uploading|default('Przesyłanie zdjęcia...')|json_encode|raw }},
+                            title: {{ translations.catalog_photo_uploading|default('Envoi de la photo…')|json_encode|raw }},
                             allowOutsideClick: false, allowEscapeKey: false,
                             showConfirmButton: false,
                             didOpen: () => {
@@ -1240,7 +1240,7 @@
                                             if (p) p.photo_url = resp.photo_url;
                                             renderGrid();
                                             photoModal.hide();
-                                            SwalToast.fire({ icon: 'success', title: {{ translations.catalog_photo_uploaded|default('Zdjęcie zostało zapisane')|json_encode|raw }} });
+                                            SwalToast.fire({ icon: 'success', title: {{ translations.catalog_photo_uploaded|default('La photo a été enregistrée')|json_encode|raw }} });
                                         } else {
                                             SwalToast.fire({ icon: 'error', title: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }} });
                                         }
@@ -1261,11 +1261,11 @@
 
                     const confirmed = await Swal.fire({
                         icon: 'warning',
-                        title: {{ translations.catalog_photo_delete_confirm|default('Usunąć zdjęcie?')|json_encode|raw }},
+                        title: {{ translations.catalog_photo_delete_confirm|default('Supprimer la photo ?')|json_encode|raw }},
                         showCancelButton: true,
                         confirmButtonColor: '#EF4444',
-                        confirmButtonText: {{ translations.delete|default('Usuń')|json_encode|raw }},
-                        cancelButtonText: {{ translations.cancel|default('Anuluj')|json_encode|raw }},
+                        confirmButtonText: {{ translations.delete|default('Supprimer')|json_encode|raw }},
+                        cancelButtonText: {{ translations.cancel|default('Annuler')|json_encode|raw }},
                     });
                     if (!confirmed.isConfirmed) return;
 
@@ -1276,7 +1276,7 @@
                             if (p) p.photo_url = null;
                             renderGrid();
                             photoModal.hide();
-                            SwalToast.fire({ icon: 'success', title: {{ translations.catalog_photo_deleted|default('Zdjęcie zostało usunięte')|json_encode|raw }} });
+                            SwalToast.fire({ icon: 'success', title: {{ translations.catalog_photo_deleted|default('La photo a été supprimée')|json_encode|raw }} });
                         } else {
                             SwalToast.fire({ icon: 'error', title: resp.message || {{ translations.undefined_error_occurred|json_encode|raw }} });
                         }

@@ -62,9 +62,9 @@
                                 <input id="filterSearch" type="text" class="form-control" placeholder="{{ translations.search_placeholder }}">
 
                                 <select id="filterSaleStatus" class="form-select" style="max-width:220px;">
-                                    <option value="for_sale">{{ translations.for_sale|default('Dostępny w sprzedaży') }}</option>
-                                    <option value="not_for_sale">{{ translations.not_for_sale|default('Niedostępny w sprzedaży') }}</option>
-                                    <option value="all">{{ translations.sale_all|default('Wszystkie') }}</option>
+                                    <option value="for_sale">{{ translations.for_sale|default('Disponible à la vente') }}</option>
+                                    <option value="not_for_sale">{{ translations.not_for_sale|default('Indisponible à la vente') }}</option>
+                                    <option value="all">{{ translations.sale_all|default('Tous') }}</option>
                                 </select>
 
                                 <button class="btn btn-light" id="btnClearFilters" type="button" style="white-space: nowrap;">
@@ -86,13 +86,13 @@
                                 <th style="width:56px;">#</th>
                                 <th>{{ translations.product }}</th>
                                 <th style="width:260px;">{{ translations.current_price }}</th>
-                                <th style="width:160px;">{{ translations.sale_status|default('Dostępność') }}</th>
+                                <th style="width:160px;">{{ translations.sale_status|default('Disponibilité') }}</th>
                                 <th style="width:340px;">{{ translations.schedule }}</th>
                             </tr>
                             </thead>
                             <tbody id="priceListTbody">
                             <tr>
-                                <td colspan="7" class="text-muted">{{ translations.loading|default('Ładowanie...') }}</td>
+                                <td colspan="7" class="text-muted">{{ translations.loading|default('Chargement…') }}</td>
                             </tr>
                             </tbody>
                         </table>
@@ -119,7 +119,7 @@
                         <h5 class="modal-title mb-0">{{ translations.add_price }}</h5>
                         <div class="small text-muted" id="priceModalSubtitle">{{ translations.price_modal_hint }}</div>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Zamknij') }}"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Fermer') }}"></button>
                 </div>
 
                 <div class="modal-body">
@@ -168,9 +168,9 @@
                     <div class="mt-3 d-flex justify-content-between align-items-center">
                         <div class="small text-muted" id="modalMeta"></div>
                         <div class="d-flex gap-2">
-                            <button class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel|default('Anuluj') }}</button>
+                            <button class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel|default('Annuler') }}</button>
                             <button class="btn btn-primary" id="btnSavePrice">
-                                <i class="bi bi-check-lg me-1"></i>{{ translations.save|default('Zapisz') }}
+                                <i class="bi bi-check-lg me-1"></i>{{ translations.save|default('Enregistrer') }}
                             </button>
                         </div>
                     </div>
@@ -190,7 +190,7 @@
                         <h5 class="modal-title mb-0">{{ translations.import_price_list }}</h5>
                         <div class="small text-muted">{{ translations.import_price_list_subtitle }}</div>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Zamknij') }}"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close|default('Fermer') }}"></button>
                 </div>
 
                 <div class="modal-body">
@@ -201,7 +201,7 @@
 
                     <div class="alert alert-light-warning small mb-3">
                         <i class="bi bi-exclamation-triangle me-1"></i>
-                        <strong>{{ translations.important|default('Ważne') }}:</strong>
+                        <strong>{{ translations.important|default('Important') }}:</strong>
                         {{ translations.import_price_list_warning }}
                     </div>
 
@@ -226,7 +226,7 @@
 
                     <div class="mb-3">
                         <label for="importPriceListFileInput" class="form-label fw-bold">
-                            {{ translations.select_json_file|default('Wybierz plik JSON') }}
+                            {{ translations.select_json_file|default('Choisir un fichier JSON') }}
                         </label>
                         <input
                             type="file"
@@ -237,13 +237,13 @@
                         <div class="invalid-feedback" id="errImportPriceListFile"></div>
                         <div class="form-text">
                             <i class="bi bi-file-earmark-code me-1"></i>
-                            {{ translations.accepted_format|default('Akceptowany format') }}: <strong>.json</strong>
+                            {{ translations.accepted_format|default('Format accepté') }}: <strong>.json</strong>
                         </div>
                     </div>
 
                     <div id="importPriceListFileInfo" class="alert alert-light-success small d-none">
                         <i class="bi bi-file-check me-1"></i>
-                        <strong>{{ translations.selected_file|default('Wybrany plik') }}:</strong>
+                        <strong>{{ translations.selected_file|default('Fichier choisi') }}:</strong>
                         <span id="importPriceListFileName"></span>
                         (<span id="importPriceListFileSize"></span>)
                     </div>
@@ -251,18 +251,18 @@
                     <div id="importPriceListProgress" class="alert alert-light-primary small d-none">
                         <div class="d-flex align-items-center gap-2">
                             <div class="spinner-border spinner-border-sm" role="status">
-                                <span class="visually-hidden">{{ translations.processing|default('Przetwarzanie') }}...</span>
+                                <span class="visually-hidden">{{ translations.processing|default('Traitement') }}...</span>
                             </div>
-                            <span>{{ translations.importing|default('Importowanie') }}...</span>
+                            <span>{{ translations.importing|default('Import en cours') }}...</span>
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-end gap-2 mt-3">
                         <button class="btn btn-light" data-bs-dismiss="modal" id="btnCancelImportPriceList">
-                            {{ translations.cancel|default('Anuluj') }}
+                            {{ translations.cancel|default('Annuler') }}
                         </button>
                         <button class="btn btn-primary" id="btnStartImportPriceList" disabled>
-                            <i class="bi bi-upload me-1"></i>{{ translations.start_import|default('Rozpocznij import') }}
+                            <i class="bi bi-upload me-1"></i>{{ translations.start_import|default('Lancer l’import') }}
                         </button>
                     </div>
                 </div>
@@ -667,7 +667,7 @@
                         if (validFrom && String(validFrom) <= String(today)) {
                             Swal.fire({
                                 icon: 'warning',
-                                title: `{{ translations.attention|default('Uwaga') }}`,
+                                title: `{{ translations.attention|default('Attention') }}`,
                                 text: `{{ translations.valid_from_must_be_future }}`
                             });
                         }
@@ -700,24 +700,24 @@
 
                         Swal.fire({
                             icon: 'success',
-                            title: `{{ translations.success|default('Sukces') }}`,
-                            text: `{{ translations.operation_successful|default('Operacja zakończona powodzeniem') }}`,
+                            title: `{{ translations.success|default('Succès') }}`,
+                            text: `{{ translations.operation_successful|default('Opération réussie') }}`,
                             timer: 900,
                             showConfirmButton: false
                         });
                     } else {
                         Swal.fire({
                             icon: 'error',
-                            title: `{{ translations.error|default('Błąd') }}`,
-                            text: resp.message || `{{ translations.undefined_error_occurred|default('Wystąpił nieoczekiwany błąd') }}`
+                            title: `{{ translations.error|default('Erreur') }}`,
+                            text: resp.message || `{{ translations.undefined_error_occurred|default('Une erreur inattendue est survenue') }}`
                         });
                     }
                 } catch (err) {
                     console.error(err);
                     Swal.fire({
                         icon: 'error',
-                        title: `{{ translations.error|default('Błąd') }}`,
-                        text: `{{ translations.no_api_connection|default('Brak połączenia z API') }}`
+                        title: `{{ translations.error|default('Erreur') }}`,
+                        text: `{{ translations.no_api_connection|default('Pas de connexion à l’API') }}`
                     });
                 } finally {
                     el("btnSavePrice").disabled = false;
@@ -741,8 +741,8 @@
 
                 Swal.fire({
                     icon: 'success',
-                    title: `{{ translations.success|default('Sukces') }}`,
-                    text: `{{ translations.operation_successful|default('Operacja zakończona powodzeniem') }}`,
+                    title: `{{ translations.success|default('Succès') }}`,
+                    text: `{{ translations.operation_successful|default('Opération réussie') }}`,
                     timer: 900,
                     showConfirmButton: false
                 });
@@ -757,8 +757,8 @@
                     text: `#${priceId} (${validFrom})`,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: `{{ translations.yes_delete_it|default('Tak, usuń') }}`,
-                    cancelButtonText: `{{ translations.cancel|default('Anuluj') }}`
+                    confirmButtonText: `{{ translations.yes_delete_it|default('Oui, supprimer') }}`,
+                    cancelButtonText: `{{ translations.cancel|default('Annuler') }}`
                 });
 
                 if (!result.isConfirmed) return;
@@ -774,8 +774,8 @@
                     } else {
                         Swal.fire({
                             icon: 'error',
-                            title: `{{ translations.error|default('Błąd') }}`,
-                            text: resp.message || `{{ translations.undefined_error_occurred|default('Wystąpił nieoczekiwany błąd') }}`
+                            title: `{{ translations.error|default('Erreur') }}`,
+                            text: resp.message || `{{ translations.undefined_error_occurred|default('Une erreur inattendue est survenue') }}`
                         });
                     }
 
@@ -783,8 +783,8 @@
                     console.error(err);
                     Swal.fire({
                         icon: 'error',
-                        title: `{{ translations.error|default('Błąd') }}`,
-                        text: `{{ translations.no_api_connection|default('Brak połączenia z API') }}`
+                        title: `{{ translations.error|default('Erreur') }}`,
+                        text: `{{ translations.no_api_connection|default('Pas de connexion à l’API') }}`
                     });
                 }
             }
@@ -840,7 +840,7 @@
                 // Validate file type
                 if (!file.name.endsWith('.json') && file.type !== 'application/json') {
                     el("importPriceListFileInput").classList.add("is-invalid");
-                    el("errImportPriceListFile").textContent = `{{ translations.invalid_file_format|default('Nieprawidłowy format pliku. Wybierz plik JSON.') }}`;
+                    el("errImportPriceListFile").textContent = `{{ translations.invalid_file_format|default('Format de fichier invalide. Choisissez un fichier JSON.') }}`;
                     selectedImportPriceListFile = null;
                     el("btnStartImportPriceList").disabled = true;
                     return;
@@ -850,7 +850,7 @@
                 const maxSize = 10 * 1024 * 1024; // 10MB
                 if (file.size > maxSize) {
                     el("importPriceListFileInput").classList.add("is-invalid");
-                    el("errImportPriceListFile").textContent = `{{ translations.file_too_large|default('Plik jest za duży. Maksymalny rozmiar to 10MB.') }}`;
+                    el("errImportPriceListFile").textContent = `{{ translations.file_too_large|default('Fichier trop volumineux. Taille maximale : 10 Mo.') }}`;
                     selectedImportPriceListFile = null;
                     el("btnStartImportPriceList").disabled = true;
                     return;
@@ -868,8 +868,8 @@
                 if (!selectedImportPriceListFile) {
                     Swal.fire({
                         icon: 'warning',
-                        title: `{{ translations.warning|default('Ostrzeżenie') }}`,
-                        text: `{{ translations.no_file_selected|default('Najpierw wybierz plik.') }}`
+                        title: `{{ translations.warning|default('Avertissement') }}`,
+                        text: `{{ translations.no_file_selected|default('Choisissez d’abord un fichier.') }}`
                     });
                     return;
                 }
@@ -890,7 +890,7 @@
                     if (el("errImportValidFrom")) el("errImportValidFrom").textContent = `{{ translations.import_valid_from_must_be_future }}`;
                     Swal.fire({
                         icon: 'warning',
-                        title: `{{ translations.attention|default('Uwaga') }}`,
+                        title: `{{ translations.attention|default('Attention') }}`,
                         text: `{{ translations.import_valid_from_must_be_future }}`
                     });
                     return;
@@ -923,12 +923,12 @@
                             // Show success message with stats
                             const stats = resp.data || {};
                             const message = stats.imported
-                                ? `{{ translations.import_price_list_success|default('Import cennika zakończony pomyślnie')|raw }}: ${stats.imported} {{ translations.price_items|default('pozycji cennikowych')|raw }}`
-                                : `{{ translations.import_price_list_success|default('Import cennika zakończony pomyślnie.') }}`;
+                                ? `{{ translations.import_price_list_success|default('Import du tarif terminé avec succès')|raw }}: ${stats.imported} {{ translations.price_items|default('lignes tarifaires')|raw }}`
+                                : `{{ translations.import_price_list_success|default('Import du tarif terminé avec succès.') }}`;
 
                             Swal.fire({
                                 icon: 'success',
-                                title: `{{ translations.success|default('Sukces') }}`,
+                                title: `{{ translations.success|default('Succès') }}`,
                                 html: message,
                                 timer: 3000,
                                 showConfirmButton: true
@@ -942,16 +942,16 @@
                         } else {
                             Swal.fire({
                                 icon: 'error',
-                                title: `{{ translations.error|default('Błąd') }}`,
-                                text: resp.message || `{{ translations.import_price_list_failed|default('Import cennika nie powiódł się. Sprawdź format pliku.') }}`
+                                title: `{{ translations.error|default('Erreur') }}`,
+                                text: resp.message || `{{ translations.import_price_list_failed|default('L’import du tarif a échoué. Vérifiez le format du fichier.') }}`
                             });
                         }
                     } catch (parseErr) {
                         console.error('JSON parse error:', parseErr);
                         Swal.fire({
                             icon: 'error',
-                            title: `{{ translations.error|default('Błąd') }}`,
-                            text: `{{ translations.invalid_json_file|default('Nieprawidłowy plik JSON. Sprawdź zawartość pliku.') }}`
+                            title: `{{ translations.error|default('Erreur') }}`,
+                            text: `{{ translations.invalid_json_file|default('Fichier JSON invalide. Vérifiez son contenu.') }}`
                         });
                     } finally {
                         el("btnStartImportPriceList").disabled = false;
@@ -963,8 +963,8 @@
                 reader.onerror = function() {
                     Swal.fire({
                         icon: 'error',
-                        title: `{{ translations.error|default('Błąd') }}`,
-                        text: `{{ translations.file_read_error|default('Błąd odczytu pliku. Spróbuj ponownie.') }}`
+                        title: `{{ translations.error|default('Erreur') }}`,
+                        text: `{{ translations.file_read_error|default('Erreur de lecture du fichier. Réessayez.') }}`
                     });
                 };
 

@@ -1,11 +1,11 @@
 {% extends "layouts/base.twig" %}
 
-{% block title %}{{ translations.order_config_title ?? 'Konfiguracja zamówień' }}{% endblock %}
+{% block title %}{{ translations.order_config_title ?? 'Configuration des commandes' }}{% endblock %}
 
 {% block page_heading %}
     <div class="page-heading">
-        <h3>{{ translations.order_config_heading ?? 'Konfiguracja zamówień' }}</h3>
-        <p class="text-subtitle text-muted">{{ translations.order_config_subtitle ?? 'Minimalna wartość zamówienia i progi kosztów dostawy' }}</p>
+        <h3>{{ translations.order_config_heading ?? 'Configuration des commandes' }}</h3>
+        <p class="text-subtitle text-muted">{{ translations.order_config_subtitle ?? 'Valeur minimale de commande et paliers de frais de livraison' }}</p>
     </div>
 {% endblock %}
 
@@ -20,20 +20,20 @@
             <div class="card-header">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-shield-check me-2"></i>
-                    {{ translations.order_config_min_order ?? 'Minimalna wartość zamówienia' }}
+                    {{ translations.order_config_min_order ?? 'Valeur minimale de commande' }}
                 </h5>
             </div>
             <div class="card-body">
                 <div class="alert alert-light-secondary d-flex gap-2 align-items-start mb-3">
                     <i class="bi bi-info-circle mt-1"></i>
                     <div class="small">
-                        {{ translations.order_config_min_help ?? 'Jeśli wartość zamówienia jest niższa od podanej kwoty, złożenie zamówienia zostanie zablokowane. Ustaw 0, aby wyłączyć minimum.' }}
+                        {{ translations.order_config_min_help ?? 'Si la valeur de la commande est inférieure au montant indiqué, la commande sera bloquée. Mettez 0 pour désactiver le minimum.' }}
                     </div>
                 </div>
                 <div class="row g-3">
                     <div class="col-12 col-md-4">
                         <label class="form-label fw-semibold" for="min_order_value">
-                            {{ translations.order_config_min_value ?? 'Minimalna wartość' }}
+                            {{ translations.order_config_min_value ?? 'Valeur minimale' }}
                         </label>
                         <div class="input-group">
                             <input type="number"
@@ -48,11 +48,11 @@
                                 {{ config.currency_code ?? 'EUR' }}
                             </span>
                         </div>
-                        <div class="form-text">{{ translations.order_config_min_zero ?? '0 = brak minimalnej wartości' }}</div>
+                        <div class="form-text">{{ translations.order_config_min_zero ?? '0 = pas de valeur minimale' }}</div>
                     </div>
                     <div class="col-12 col-md-3">
                         <label class="form-label fw-semibold" for="currency_code">
-                            {{ translations.order_config_currency ?? 'Waluta' }}
+                            {{ translations.order_config_currency ?? 'Devise' }}
                         </label>
                         <select name="currency_code" id="currency_code" class="form-select" onchange="updateCurrencySymbol(this.value)">
                             {% set currencies = ['EUR', 'PLN', 'GBP', 'CHF', 'CZK'] %}
@@ -70,15 +70,15 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">
                     <i class="bi bi-truck me-2"></i>
-                    {{ translations.order_config_tiers ?? 'Progi kosztów dostawy' }}
+                    {{ translations.order_config_tiers ?? 'Paliers de frais de livraison' }}
                 </h5>
-                <span class="badge bg-secondary">{{ translations.order_config_max_tiers ?? 'Maks. 5 progów' }}</span>
+                <span class="badge bg-secondary">{{ translations.order_config_max_tiers ?? 'Max. 5 paliers' }}</span>
             </div>
             <div class="card-body">
                 <div class="alert alert-light-secondary d-flex gap-2 align-items-start mb-3">
                     <i class="bi bi-info-circle mt-1"></i>
                     <div class="small">
-                        {{ translations.order_config_tiers_help ?? 'Zdefiniuj do 5 przedziałów wartości zamówienia. Puste pola „Do" w ostatnim progu oznaczają brak górnego limitu (franco). Etykiety generowane są automatycznie.' }}
+                        {{ translations.order_config_tiers_help ?? 'Définissez jusqu’à 5 tranches de valeur de commande. Un champ « Jusqu’à » vide sur le dernier palier signifie sans limite haute (franco). Les libellés sont générés automatiquement.' }}
                     </div>
                 </div>
 
@@ -93,10 +93,10 @@
                         <thead class="table-light">
                             <tr>
                                 <th style="width:60px" class="text-center">#</th>
-                                <th>{{ translations.order_config_tier_from ?? 'Od (≥)' }}</th>
-                                <th>{{ translations.order_config_tier_to ?? 'Do (<)' }}</th>
-                                <th>{{ translations.order_config_tier_fee ?? 'Koszt dostawy' }}</th>
-                                <th class="text-muted small">{{ translations.order_config_tier_label ?? 'Etykieta (auto)' }}</th>
+                                <th>{{ translations.order_config_tier_from ?? 'De (≥)' }}</th>
+                                <th>{{ translations.order_config_tier_to ?? 'À (<)' }}</th>
+                                <th>{{ translations.order_config_tier_fee ?? 'Coût de livraison' }}</th>
+                                <th class="text-muted small">{{ translations.order_config_tier_label ?? 'Libellé (auto)' }}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -169,7 +169,7 @@
                 {# Podgląd progów jako kafelki (analogicznie do PoC) #}
                 <div class="mt-4" id="tiersPreview">
                     <div class="small fw-semibold text-muted text-uppercase mb-2">
-                        {{ translations.order_config_preview ?? 'Podgląd progów' }}
+                        {{ translations.order_config_preview ?? 'Aperçu des paliers' }}
                     </div>
                     <div class="d-flex flex-wrap gap-2" id="tierBadges">
                         {# Wypełniane przez JS #}
@@ -183,10 +183,10 @@
         <div class="d-flex gap-2">
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-floppy me-1"></i>
-                {{ translations.save ?? 'Zapisz' }}
+                {{ translations.save ?? 'Enregistrer' }}
             </button>
             <a href="{{ ROOT }}/me" class="btn btn-outline-secondary">
-                {{ translations.cancel ?? 'Anuluj' }}
+                {{ translations.cancel ?? 'Annuler' }}
             </a>
         </div>
 
@@ -266,7 +266,7 @@
             }
 
             if (!container.children.length) {
-                container.innerHTML = '<span class="text-muted small">Brak zdefiniowanych progów</span>';
+                container.innerHTML = '<span class="text-muted small">Aucun palier défini</span>';
             }
         }
 
@@ -286,13 +286,13 @@
 
                 if (max !== null && min >= max) {
                     e.preventDefault();
-                    alert(`Próg ${i}: wartość "Od" musi być mniejsza niż "Do".`);
+                    alert(`Palier ${i} : la valeur « De » doit être inférieure à « À ».`);
                     minEl.focus();
                     return;
                 }
                 if (fee < 0) {
                     e.preventDefault();
-                    alert(`Próg ${i}: koszt dostawy nie może być ujemny.`);
+                    alert(`Palier ${i} : le coût de livraison ne peut pas être négatif.`);
                     feeEl.focus();
                     return;
                 }

@@ -8,11 +8,11 @@ class LoginRequest {
         $errors = [];
 
         if (empty($data['login'])) {
-            $errors['login'] = 'Login is required';
+            $errors['login'] = 'L’identifiant est requis';
         }
 
         if (empty($data['password'])) {
-            $errors['password'] = 'Password is required';
+            $errors['password'] = 'Le mot de passe est requis';
         }
 
         return $errors;

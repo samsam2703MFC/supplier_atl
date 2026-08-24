@@ -39,7 +39,7 @@ class AuthController extends Controller
             if ($logged) {
                 redirect("/dashboard");
             } else {
-                $this->errors["invalid_credentials"] = "Invalid login or password.";
+                $this->errors["invalid_credentials"] = "Identifiant ou mot de passe invalide.";
             }
         }
 

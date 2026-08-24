@@ -30,10 +30,10 @@
                 <p class="text-subtitle text-muted">{{ translations.analytics_subtitle }}</p>
             </div>
             <a href="{{ ROOT }}/logistics" class="btn btn-sm btn-outline-secondary">
-                <i class="bi bi-truck"></i> {{ translations.logistics ?? 'Logistics' }}
+                <i class="bi bi-truck"></i> {{ translations.logistics ?? 'Logistique' }}
             </a>
             <a href="{{ ROOT }}/analytics/raw-material-sales" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-boxes"></i> {{ translations.rms_menu ?? 'Raw Material Sales' }}
+                <i class="bi bi-boxes"></i> {{ translations.rms_menu ?? 'Ventes de matières premières' }}
             </a>
         </div>
     </div>
@@ -89,16 +89,16 @@
             </div>
             <div class="col-6 col-lg-3">
                 <div class="kpi-card">
-                    <div class="kpi-label">{{ translations.analytics_kpi_avg_basket ?? 'Avg basket' }}</div>
+                    <div class="kpi-label">{{ translations.analytics_kpi_avg_basket ?? 'Panier moyen' }}</div>
                     <div class="kpi-value">{{ avgBasket|number_format(0, '.', ' ') }}</div>
-                    <div class="kpi-sub">{{ translations.analytics_kpi_per_order ?? 'per order' }}</div>
+                    <div class="kpi-sub">{{ translations.analytics_kpi_per_order ?? 'par commande' }}</div>
                 </div>
             </div>
             <div class="col-6 col-lg-3">
                 <div class="kpi-card">
                     <div class="kpi-label">{{ translations.analytics_top_products_title }}</div>
                     <div class="kpi-value">{{ top_products|length }}</div>
-                    <div class="kpi-sub">{{ translations.analytics_kpi_products_sub ?? 'active products' }}</div>
+                    <div class="kpi-sub">{{ translations.analytics_kpi_products_sub ?? 'produits actifs' }}</div>
                 </div>
             </div>
         </div>

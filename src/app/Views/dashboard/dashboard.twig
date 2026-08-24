@@ -73,7 +73,7 @@
         <div class="col-6 col-lg-3">
             <div class="kpi-card">
                 <div class="kpi-accent" style="background:#14B8A6;"></div>
-                <div class="kpi-label">{{ translations.dashboard_kpi_shops ?? 'Shops' }}</div>
+                <div class="kpi-label">{{ translations.dashboard_kpi_shops ?? 'Magasins' }}</div>
                 <div class="kpi-value">{{ kpi.shops_count|default(0) }}</div>
                 <div class="kpi-meta"><i class="bi bi-shop"></i> {{ translations.dashboard_kpi_current_month }}</div>
             </div>
@@ -198,7 +198,7 @@
         <div class="col-12 col-lg-7">
             <div class="card h-100">
                 <div class="card-header">
-                    <h6 class="card-title mb-0">{{ translations.dashboard_shop_breakdown ?? 'Shop breakdown' }}</h6>
+                    <h6 class="card-title mb-0">{{ translations.dashboard_shop_breakdown ?? 'Détail par magasin' }}</h6>
                 </div>
                 <div class="card-body p-0">
                     {% if shop_revenue is empty %}
@@ -210,7 +210,7 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="ps-3">{{ translations.dashboard_col_shop }}</th>
-                                        <th class="text-center">{{ translations.dashboard_col_orders_count ?? 'Orders' }}</th>
+                                        <th class="text-center">{{ translations.dashboard_col_orders_count ?? 'Commandes' }}</th>
                                         <th class="text-end pe-3">{{ translations.dashboard_col_revenue }}</th>
                                         <th class="pe-3" style="width:80px"></th>
                                     </tr>

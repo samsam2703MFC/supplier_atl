@@ -3,7 +3,7 @@
   "info": {
     "title": "Portail Fournisseur TFB — API",
     "version": "1.0.0",
-    "description": "API consommée par le **Portail Fournisseur TFB** (`samsam2703MFC/supplier_atl`), servie par le backend **TF Buddy**.\n\nTous les endpoints sont relatifs à `‹hôte›/api/v1`. Le portail résout l'hôte via la variable d'environnement `API_BASE_URL` (défaut : l'environnement de test TF Buddy).\n\n## Authentification\n\n`POST /material-suppliers/auth/login` avec les identifiants du **compte externe** du fournisseur renvoie un `access_token` (JWT HS512, 30 min) et un `refresh_token`. Chaque autre appel envoie `Authorization: Bearer ‹access_token›` ; à l'approche de l'expiration, le portail appelle `/material-suppliers/auth/refresh` de manière transparente. L'en-tête `Accept-Language` choisit la langue des réponses. Les comptes de connexion fournisseur sont gérés par un administrateur (`/material-suppliers/{id}/external-user`).\n\n## Routes du portail\n\nLe portail est une application PHP rendue côté serveur, montée sur `‹hôte›/supplier`. Ses pages (`/auth`, `/dashboard`, `/analytics`, `/catalog`, `/raw-materials`, `/recipes`, `/price-list`, `/orders` — **Commandes**, `/logistics`, `/complaints`, `/clients`, `/me`, `/logout`) consomment les endpoints ci-dessous côté serveur ; les routes `/ajax/*` relaient les mêmes endpoints pour les actions en page. La liste complète des routes vit dans `src/core/Bootstrap/Routes/`.\n",
+    "description": "API consommée par le **Portail Fournisseur TFB** (`samsam2703MFC/supplier_atl`), servie par le backend **TF Buddy**.\n\nTous les endpoints sont relatifs à `‹hôte›/api/v1`. Le portail résout l'hôte via la variable d'environnement `API_BASE_URL` (défaut : l'environnement de test TF Buddy).\n\n## Authentification\n\n`POST /material-suppliers/auth/login` avec les identifiants du **compte externe** du fournisseur renvoie un `access_token` (JWT HS512, 30 min) et un `refresh_token`. Chaque autre appel envoie `Authorization: Bearer ‹access_token›` ; à l'approche de l'expiration, le portail appelle `/material-suppliers/auth/refresh` de manière transparente. L'en-tête `Accept-Language` choisit la langue des réponses. Les comptes de connexion fournisseur sont gérés par un administrateur (`/material-suppliers/{id}/external-user`).\n\n## Routes du portail\n\nLe portail est une application PHP rendue côté serveur, montée sur `‹hôte›/supplier`. Ses pages (`/auth`, `/dashboard`, `/analytics`, `/catalog`, `/raw-materials`, `/recipes`, `/price-list`, `/orders` — **Commandes**, `/logistics`, `/complaints`, `/clients`, `/me`, `/logout`) consomment les endpoints ci-dessous côté serveur ; les routes `/ajax/*` relaient les mêmes endpoints pour les actions en page. La liste complète des routes vit dans `src/core/Bootstrap/Routes/`.\n\n## Périmètre\n\nLa documentation couvre désormais l’ensemble du domaine **achats de matières premières** de TF Buddy, tel que listé par la spécification officielle : le portail fournisseur (sections d’origine), l’intégration et les correspondances catalogue, le référentiel réseau (matières, catégories, fournisseurs), et le parcours d’achat côté magasin (stocks, inventaires, réquisitions, commandes, réception, réclamations). Certaines routes réseau/magasin exigent une portée d’authentification différente du jeton fournisseur.\n",
     "contact": {
       "name": "L’Atelier by — Supplier Portal"
     }
@@ -60,6 +60,27 @@
     },
     {
       "name": "Référentiels"
+    },
+    {
+      "name": "Intégration & correspondances"
+    },
+    {
+      "name": "Réseau — matières"
+    },
+    {
+      "name": "Réseau — catégories de matières"
+    },
+    {
+      "name": "Réseau — fournisseurs & contacts"
+    },
+    {
+      "name": "Magasin — matières & stocks"
+    },
+    {
+      "name": "Magasin — réquisitions"
+    },
+    {
+      "name": "Magasin — commandes & réception"
     }
   ],
   "paths": {
@@ -198,6 +219,41 @@
           },
           "422": {
             "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Supprimer un fournisseur",
+        "operationId": "delete_material-suppliers_supplierId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
           }
         }
       }
@@ -2743,6 +2799,65 @@
             "description": "Validation error."
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Recettes"
+        ],
+        "summary": "Supprimer la photo d’une étape",
+        "operationId": "delete_material-suppliers_supplierId_recipes_recipeId_steps_stepId_photos_slot",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "slot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
       }
     },
     "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/current": {
@@ -3653,6 +3768,49 @@
             "description": "Validation error."
           }
         }
+      },
+      "get": {
+        "tags": [
+          "Commandes"
+        ],
+        "summary": "Obtenir les lignes finales de la commande",
+        "operationId": "get_material-suppliers_supplierId_orders_orderId_final-items",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
       }
     },
     "/material-suppliers/{supplierId}/orders/{orderId}/transport": {
@@ -4399,6 +4557,49 @@
             "description": "Validation error."
           }
         }
+      },
+      "get": {
+        "tags": [
+          "Transporteurs"
+        ],
+        "summary": "Obtenir un transporteur",
+        "operationId": "get_material-suppliers_supplierId_carriers_carrierId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "carrierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
       }
     },
     "/material-suppliers/{supplierId}/upcoming-deliveries": {
@@ -4822,6 +5023,4673 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/comparison": {
+      "get": {
+        "tags": [
+          "Commandes"
+        ],
+        "summary": "Obtenir la comparaison commandé / livré",
+        "operationId": "get_material-suppliers_supplierId_orders_orderId_comparison",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/analytics/revenue": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Chiffre d’affaires sur la période",
+        "operationId": "get_material-suppliers_supplierId_analytics_revenue",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/analytics/top-products": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Meilleurs produits",
+        "operationId": "get_material-suppliers_supplierId_analytics_top-products",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/analytics/revenue-by-shop": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Chiffre d’affaires par magasin",
+        "operationId": "get_material-suppliers_supplierId_analytics_revenue-by-shop",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/analytics/raw-material-sales": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Ventes de matières premières (par magasin)",
+        "operationId": "get_material-suppliers_supplierId_analytics_raw-material-sales",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/analytics/raw-material-sales-all-shops": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Ventes de matières premières (tous magasins)",
+        "operationId": "get_material-suppliers_supplierId_analytics_raw-material-sales-all-shops",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/shops/{shopId}/price-change-notifications": {
+      "get": {
+        "tags": [
+          "Cennik (tarifs)"
+        ],
+        "summary": "Notifications de changement de prix pour un magasin",
+        "operationId": "get_material-suppliers_supplierId_shops_shopId_price-change-notifications",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{recipeId}/steps/reorder": {
+      "patch": {
+        "tags": [
+          "Recettes"
+        ],
+        "summary": "Réordonner les étapes de la recette",
+        "operationId": "patch_material-suppliers_supplierId_recipes_recipeId_steps_reorder",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{recipeId}/steps/{stepId}": {
+      "patch": {
+        "tags": [
+          "Recettes"
+        ],
+        "summary": "Mettre à jour une étape de recette",
+        "operationId": "patch_material-suppliers_supplierId_recipes_recipeId_steps_stepId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Recettes"
+        ],
+        "summary": "Supprimer une étape de recette",
+        "operationId": "delete_material-suppliers_supplierId_recipes_recipeId_steps_stepId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/external-user": {
+      "get": {
+        "tags": [
+          "Profil fournisseur"
+        ],
+        "summary": "Obtenir le compte de connexion externe du fournisseur",
+        "operationId": "get_material-suppliers_supplierId_external-user",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Profil fournisseur"
+        ],
+        "summary": "Créer le compte de connexion externe",
+        "operationId": "post_material-suppliers_supplierId_external-user",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Profil fournisseur"
+        ],
+        "summary": "Mettre à jour le compte de connexion externe",
+        "operationId": "patch_material-suppliers_supplierId_external-user",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/shops/by-uid/{uuid}": {
+      "get": {
+        "tags": [
+          "Profil fournisseur"
+        ],
+        "summary": "Retrouver un magasin par son UID",
+        "operationId": "get_material-suppliers_supplierId_shops_by-uid_uuid",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/deliveries/{deliveryId}": {
+      "get": {
+        "tags": [
+          "Logistique"
+        ],
+        "summary": "Obtenir une livraison",
+        "operationId": "get_deliveries_deliveryId",
+        "parameters": [
+          {
+            "name": "deliveryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/catalog-mappings": {
+      "get": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Lister les correspondances catalogue ↔ matières",
+        "operationId": "get_material-suppliers_supplierId_catalog-mappings",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/supplier-catalog-products/{productId}/mapping": {
+      "post": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Créer la correspondance d’un produit catalogue",
+        "operationId": "post_supplier-catalog-products_productId_mapping",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Remplacer la correspondance d’un produit catalogue",
+        "operationId": "put_supplier-catalog-products_productId_mapping",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Supprimer la correspondance d’un produit catalogue",
+        "operationId": "delete_supplier-catalog-products_productId_mapping",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/integration/activate": {
+      "get": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Activer l’intégration fournisseur (lien d’activation)",
+        "operationId": "get_material-suppliers_integration_activate",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/materials": {
+      "get": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Lister les matières côté fournisseurs",
+        "operationId": "get_material-suppliers_materials",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/connected-materials": {
+      "get": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Lister les matières connectées au fournisseur",
+        "operationId": "get_material-suppliers_supplierId_connected-materials",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/materials": {
+      "get": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Lister les matières liées au fournisseur",
+        "operationId": "get_material-suppliers_supplierId_materials",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/materials/{materialId}": {
+      "post": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Lier une matière réseau au fournisseur",
+        "operationId": "post_material-suppliers_supplierId_materials_materialId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Mettre à jour le lien matière ↔ fournisseur",
+        "operationId": "patch_material-suppliers_supplierId_materials_materialId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Délier une matière du fournisseur",
+        "operationId": "delete_material-suppliers_supplierId_materials_materialId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/materials/{materialId}/packagings": {
+      "get": {
+        "tags": [
+          "Intégration & correspondances"
+        ],
+        "summary": "Conditionnements d’une matière du fournisseur",
+        "operationId": "get_material-suppliers_supplierId_materials_materialId_packagings",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials": {
+      "post": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Créer une matière réseau",
+        "operationId": "post_materials",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/{materialId}": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Obtenir une matière",
+        "operationId": "get_materials_materialId",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Mettre à jour une matière",
+        "operationId": "patch_materials_materialId",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Supprimer une matière",
+        "operationId": "delete_materials_materialId",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/{materialId}/manual-price": {
+      "post": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Définir un prix manuel pour une matière",
+        "operationId": "post_materials_materialId_manual-price",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/aliases": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Lister les alias de matières",
+        "operationId": "get_materials_aliases",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/{materialId}/aliases": {
+      "patch": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Mettre à jour les alias d’une matière",
+        "operationId": "patch_materials_materialId_aliases",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/{materialId}/open-params": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Obtenir les paramètres ouverts d’une matière",
+        "operationId": "get_materials_materialId_open-params",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Créer les paramètres ouverts d’une matière",
+        "operationId": "post_materials_materialId_open-params",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Remplacer les paramètres ouverts d’une matière",
+        "operationId": "put_materials_materialId_open-params",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Supprimer les paramètres ouverts d’une matière",
+        "operationId": "delete_materials_materialId_open-params",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/open-params": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Lister les paramètres ouverts",
+        "operationId": "get_materials_open-params",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/pack-options": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Lister les options de conditionnement",
+        "operationId": "get_materials_pack-options",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/{materialId}/packagings": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Conditionnements d’une matière",
+        "operationId": "get_materials_materialId_packagings",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/{materialId}/vat-rates": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Taux de TVA d’une matière",
+        "operationId": "get_materials_materialId_vat-rates",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Définir les taux de TVA d’une matière",
+        "operationId": "post_materials_materialId_vat-rates",
+        "parameters": [
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/countries/{country}/materials/vat-rates": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Taux de TVA matières par pays",
+        "operationId": "get_countries_country_materials_vat-rates",
+        "parameters": [
+          {
+            "name": "country",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-packs": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Lister les packs de matières",
+        "operationId": "get_material-packs",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Créer un pack de matières",
+        "operationId": "post_material-packs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-packs/{packId}": {
+      "get": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Obtenir un pack de matières",
+        "operationId": "get_material-packs_packId",
+        "parameters": [
+          {
+            "name": "packId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Réseau — matières"
+        ],
+        "summary": "Supprimer un pack de matières",
+        "operationId": "delete_material-packs_packId",
+        "parameters": [
+          {
+            "name": "packId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-categories": {
+      "post": {
+        "tags": [
+          "Réseau — catégories de matières"
+        ],
+        "summary": "Créer une catégorie de matières",
+        "operationId": "post_material-categories",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-categories/{categoryId}": {
+      "get": {
+        "tags": [
+          "Réseau — catégories de matières"
+        ],
+        "summary": "Obtenir une catégorie",
+        "operationId": "get_material-categories_categoryId",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Réseau — catégories de matières"
+        ],
+        "summary": "Mettre à jour une catégorie",
+        "operationId": "patch_material-categories_categoryId",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Réseau — catégories de matières"
+        ],
+        "summary": "Supprimer une catégorie",
+        "operationId": "delete_material-categories_categoryId",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-categories/{categoryId}/products": {
+      "get": {
+        "tags": [
+          "Réseau — catégories de matières"
+        ],
+        "summary": "Produits d’une catégorie",
+        "operationId": "get_material-categories_categoryId_products",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-categories/used": {
+      "get": {
+        "tags": [
+          "Réseau — catégories de matières"
+        ],
+        "summary": "Catégories utilisées",
+        "operationId": "get_material-categories_used",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-categories/aliases": {
+      "get": {
+        "tags": [
+          "Réseau — catégories de matières"
+        ],
+        "summary": "Alias des catégories",
+        "operationId": "get_material-categories_aliases",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-categories/{categoryId}/aliases": {
+      "patch": {
+        "tags": [
+          "Réseau — catégories de matières"
+        ],
+        "summary": "Mettre à jour les alias d’une catégorie",
+        "operationId": "patch_material-categories_categoryId_aliases",
+        "parameters": [
+          {
+            "name": "categoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-suppliers": {
+      "post": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Créer un fournisseur",
+        "operationId": "post_material-suppliers",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-supplier-types": {
+      "get": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Lister les types de fournisseurs",
+        "operationId": "get_material-supplier-types",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/manual-open-suppliers": {
+      "post": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Ouvrir manuellement des fournisseurs pour un magasin",
+        "operationId": "post_shops_shopId_manual-open-suppliers",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-supplier-contacts/{contactId}": {
+      "get": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Obtenir un contact fournisseur",
+        "operationId": "get_material-supplier-contacts_contactId",
+        "parameters": [
+          {
+            "name": "contactId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Mettre à jour un contact fournisseur",
+        "operationId": "patch_material-supplier-contacts_contactId",
+        "parameters": [
+          {
+            "name": "contactId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Supprimer un contact fournisseur",
+        "operationId": "delete_material-supplier-contacts_contactId",
+        "parameters": [
+          {
+            "name": "contactId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-suppliers/{supplierId}/contacts": {
+      "get": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Contacts du fournisseur pour un magasin",
+        "operationId": "get_shops_shopId_material-suppliers_supplierId_contacts",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Ajouter un contact fournisseur pour un magasin",
+        "operationId": "post_shops_shopId_material-suppliers_supplierId_contacts",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/register": {
+      "post": {
+        "tags": [
+          "Réseau — fournisseurs & contacts"
+        ],
+        "summary": "Enregistrer un magasin",
+        "operationId": "post_shops_register",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/materials": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Matières du magasin",
+        "operationId": "get_shops_shopId_materials",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/materials/pricing": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Prix des matières du magasin",
+        "operationId": "get_shops_shopId_materials_pricing",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-suppliers": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Fournisseurs du magasin",
+        "operationId": "get_shops_shopId_material-suppliers",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-inventory": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Inventaire matières du magasin",
+        "operationId": "get_shops_shopId_material-inventory",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-inventory/{materialId}": {
+      "patch": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Mettre à jour l’inventaire d’une matière",
+        "operationId": "patch_shops_shopId_material-inventory_materialId",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-inventory/erase": {
+      "patch": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Vider l’inventaire matières",
+        "operationId": "patch_shops_shopId_material-inventory_erase",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/materials/stocktakings": {
+      "post": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Créer un inventaire (stocktaking)",
+        "operationId": "post_shops_shopId_materials_stocktakings",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Lister les inventaires",
+        "operationId": "get_shops_shopId_materials_stocktakings",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/materials/stocktakings/verify-codes": {
+      "post": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Vérifier les codes d’inventaire",
+        "operationId": "post_shops_shopId_materials_stocktakings_verify-codes",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/materials/stocktakings/revert-last": {
+      "post": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Annuler le dernier inventaire",
+        "operationId": "post_shops_shopId_materials_stocktakings_revert-last",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/stocktakings/{stocktakingId}": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Obtenir un inventaire",
+        "operationId": "get_stocktakings_stocktakingId",
+        "parameters": [
+          {
+            "name": "stocktakingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Mettre à jour un inventaire",
+        "operationId": "patch_stocktakings_stocktakingId",
+        "parameters": [
+          {
+            "name": "stocktakingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/materials/stocktakings/{stocktakingId}/document": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Document d’inventaire",
+        "operationId": "get_materials_stocktakings_stocktakingId_document",
+        "parameters": [
+          {
+            "name": "stocktakingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document binaire.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-suppliers/{supplierId}/stock-minimum-items": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Stocks minimums par fournisseur",
+        "operationId": "get_shops_shopId_material-suppliers_supplierId_stock-minimum-items",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-suppliers/{supplierId}/delivery-terms": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Conditions de livraison magasin ↔ fournisseur",
+        "operationId": "get_shops_shopId_material-suppliers_supplierId_delivery-terms",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Mettre à jour les conditions de livraison",
+        "operationId": "patch_shops_shopId_material-suppliers_supplierId_delivery-terms",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-suppliers/{supplierId}/materials/{materialId}/packagings": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Conditionnements d’une matière pour le magasin",
+        "operationId": "get_shops_shopId_material-suppliers_supplierId_materials_materialId_packagings",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "materialId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-suppliers/{supplierId}/price-lists/pdf": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Cennik du fournisseur en PDF",
+        "operationId": "get_shops_shopId_material-suppliers_supplierId_price-lists_pdf",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document binaire.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-suppliers/{supplierId}/activation-link": {
+      "get": {
+        "tags": [
+          "Magasin — matières & stocks"
+        ],
+        "summary": "Lien d’activation du fournisseur",
+        "operationId": "get_shops_shopId_material-suppliers_supplierId_activation-link",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-requisitions": {
+      "get": {
+        "tags": [
+          "Magasin — réquisitions"
+        ],
+        "summary": "Lister les réquisitions du magasin",
+        "operationId": "get_shops_shopId_material-requisitions",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Magasin — réquisitions"
+        ],
+        "summary": "Créer une réquisition (panier)",
+        "operationId": "post_shops_shopId_material-requisitions",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-requisitions/list": {
+      "get": {
+        "tags": [
+          "Magasin — réquisitions"
+        ],
+        "summary": "Liste synthétique des réquisitions",
+        "operationId": "get_shops_shopId_material-requisitions_list",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-requisitions/{requisitionId}": {
+      "get": {
+        "tags": [
+          "Magasin — réquisitions"
+        ],
+        "summary": "Obtenir une réquisition",
+        "operationId": "get_material-requisitions_requisitionId",
+        "parameters": [
+          {
+            "name": "requisitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Magasin — réquisitions"
+        ],
+        "summary": "Mettre à jour une réquisition",
+        "operationId": "patch_material-requisitions_requisitionId",
+        "parameters": [
+          {
+            "name": "requisitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-requisitions/{requisitionId}/convert": {
+      "post": {
+        "tags": [
+          "Magasin — réquisitions"
+        ],
+        "summary": "Convertir la réquisition en commandes fournisseurs",
+        "operationId": "post_material-requisitions_requisitionId_convert",
+        "parameters": [
+          {
+            "name": "requisitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-requisitions/{requisitionId}/document": {
+      "get": {
+        "tags": [
+          "Magasin — réquisitions"
+        ],
+        "summary": "Document de la réquisition",
+        "operationId": "get_material-requisitions_requisitionId_document",
+        "parameters": [
+          {
+            "name": "requisitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document binaire.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/material-requisitions/{requisitionId}/suppliers/{supplierId}": {
+      "get": {
+        "tags": [
+          "Magasin — réquisitions"
+        ],
+        "summary": "Détail réquisition pour un fournisseur",
+        "operationId": "get_material-requisitions_requisitionId_suppliers_supplierId",
+        "parameters": [
+          {
+            "name": "requisitionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/suppliers/{supplierId}/order": {
+      "post": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Passer une commande auprès d’un fournisseur",
+        "operationId": "post_shops_shopId_suppliers_supplierId_order",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/orders": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Commandes du magasin",
+        "operationId": "get_shops_shopId_orders",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/orders/materials": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Commandes matières du magasin",
+        "operationId": "get_shops_shopId_orders_materials",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Obtenir une commande",
+        "operationId": "get_orders_orderId",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Mettre à jour une commande",
+        "operationId": "patch_orders_orderId",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/orders/{orderId}/document": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Document de la commande",
+        "operationId": "get_orders_orderId_document",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document binaire.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{orderId}/delivery": {
+      "post": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Enregistrer la livraison / réception d’une commande",
+        "operationId": "post_orders_orderId_delivery",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/orders/{orderId}/email": {
+      "post": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Envoyer la commande par e-mail",
+        "operationId": "post_orders_orderId_email",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/manual-open-deliveries": {
+      "post": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Ouvrir manuellement des livraisons",
+        "operationId": "post_shops_shopId_manual-open-deliveries",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/orders/{orderId}/supplier-fulfillment": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Suivi de traitement fournisseur de la commande",
+        "operationId": "get_shops_shopId_orders_orderId_supplier-fulfillment",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/orders/{orderId}/supplier-fulfillment/documents": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Documents du traitement fournisseur",
+        "operationId": "get_shops_shopId_orders_orderId_supplier-fulfillment_documents",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/orders/{orderId}/supplier-fulfillment/documents/{documentId}": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Télécharger un document du traitement",
+        "operationId": "get_shops_shopId_orders_orderId_supplier-fulfillment_documents_documentId",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document binaire.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/orders/{orderId}/supplier-fulfillment/documents/cmr/status": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Statut du CMR côté magasin",
+        "operationId": "get_shops_shopId_orders_orderId_supplier-fulfillment_documents_cmr_status",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-order-confirmation": {
+      "post": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Confirmer une commande matière",
+        "operationId": "post_material-order-confirmation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-orders/{orderId}/proforma/presigned-url": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "URL présignée de la proforma",
+        "operationId": "get_material-orders_orderId_proforma_presigned-url",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/supplement-orders": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Commandes complémentaires du magasin",
+        "operationId": "get_shops_shopId_supplement-orders",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/supplement-orders/{orderId}/document": {
+      "get": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Document d’une commande complémentaire",
+        "operationId": "get_supplement-orders_orderId_document",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document binaire.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/supplement-orders/{orderId}/archive": {
+      "patch": {
+        "tags": [
+          "Magasin — commandes & réception"
+        ],
+        "summary": "Archiver une commande complémentaire",
+        "operationId": "patch_supplement-orders_orderId_archive",
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}/material-complaints": {
+      "get": {
+        "tags": [
+          "Réclamations"
+        ],
+        "summary": "Réclamations matières du magasin",
+        "operationId": "get_shops_shopId_material-complaints",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-complaints": {
+      "post": {
+        "tags": [
+          "Réclamations"
+        ],
+        "summary": "Créer une réclamation matière",
+        "operationId": "post_material-complaints",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-complaints/{complaintId}/attachments": {
+      "post": {
+        "tags": [
+          "Réclamations"
+        ],
+        "summary": "Ajouter une pièce jointe à une réclamation",
+        "operationId": "post_material-complaints_complaintId_attachments",
+        "parameters": [
+          {
+            "name": "complaintId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-complaints/attachments/{uuid}/presigned-url": {
+      "get": {
+        "tags": [
+          "Réclamations"
+        ],
+        "summary": "URL présignée d’une pièce jointe (magasin)",
+        "operationId": "get_material-complaints_attachments_uuid_presigned-url",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
+          }
+        }
+      }
+    },
+    "/material-complaint-reasons": {
+      "get": {
+        "tags": [
+          "Réclamations"
+        ],
+        "summary": "Lister les motifs de réclamation",
+        "operationId": "get_material-complaint-reasons",
+        "responses": {
+          "200": {
+            "description": "Succès.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Jeton manquant ou expiré."
+          },
+          "422": {
+            "description": "Erreur de validation."
           }
         }
       }

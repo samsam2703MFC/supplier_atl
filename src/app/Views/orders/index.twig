@@ -115,7 +115,7 @@
                                                     data-bs-target="#orderDetailsModal">
                                                     <i class="bi bi-eye me-1"></i>{{ translations.orders_action_preview }}
                                                 </button>
-                                                <a href="{{ ROOT }}/orders/{{ order.id }}/document" class="btn btn-sm btn-outline-primary">
+                                                <a href="{{ ROOT }}/orders/{{ order.id }}/print" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-download me-1"></i>{{ translations.orders_action_pdf }}
                                                 </a>
                                             </div>
@@ -391,7 +391,9 @@
                 }
 
                 modalBody.innerHTML = renderOrderDetails(response);
-                pdfLink.setAttribute('href', `${root}/orders/${orderId}/document`);
+                pdfLink.setAttribute('href', `${root}/orders/${orderId}/print`);
+                pdfLink.setAttribute('target', '_blank');
+                pdfLink.setAttribute('rel', 'noopener');
                 pdfLink.classList.remove('d-none');
             } catch (error) {
                 modalBody.innerHTML = `<div class="alert alert-danger mb-0">${escapeHtml(translations.error)}</div>`;

@@ -68,6 +68,13 @@ class CookieManager {
 
     public function unsetCookies()
     {
+        setcookie('supplier_display_name', '', [
+            'expires' => time() - 3600,
+            'path' => '/',
+            'secure' => true,
+            'httponly' => true,
+            'samesite' => 'Strict',
+        ]);
         setcookie('supplier_refresh_token', '', [
             'expires' => time() - 3600, // Poprawiony timestamp
             'path' => '/',

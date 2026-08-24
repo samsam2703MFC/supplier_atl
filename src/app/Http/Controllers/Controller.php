@@ -83,6 +83,7 @@ class Controller
 
         $data['ROOT'] = ROOT;
         $data['shared_files_url'] = SHARED_FILES_URL;
+        $data['user'] = $data['user'] ?? GlobalRegistry::get('user') ?? [];
 
         // Jeśli istnieje plik .twig, renderuj przez Twig
         $twigTemplate = $name . ".twig";

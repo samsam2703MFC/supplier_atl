@@ -4792,6 +4792,39 @@
           }
         }
       }
+    },
+    "/webhooks/material-suppliers/complaints/attachments/presigned-url": {
+      "post": {
+        "tags": [
+          "Réclamations"
+        ],
+        "summary": "Webhook — URL présignée pour une pièce jointe de réclamation",
+        "description": "Appelé par des systèmes externes (webhook), pas par le portail : le portail utilise GET /attachments/{uuid}/presigned-url.",
+        "operationId": "post_webhooks_material_suppliers_complaints_attachments_presigned_url",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "URL présignée.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

@@ -16,6 +16,11 @@
    -------------------------------------------------------------------------- */
 @font-face {
   font-family: 'Gotham';
+  src: url('../fonts/design-system/Gotham_Light.otf') format('opentype');
+  font-weight: 300; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Gotham';
   src: url('../fonts/design-system/Gotham_Regular_New.otf') format('opentype');
   font-weight: 400; font-style: normal; font-display: swap;
 }

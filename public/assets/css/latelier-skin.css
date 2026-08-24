@@ -81,21 +81,25 @@ label, .form-label { font-size: 12.5px; }
 /* --------------------------------------------------------------------------
    2. Page headings — display face like the consultant_BO screens
    -------------------------------------------------------------------------- */
-.page-heading { margin-bottom: 1.4rem; }
+/* Same page chrome as the Cockpit screens */
+#main #main-content { padding: 26px 32px 60px; max-width: 1460px; }
+
+.page-heading { margin-bottom: 22px; }
 .page-heading h3,
 .page-heading h2 {
   font-family: var(--font-display);
   font-weight: var(--weight-regular);
-  font-size: 26px;
+  font-size: 30px;
   line-height: 1.15;
   color: var(--color-text);
   margin-bottom: 0;
 }
 
 .page-heading .text-subtitle {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--color-text-muted) !important;
   margin: 5px 0 0;
+  max-width: 640px;
 }
 
 .card-title, h4.card-title, h5.card-title {
@@ -279,15 +283,18 @@ label, .form-label { color: var(--color-text); }
 .breadcrumb-item a { color: var(--color-primary); }
 
 /* --------------------------------------------------------------------------
-   9. Top navbar — white bar, thin border, brand-muted icons
+   9. Top navbar — removed on desktop (the Cockpit has none: the rail carries
+   the account block). Kept on smaller screens for the burger that opens the
+   off-canvas rail.
    -------------------------------------------------------------------------- */
+@media (min-width: 1200px) {
+  #main > header { display: none; }
+}
 #main header .navbar,
 #main > header {
   background: var(--color-surface);
   border-bottom: 0.5px solid var(--color-border-tertiary);
 }
-#main > header { border-radius: var(--radius-lg); }
-#main header .navbar { border-radius: var(--radius-lg); }
 #main header .burger-btn i,
 #main header .navbar .nav-link i { color: var(--color-text-muted) !important; }
 #main header .burger-btn:hover i { color: var(--color-primary) !important; }

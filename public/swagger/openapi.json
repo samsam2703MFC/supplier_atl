@@ -1,0 +1,4880 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "TFB Supplier Portal — API",
+    "version": "1.0.0",
+    "description": "API consumed by the **TFB Supplier Portal** (`samsam2703MFC/supplier_atl`), served by the **TF Buddy** backend.\n\nAll endpoints are relative to `‹host›/api/v1`. The portal resolves the host from the `API_BASE_URL` environment variable (default: the TF Buddy test environment).\n\n## Authentication\n\n`POST /material-suppliers/auth/login` with the supplier's **external user** credentials returns an `access_token` (HS512 JWT, 30 min) and a `refresh_token`. Every other call sends `Authorization: Bearer ‹access_token›`; when the access token nears expiry the portal transparently calls `/material-suppliers/auth/refresh`. An `Accept-Language` header selects the response language. Supplier login accounts are managed by an administrator (`/material-suppliers/{id}/external-user`).\n\n## Portal routes\n\nThe portal itself is a server-rendered PHP app mounted at `‹host›/supplier`. Its pages (`/auth`, `/dashboard`, `/analytics`, `/catalog`, `/raw-materials`, `/recipes`, `/price-list`, `/orders`, `/logistics`, `/complaints`, `/clients`, `/me`, `/logout`) each consume the endpoints below server-side; the page-local `/ajax/*` routes proxy the same endpoints for in-page actions. The full route list lives in `src/core/Bootstrap/Routes/`.\n",
+    "contact": {
+      "name": "L’Atelier by — Supplier Portal"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://test.tfbuddy.com/api/v1",
+      "description": "TF Buddy — test environment"
+    },
+    {
+      "url": "/api/v1",
+      "description": "Same host as the portal"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Supplier profile"
+    },
+    {
+      "name": "Catalog"
+    },
+    {
+      "name": "Ingredients"
+    },
+    {
+      "name": "Raw materials"
+    },
+    {
+      "name": "Recipes"
+    },
+    {
+      "name": "Price lists"
+    },
+    {
+      "name": "Orders"
+    },
+    {
+      "name": "Order documents"
+    },
+    {
+      "name": "Carriers"
+    },
+    {
+      "name": "Logistics"
+    },
+    {
+      "name": "Complaints"
+    },
+    {
+      "name": "Analytics"
+    },
+    {
+      "name": "Reference data"
+    }
+  ],
+  "paths": {
+    "/material-suppliers/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Log in a material supplier",
+        "operationId": "post_material-suppliers_auth_login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SupplierCredentials"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Access and refresh tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokens"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "login or password is empty.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthError"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/material-suppliers/auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Refresh the access token",
+        "operationId": "post_material-suppliers_auth_refresh",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "refresh_token"
+                ],
+                "properties": {
+                  "refresh_token": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "New access and refresh tokens.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthTokens"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthError"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/material-suppliers/{supplierId}": {
+      "get": {
+        "tags": [
+          "Supplier profile"
+        ],
+        "summary": "Get the supplier profile",
+        "operationId": "get_material-suppliers_supplierId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/profile": {
+      "patch": {
+        "tags": [
+          "Supplier profile"
+        ],
+        "summary": "Update the supplier profile",
+        "operationId": "patch_material-suppliers_supplierId_profile",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/labor-defaults": {
+      "get": {
+        "tags": [
+          "Supplier profile"
+        ],
+        "summary": "Get labor cost defaults",
+        "operationId": "get_material-suppliers_supplierId_labor-defaults",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Supplier profile"
+        ],
+        "summary": "Update labor cost defaults",
+        "operationId": "patch_material-suppliers_supplierId_labor-defaults",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/logo": {
+      "post": {
+        "tags": [
+          "Supplier profile"
+        ],
+        "summary": "Upload the supplier logo",
+        "operationId": "post_material-suppliers_supplierId_logo",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "logo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "logo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/order-config": {
+      "get": {
+        "tags": [
+          "Supplier profile"
+        ],
+        "summary": "Get the order configuration",
+        "operationId": "get_material-suppliers_supplierId_order-config",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Supplier profile"
+        ],
+        "summary": "Replace the order configuration",
+        "operationId": "put_material-suppliers_supplierId_order-config",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/catalog/categories": {
+      "get": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "List catalog categories",
+        "operationId": "get_material-suppliers_supplierId_catalog_categories",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/catalog/products": {
+      "get": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "List catalog products",
+        "operationId": "get_material-suppliers_supplierId_catalog_products",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/catalog/products": {
+      "post": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Create a catalog product",
+        "operationId": "post_material-suppliers_catalog_products",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/catalog/products/{productId}": {
+      "patch": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Update a catalog product",
+        "operationId": "patch_material-suppliers_catalog_products_productId",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Delete a catalog product",
+        "operationId": "delete_material-suppliers_catalog_products_productId",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/catalog/products/{productId}/specification": {
+      "post": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Upload / update the product specification",
+        "operationId": "post_material-suppliers_catalog_products_productId_specification",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/catalog/products/{productId}/photo": {
+      "post": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Upload the product photo",
+        "operationId": "post_material-suppliers_catalog_products_productId_photo",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "photo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "photo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Delete the product photo",
+        "operationId": "delete_material-suppliers_catalog_products_productId_photo",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/catalog/products/{productId}/allergens": {
+      "post": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Attach an allergen to a product",
+        "operationId": "post_material-suppliers_catalog_products_productId_allergens",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/catalog/products/{productId}/allergens/{allergenId}": {
+      "delete": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Detach an allergen from a product",
+        "operationId": "delete_material-suppliers_catalog_products_productId_allergens_allergenId",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "allergenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/catalog/products/import": {
+      "post": {
+        "tags": [
+          "Catalog"
+        ],
+        "summary": "Bulk-import catalog products",
+        "operationId": "post_material-suppliers_supplierId_catalog_products_import",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Import payload (see price_list_import_example.json in the repo)."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/ingredients": {
+      "get": {
+        "tags": [
+          "Ingredients"
+        ],
+        "summary": "List the supplier ingredient dictionary",
+        "operationId": "get_material-suppliers_ingredients",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Ingredients"
+        ],
+        "summary": "Create an ingredient",
+        "operationId": "post_material-suppliers_ingredients",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/products/{productId}/ingredients": {
+      "get": {
+        "tags": [
+          "Ingredients"
+        ],
+        "summary": "List the ingredients of a product",
+        "operationId": "get_material-suppliers_products_productId_ingredients",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Ingredients"
+        ],
+        "summary": "Attach an ingredient to a product",
+        "operationId": "post_material-suppliers_products_productId_ingredients",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/products/{productId}/ingredients/{ingredientId}": {
+      "delete": {
+        "tags": [
+          "Ingredients"
+        ],
+        "summary": "Detach an ingredient from a product",
+        "operationId": "delete_material-suppliers_products_productId_ingredients_ingredientId",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "ingredientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/raw-materials": {
+      "get": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "List raw materials",
+        "operationId": "get_material-suppliers_supplierId_raw-materials",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Create a raw material",
+        "operationId": "post_material-suppliers_supplierId_raw-materials",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/raw-materials/{id}": {
+      "patch": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Update a raw material",
+        "operationId": "patch_material-suppliers_supplierId_raw-materials_id",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Delete a raw material",
+        "operationId": "delete_material-suppliers_supplierId_raw-materials_id",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/raw-materials/{id}/archive": {
+      "patch": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Archive a raw material",
+        "operationId": "patch_material-suppliers_supplierId_raw-materials_id_archive",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/raw-materials/{id}/restore": {
+      "patch": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Restore an archived raw material",
+        "operationId": "patch_material-suppliers_supplierId_raw-materials_id_restore",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/raw-materials/{id}/allergens": {
+      "get": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "List the allergens of a raw material",
+        "operationId": "get_material-suppliers_supplierId_raw-materials_id_allergens",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Attach an allergen to a raw material",
+        "operationId": "post_material-suppliers_supplierId_raw-materials_id_allergens",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/raw-materials/{id}/allergens/{allergenId}": {
+      "delete": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Detach an allergen from a raw material",
+        "operationId": "delete_material-suppliers_supplierId_raw-materials_id_allergens_allergenId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "allergenId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/raw-materials/{id}/price-history": {
+      "get": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Get the price history of a raw material",
+        "operationId": "get_material-suppliers_supplierId_raw-materials_id_price-history",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Add a price history entry",
+        "operationId": "post_material-suppliers_supplierId_raw-materials_id_price-history",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/raw-material-categories": {
+      "get": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "List raw material categories",
+        "operationId": "get_material-suppliers_supplierId_raw-material-categories",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Create a raw material category",
+        "operationId": "post_material-suppliers_supplierId_raw-material-categories",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/raw-material-categories/{id}": {
+      "patch": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Update a raw material category",
+        "operationId": "patch_material-suppliers_supplierId_raw-material-categories_id",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Raw materials"
+        ],
+        "summary": "Delete a raw material category",
+        "operationId": "delete_material-suppliers_supplierId_raw-material-categories_id",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes": {
+      "get": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "List recipes",
+        "operationId": "get_material-suppliers_supplierId_recipes",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Create a recipe",
+        "operationId": "post_material-suppliers_supplierId_recipes",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{id}": {
+      "get": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Get a recipe",
+        "operationId": "get_material-suppliers_supplierId_recipes_id",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Update a recipe",
+        "operationId": "patch_material-suppliers_supplierId_recipes_id",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Delete a recipe",
+        "operationId": "delete_material-suppliers_supplierId_recipes_id",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{id}/archive": {
+      "patch": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Archive a recipe",
+        "operationId": "patch_material-suppliers_supplierId_recipes_id_archive",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{id}/restore": {
+      "patch": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Restore an archived recipe",
+        "operationId": "patch_material-suppliers_supplierId_recipes_id_restore",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{recipeId}/summary": {
+      "get": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Get the recipe cost summary",
+        "operationId": "get_material-suppliers_supplierId_recipes_recipeId_summary",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{id}/overhead/recalculate": {
+      "post": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Recalculate recipe overhead costs",
+        "operationId": "post_material-suppliers_supplierId_recipes_id_overhead_recalculate",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{recipeId}/ingredients": {
+      "get": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "List recipe ingredients",
+        "operationId": "get_material-suppliers_supplierId_recipes_recipeId_ingredients",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Add an ingredient to a recipe",
+        "operationId": "post_material-suppliers_supplierId_recipes_recipeId_ingredients",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{recipeId}/ingredients/{id}": {
+      "patch": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Update a recipe ingredient",
+        "operationId": "patch_material-suppliers_supplierId_recipes_recipeId_ingredients_id",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Remove an ingredient from a recipe",
+        "operationId": "delete_material-suppliers_supplierId_recipes_recipeId_ingredients_id",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{recipeId}/steps": {
+      "get": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "List recipe steps",
+        "operationId": "get_material-suppliers_supplierId_recipes_recipeId_steps",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Create a recipe step",
+        "operationId": "post_material-suppliers_supplierId_recipes_recipeId_steps",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/recipes/{recipeId}/steps/{stepId}/photos/{slot}": {
+      "post": {
+        "tags": [
+          "Recipes"
+        ],
+        "summary": "Upload a step photo",
+        "operationId": "post_material-suppliers_supplierId_recipes_recipeId_steps_stepId_photos_slot",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "recipeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "stepId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "slot",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "photo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "photo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/current": {
+      "get": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Get the current price list for a shop",
+        "operationId": "get_material-suppliers_supplierId_shops_clientId_price-lists_current",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/latest": {
+      "get": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Get the latest price list for a shop",
+        "operationId": "get_material-suppliers_supplierId_shops_clientId_price-lists_latest",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/schedule": {
+      "get": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Get the scheduled price changes for a shop",
+        "operationId": "get_material-suppliers_supplierId_shops_clientId_price-lists_schedule",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/price-lists/global/schedule": {
+      "get": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Get the global scheduled price changes",
+        "operationId": "get_material-suppliers_supplierId_price-lists_global_schedule",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/shops/{clientId}/products/{productId}/price": {
+      "post": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Set a product price for one shop",
+        "operationId": "post_material-suppliers_supplierId_shops_clientId_products_productId_price",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/products/{productId}/price/all-shops": {
+      "post": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Set a product price for all shops",
+        "operationId": "post_material-suppliers_supplierId_products_productId_price_all-shops",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/{priceId}": {
+      "delete": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Delete a shop price entry",
+        "operationId": "delete_material-suppliers_supplierId_shops_clientId_price-lists_priceId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "priceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/products/{productId}/price-lists/scheduled/{validFrom}": {
+      "delete": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Cancel a scheduled all-shops price change",
+        "operationId": "delete_material-suppliers_supplierId_products_productId_price-lists_scheduled_validFrom",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "validFrom",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/import": {
+      "post": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Import a price list for one shop",
+        "operationId": "post_material-suppliers_supplierId_shops_clientId_price-lists_import",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "clientId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Import payload (see IMPORT_CENNIKA_DOKUMENTACJA.md / price_list_import_example.json)."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/price-lists/import/all-shops": {
+      "post": {
+        "tags": [
+          "Price lists"
+        ],
+        "summary": "Import a price list for all shops",
+        "operationId": "post_material-suppliers_supplierId_price-lists_import_all-shops",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "List orders",
+        "operationId": "get_material-suppliers_supplierId_orders",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "shop_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Get an order",
+        "operationId": "get_material-suppliers_supplierId_orders_orderId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/read-model": {
+      "get": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Get the full order read model",
+        "operationId": "get_material-suppliers_supplierId_orders_orderId_read-model",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/accept": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Accept an order",
+        "operationId": "post_material-suppliers_supplierId_orders_orderId_accept",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/reject": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Reject an order",
+        "operationId": "post_material-suppliers_supplierId_orders_orderId_reject",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/cancel": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Cancel an order",
+        "operationId": "post_material-suppliers_supplierId_orders_orderId_cancel",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/final-items": {
+      "put": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Replace the final order items",
+        "operationId": "put_material-suppliers_supplierId_orders_orderId_final-items",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/transport": {
+      "put": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Set the order transport details",
+        "operationId": "put_material-suppliers_supplierId_orders_orderId_transport",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/finalization-check": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Check whether the order can be finalized",
+        "operationId": "post_material-suppliers_supplierId_orders_orderId_finalization-check",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/finalize": {
+      "post": {
+        "tags": [
+          "Orders"
+        ],
+        "summary": "Finalize an order",
+        "operationId": "post_material-suppliers_supplierId_orders_orderId_finalize",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/documents": {
+      "get": {
+        "tags": [
+          "Order documents"
+        ],
+        "summary": "List the documents of an order",
+        "operationId": "get_material-suppliers_supplierId_orders_orderId_documents",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/documents/{documentId}": {
+      "get": {
+        "tags": [
+          "Order documents"
+        ],
+        "summary": "Download one order document",
+        "operationId": "get_material-suppliers_supplierId_orders_orderId_documents_documentId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Binary document.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/document": {
+      "get": {
+        "tags": [
+          "Order documents"
+        ],
+        "summary": "Download the main order document (PDF)",
+        "operationId": "get_material-suppliers_supplierId_orders_orderId_document",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Binary document.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/documents": {
+      "post": {
+        "tags": [
+          "Order documents"
+        ],
+        "summary": "Download documents for several orders at once",
+        "operationId": "post_material-suppliers_supplierId_orders_documents",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "order_ids"
+                ],
+                "properties": {
+                  "order_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Binary document.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/documents/cmr/status": {
+      "get": {
+        "tags": [
+          "Order documents"
+        ],
+        "summary": "Get the CMR generation status",
+        "operationId": "get_material-suppliers_supplierId_orders_orderId_documents_cmr_status",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/documents/cmr": {
+      "post": {
+        "tags": [
+          "Order documents"
+        ],
+        "summary": "Generate the CMR document",
+        "operationId": "post_material-suppliers_supplierId_orders_orderId_documents_cmr",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/documents/difference": {
+      "post": {
+        "tags": [
+          "Order documents"
+        ],
+        "summary": "Generate the difference document",
+        "operationId": "post_material-suppliers_supplierId_orders_orderId_documents_difference",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/orders/{orderId}/documents/release": {
+      "post": {
+        "tags": [
+          "Order documents"
+        ],
+        "summary": "Generate the release document",
+        "operationId": "post_material-suppliers_supplierId_orders_orderId_documents_release",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/carriers": {
+      "get": {
+        "tags": [
+          "Carriers"
+        ],
+        "summary": "List carriers",
+        "operationId": "get_material-suppliers_supplierId_carriers",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "include_inactive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Carriers"
+        ],
+        "summary": "Create a carrier",
+        "operationId": "post_material-suppliers_supplierId_carriers",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/carriers/{carrierId}": {
+      "patch": {
+        "tags": [
+          "Carriers"
+        ],
+        "summary": "Update a carrier",
+        "operationId": "patch_material-suppliers_supplierId_carriers_carrierId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "carrierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Carriers"
+        ],
+        "summary": "Delete a carrier",
+        "operationId": "delete_material-suppliers_supplierId_carriers_carrierId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "carrierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/upcoming-deliveries": {
+      "get": {
+        "tags": [
+          "Logistics"
+        ],
+        "summary": "List upcoming deliveries",
+        "operationId": "get_material-suppliers_supplierId_upcoming-deliveries",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/complaints": {
+      "get": {
+        "tags": [
+          "Complaints"
+        ],
+        "summary": "List complaints",
+        "operationId": "get_material-suppliers_supplierId_complaints",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/complaints/{complaintId}": {
+      "patch": {
+        "tags": [
+          "Complaints"
+        ],
+        "summary": "Update a complaint (status, answer)",
+        "operationId": "patch_material-suppliers_supplierId_complaints_complaintId",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "complaintId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "JSON payload forwarded to the API."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/attachments/{uuid}/presigned-url": {
+      "get": {
+        "tags": [
+          "Complaints"
+        ],
+        "summary": "Get a presigned URL for a complaint attachment",
+        "operationId": "get_attachments_uuid_presigned-url",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/analytics/summary": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get the sales analytics summary",
+        "operationId": "get_material-suppliers_supplierId_analytics_summary",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/material-suppliers/{supplierId}/analytics/shops": {
+      "get": {
+        "tags": [
+          "Analytics"
+        ],
+        "summary": "Get per-shop sales analytics",
+        "operationId": "get_material-suppliers_supplierId_analytics_shops",
+        "parameters": [
+          {
+            "name": "supplierId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "date_from",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/allergens": {
+      "get": {
+        "tags": [
+          "Reference data"
+        ],
+        "summary": "List all allergens",
+        "operationId": "get_allergens",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/units": {
+      "get": {
+        "tags": [
+          "Reference data"
+        ],
+        "summary": "List all measurement units",
+        "operationId": "get_units",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/shops": {
+      "get": {
+        "tags": [
+          "Reference data"
+        ],
+        "summary": "List all shops (supplier clients)",
+        "operationId": "get_shops",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    },
+    "/shops/{shopId}": {
+      "get": {
+        "tags": [
+          "Reference data"
+        ],
+        "summary": "Get one shop",
+        "operationId": "get_shops_shopId",
+        "parameters": [
+          {
+            "name": "shopId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or expired access token."
+          },
+          "422": {
+            "description": "Validation error."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Access token from /material-suppliers/auth/login."
+      }
+    },
+    "schemas": {
+      "SupplierCredentials": {
+        "type": "object",
+        "required": [
+          "login",
+          "password"
+        ],
+        "properties": {
+          "login": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "writeOnly": true
+          }
+        }
+      },
+      "AuthTokens": {
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "token_type",
+          "session_id",
+          "expires_in"
+        ],
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "HS512 JWT."
+          },
+          "refresh_token": {
+            "type": "string"
+          },
+          "token_type": {
+            "type": "string",
+            "enum": [
+              "Bearer"
+            ]
+          },
+          "session_id": {
+            "type": "integer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "description": "Seconds.",
+            "enum": [
+              1800
+            ]
+          }
+        }
+      },
+      "AuthError": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "error"
+            ]
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ]
+}

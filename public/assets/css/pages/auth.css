@@ -116,6 +116,14 @@ html, body { margin: 0; height: 100%; }
   box-sizing: border-box;
 }
 
+.dc-login__card-logo {
+  display: block;
+  height: 56px;
+  width: 56px;
+  object-fit: contain;
+  margin: 0 auto 18px;
+}
+
 .dc-login__card-head {
   display: flex;
   align-items: flex-start;

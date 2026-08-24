@@ -31,6 +31,7 @@ class AuthController extends Controller
             $this->errors = LoginRequest::validateLogin($_POST);
             if (!empty($this->errors)) {
                 $this->view("auth/login");
+                return;
             }
 
             $logged = $this->authService->login($_POST);

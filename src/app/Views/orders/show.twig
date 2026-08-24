@@ -91,9 +91,6 @@
             </div>
             {% if api_status == 200 and order.id is defined %}
                 <div class="d-flex align-items-start gap-2">
-                    <button type="button" class="btn btn-secondary wiz-toggle js-wiz-toggle"
-                            data-label-classic="{{ translations.orders_wizard_view_classic|default('Vue classique') }}"
-                            data-label-wizard="{{ translations.orders_wizard_view_wizard|default('Mode wizard') }}">{{ translations.orders_wizard_view_classic|default('Vue classique') }}</button>
                     <a href="{{ ROOT }}/orders/{{ order.id }}/document" class="btn btn-outline-primary">
                         <i class="bi bi-download me-1"></i>{{ translations.orders_action_pdf }}
                     </a>
@@ -154,7 +151,7 @@
         {% set isFinalEditorEditable = canEditFinalItems %}
 
         {# ── Wizard de validation : barre d'étapes (la logique vit dans order-wizard.js) ── #}
-        <div class="wiz-stepper" id="order-wizard-stepper" data-allowed-actions="{{ allowedActions|json_encode|e('html_attr') }}">
+        <div class="wiz-stepper" id="order-wizard-stepper" data-allowed-actions="{{ allowedActions|json_encode|e('html_attr') }}" data-order-status="{{ order.supplier_fulfillment_status ?? order.status ?? '' }}">
             <button type="button" class="wiz-step todo"><span class="wiz-dot">1</span><span class="wiz-lab">{{ translations.orders_wizard_step_accept|default('Acceptation') }}</span></button>
             <button type="button" class="wiz-step todo"><span class="wiz-dot">2</span><span class="wiz-lab">{{ translations.orders_wizard_step_final_items|default('Quantités finales') }}</span></button>
             <button type="button" class="wiz-step todo"><span class="wiz-dot">3</span><span class="wiz-lab">{{ translations.orders_wizard_step_transport|default('Transport') }}</span></button>
@@ -650,16 +647,6 @@
                     {% endif %}
                 </div>
             </div>
-        </div>
-
-        {# ── Wizard : navigation Retour / Continuer ── #}
-        <div class="wiz-nav" id="order-wizard-nav"
-             data-orders-url="{{ ROOT }}/orders"
-             data-label-next="{{ translations.orders_wizard_next|default('Continuer') }}"
-             data-label-finish="{{ translations.orders_wizard_finish|default('Terminer — retour aux commandes') }}">
-            <button type="button" class="btn btn-sm btn-secondary" id="wiz-prev"><i class="bi bi-arrow-left me-1"></i>{{ translations.orders_wizard_back|default('Retour') }}</button>
-            <span class="wiz-nav-note" id="wiz-note"></span>
-            <button type="button" class="btn btn-primary" id="wiz-next">{{ translations.orders_wizard_next|default('Continuer') }}</button>
         </div>
     {% endif %}
 </div>

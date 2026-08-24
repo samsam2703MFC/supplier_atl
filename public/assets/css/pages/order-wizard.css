@@ -1,11 +1,10 @@
 /* ==========================================================================
-   Order validation wizard — stepper chrome over the existing order page.
-   The wizard only shows/hides the page's existing sections ([data-wiz]);
-   every action still goes through the panels' own buttons and JS.
-   Requires design-system.css tokens.
+   Order validation stepper — single-page flow.
+   The stepper is a progress indicator + anchor navigation over the page's
+   sections (tagged data-wiz); nothing is hidden and every action stays in
+   the panels' own buttons and JS. Requires design-system.css tokens.
    ========================================================================== */
 
-/* Stepper bar */
 .wiz-stepper {
   display: flex;
   align-items: flex-start;
@@ -14,6 +13,9 @@
   border-radius: 12px;
   padding: 16px 18px;
   margin-bottom: 16px;
+  position: sticky;
+  top: 8px;
+  z-index: 20;
 }
 .wiz-step {
   flex: 1;
@@ -27,7 +29,10 @@
   padding: 0;
   cursor: pointer;
   font-family: var(--font-ui);
+  outline: none;
 }
+.wiz-step:focus { outline: none; box-shadow: none; }
+.wiz-step:focus-visible .wiz-dot { box-shadow: 0 0 0 3px rgba(141, 29, 44, 0.18); }
 .wiz-step:not(:last-child)::after {
   content: '';
   position: absolute;
@@ -62,34 +67,12 @@
   color: var(--color-text-muted);
   border: 0.5px solid var(--color-border-tertiary);
 }
-.wiz-lab { font-size: 11px; color: var(--color-text-muted); text-align: center; }
+.wiz-lab { font-size: 11px; color: var(--color-text-muted); text-align: center; font-weight: 300; }
 .wiz-step.active .wiz-lab { color: var(--color-primary); font-weight: var(--weight-medium); }
 .wiz-step.done .wiz-lab { color: var(--color-text); }
 
-/* Footer navigation */
-.wiz-nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  background: var(--color-surface);
-  border: 0.5px solid var(--color-border-tertiary);
-  border-radius: 12px;
-  padding: 12px 18px;
-  margin-top: 4px;
-}
-.wiz-nav-note { font-size: 11.5px; color: var(--color-text-muted); }
-
-/* Mode switch */
-.wiz-toggle { white-space: nowrap; }
-
-/* Visibility — wizard mode hides every stepped section except the
-   active step's. Classic mode hides only the wizard chrome. */
-body.wiz-mode [data-wiz] { display: none !important; }
-body.wiz-mode [data-wiz].wiz-visible { display: block !important; }
-body.wiz-mode .row > [data-wiz].wiz-visible { display: block !important; }
-body:not(.wiz-mode) .wiz-stepper,
-body:not(.wiz-mode) .wiz-nav { display: none; }
+/* Anchored sections land below the sticky stepper */
+[data-wiz] { scroll-margin-top: 86px; }
 
 @media (max-width: 767.98px) {
   .wiz-lab { display: none; }

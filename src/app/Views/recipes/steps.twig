@@ -7,7 +7,7 @@
 /* ---- Step cards ---- */
 .step-card {
     background: #fff;
-    border: 1.5px solid #E2E8F0;
+    border: 1.5px solid var(--color-border-tertiary);
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 14px;
@@ -15,8 +15,8 @@
     position: relative;
 }
 .step-card.dragging-over {
-    border-color: #6366F1;
-    box-shadow: 0 0 0 3px rgba(99,102,241,.15);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(141,29,44,.15);
 }
 .step-card.is-dragging {
     opacity: .5;
@@ -24,8 +24,8 @@
 .step-badge {
     width: 32px; height: 32px;
     border-radius: 50%;
-    background: #EEF2FF;
-    color: #4338CA;
+    background: rgba(141,29,44,0.08);
+    color: var(--color-primary);
     font-size: 13px;
     font-weight: 700;
     display: inline-flex;
@@ -35,21 +35,21 @@
 }
 .step-drag-handle {
     cursor: grab;
-    color: #CBD5E1;
+    color: var(--color-border-secondary);
     font-size: 18px;
     padding: 4px 6px;
     border-radius: 6px;
     transition: color .12s;
 }
-.step-drag-handle:hover { color: #6366F1; }
+.step-drag-handle:hover { color: var(--color-primary); }
 .step-drag-handle:active { cursor: grabbing; }
 /* ---- Order buttons ---- */
 .step-order-btn {
     width: 28px; height: 28px;
     border-radius: 6px;
-    border: 1px solid #E2E8F0;
-    background: #F8FAFC;
-    color: #64748B;
+    border: 1px solid var(--color-border-tertiary);
+    background: var(--color-background-secondary);
+    color: var(--color-text-muted);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -57,7 +57,7 @@
     transition: all .12s;
     cursor: pointer;
 }
-.step-order-btn:hover:not(:disabled) { background: #EEF2FF; border-color: #6366F1; color: #6366F1; }
+.step-order-btn:hover:not(:disabled) { background: rgba(141,29,44,0.08); border-color: var(--color-primary); color: var(--color-primary); }
 .step-order-btn:disabled { opacity: .35; cursor: not-allowed; }
 /* ---- Description textarea ---- */
 .step-desc-wrap textarea {
@@ -66,10 +66,10 @@
     font-size: 13.5px;
     line-height: 1.55;
     border-radius: 8px;
-    border: 1.5px solid #E2E8F0;
+    border: 1.5px solid var(--color-border-tertiary);
     transition: border-color .15s;
 }
-.step-desc-wrap textarea:focus { border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,.1); }
+.step-desc-wrap textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(141,29,44,.1); }
 /* ---- Photos ---- */
 .step-photos {
     display: flex;
@@ -80,10 +80,10 @@
 .photo-slot {
     width: 100px; height: 100px;
     border-radius: 10px;
-    border: 2px dashed #CBD5E1;
+    border: 2px dashed var(--color-border-secondary);
     overflow: hidden;
     position: relative;
-    background: #F8FAFC;
+    background: var(--color-background-secondary);
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -91,7 +91,7 @@
     cursor: pointer;
     transition: border-color .15s, background .15s;
 }
-.photo-slot:hover { border-color: #6366F1; background: #EEF2FF; }
+.photo-slot:hover { border-color: var(--color-primary); background: rgba(141,29,44,0.08); }
 .photo-slot input[type=file] {
     position: absolute;
     inset: 0;
@@ -111,7 +111,7 @@
     flex-direction: column;
     align-items: center;
     gap: 4px;
-    color: #94A3B8;
+    color: var(--color-text-muted);
     font-size: 11px;
     pointer-events: none;
 }
@@ -141,7 +141,7 @@
     align-items: center;
     justify-content: center;
     font-size: 11px;
-    color: #6366F1;
+    color: var(--color-primary);
     z-index: 3;
 }
 /* ---- Step footer actions ---- */
@@ -150,27 +150,27 @@
 .steps-empty {
     text-align: center;
     padding: 56px 24px;
-    color: #94A3B8;
+    color: var(--color-text-muted);
 }
 .steps-empty i { font-size: 40px; opacity: .35; display: block; margin-bottom: 12px; }
 /* ---- Add step card ---- */
 .add-step-card {
-    border: 2px dashed #CBD5E1;
+    border: 2px dashed var(--color-border-secondary);
     border-radius: 12px;
     padding: 20px;
     text-align: center;
-    color: #64748B;
+    color: var(--color-text-muted);
     cursor: pointer;
     transition: border-color .15s, background .15s, color .15s;
     font-size: 14px;
 }
-.add-step-card:hover { border-color: #6366F1; background: #EEF2FF; color: #4338CA; }
+.add-step-card:hover { border-color: var(--color-primary); background: rgba(141,29,44,0.08); color: var(--color-primary); }
 .save-indicator {
     font-size: 11px;
-    color: #94A3B8;
+    color: var(--color-text-muted);
     transition: color .3s;
 }
-.save-indicator.saving { color: #6366F1; }
+.save-indicator.saving { color: var(--color-primary); }
 .save-indicator.saved  { color: #16A34A; }
 .save-indicator.error  { color: #DC2626; }
 </style>

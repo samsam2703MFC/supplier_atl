@@ -1,0 +1,269 @@
+/* ==========================================================================
+   L'Atelier By — global app skin
+   Re-themes the Mazer/Bootstrap chrome to the L'Atelier design system
+   (same tokens as consultant_BO: Ruby Red / Abricot / Beige, Gotham + Vank).
+
+   Loaded LAST in layouts/base.twig so its rules win over bootstrap.css and
+   app.css at equal specificity. Layout/behaviour rules (sidebar off-canvas,
+   grid, spacing) are untouched — this file only restyles.
+   Requires design-system.css (tokens + brand fonts).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Base — beige page, brand typography
+   -------------------------------------------------------------------------- */
+html { background: var(--color-bg); }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#main, #main-content, .page-content { background: transparent; }
+
+input, textarea, select, button, optgroup, option { font-family: var(--font-ui); }
+
+a { color: var(--color-primary); }
+a:hover { color: #6d1622; }
+
+::selection { background: rgba(141, 29, 44, 0.15); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(34, 34, 34, 0.18);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-track { background: transparent; }
+
+/* --------------------------------------------------------------------------
+   2. Page headings — display face like the consultant_BO screens
+   -------------------------------------------------------------------------- */
+.page-heading h3,
+.page-heading h2 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-regular);
+  font-size: 30px;
+  line-height: 1.15;
+  color: var(--color-text);
+  margin-bottom: 0;
+}
+
+.page-heading .text-subtitle {
+  font-size: 13px;
+  color: var(--color-text-muted) !important;
+  margin: 5px 0 0;
+}
+
+.card-title, h4.card-title, h5.card-title {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-medium);
+  color: var(--color-text);
+}
+
+/* --------------------------------------------------------------------------
+   3. Buttons
+   -------------------------------------------------------------------------- */
+.btn { border-radius: var(--radius-md); font-family: var(--font-ui); }
+
+.btn-primary,
+.btn-primary:disabled {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active,
+.btn-primary.active,
+.btn-check:checked + .btn-primary {
+  background-color: #6d1622;
+  border-color: #6d1622;
+  color: #fff;
+}
+.btn-primary:focus,
+.btn-primary:active:focus {
+  box-shadow: 0 0 0 0.2rem rgba(141, 29, 44, 0.25);
+}
+
+.btn-outline-primary {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background-color: transparent;
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:active,
+.btn-outline-primary.active,
+.btn-check:checked + .btn-outline-primary {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.btn-outline-primary:focus { box-shadow: 0 0 0 0.2rem rgba(141, 29, 44, 0.25); }
+
+.btn.btn-secondary,
+.btn.btn-light {
+  background-color: var(--color-background-secondary);
+  border-color: var(--color-border-tertiary);
+  color: var(--color-text);
+}
+.btn.btn-secondary:hover,
+.btn.btn-light:hover {
+  background-color: var(--color-bg);
+  border-color: var(--color-border-secondary);
+  color: var(--color-text);
+}
+
+.btn-link { color: var(--color-primary); }
+.btn-link:hover { color: #6d1622; }
+
+/* --------------------------------------------------------------------------
+   4. Bootstrap "primary" utilities → Ruby
+   -------------------------------------------------------------------------- */
+.text-primary { color: var(--color-primary) !important; }
+.bg-primary { background-color: var(--color-primary) !important; }
+.border-primary { border-color: var(--color-primary) !important; }
+
+.badge.bg-primary { background-color: var(--color-primary) !important; color: #fff; }
+.badge.bg-secondary {
+  background-color: var(--color-secondary) !important;
+  color: var(--color-on-abricot);
+}
+.badge.bg-light-primary {
+  background-color: rgba(141, 29, 44, 0.09);
+  color: var(--color-primary);
+}
+
+.alert-primary { background-color: rgba(141, 29, 44, 0.09); color: var(--color-primary); }
+.alert-primary a { color: var(--color-primary); }
+
+/* --------------------------------------------------------------------------
+   5. Forms
+   -------------------------------------------------------------------------- */
+.form-control,
+.form-select {
+  border-radius: var(--radius-md);
+  border-color: var(--color-border-secondary);
+  color: var(--color-text);
+}
+.form-control::placeholder { color: var(--color-text-muted); }
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 0.2rem rgba(141, 29, 44, 0.12);
+}
+
+.form-check-input { border-color: var(--color-border-secondary); }
+.form-check-input:checked {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.form-check-input:focus { box-shadow: 0 0 0 0.2rem rgba(141, 29, 44, 0.12); }
+
+input[type=checkbox], input[type=radio], progress { accent-color: var(--color-primary); }
+
+label, .form-label { color: var(--color-text); }
+
+/* --------------------------------------------------------------------------
+   6. Cards & surfaces
+   -------------------------------------------------------------------------- */
+.card {
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--color-border-tertiary);
+  box-shadow: none;
+  background: var(--color-surface);
+}
+.card .card-header {
+  background: transparent;
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+.card .card-footer { border-top: 0.5px solid var(--color-border-tertiary); }
+
+.modal-content {
+  border-radius: var(--radius-lg);
+  border: 0.5px solid var(--color-border-tertiary);
+}
+.modal-header, .modal-footer { border-color: var(--color-border-tertiary); }
+
+.dropdown-menu {
+  border-radius: var(--radius-md);
+  border: 0.5px solid var(--color-border-tertiary);
+  box-shadow: 0 10px 30px rgba(34, 34, 34, 0.10);
+  font-family: var(--font-ui);
+}
+.dropdown-item:hover, .dropdown-item:focus { background: var(--color-background-secondary); }
+.dropdown-item:active { background: var(--color-primary); color: #fff; }
+
+/* --------------------------------------------------------------------------
+   7. Tables
+   -------------------------------------------------------------------------- */
+.table { color: var(--color-text); border-color: var(--color-border-tertiary); }
+.table thead th {
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-admin);
+  color: var(--color-text-muted);
+  border-color: var(--color-border-tertiary);
+}
+.table td, .table th { border-color: var(--color-border-tertiary); }
+.table-hover tbody tr:hover { background-color: var(--color-background-secondary); color: inherit; }
+.table-striped tbody tr:nth-of-type(odd) { background-color: rgba(234, 228, 220, 0.35); }
+.stickyHeader { background-color: var(--color-background-secondary); border-bottom: 2px solid var(--color-border-secondary); }
+
+/* --------------------------------------------------------------------------
+   8. Nav (tabs, pills, pagination, breadcrumb)
+   -------------------------------------------------------------------------- */
+.nav-tabs .nav-link { color: var(--color-text-muted); }
+.nav-tabs .nav-link.active {
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
+  background: transparent;
+}
+.nav-pills .nav-link { color: var(--color-text-muted); }
+.nav-pills .nav-link.active { background-color: var(--color-primary); color: #fff; }
+
+.pagination .page-link { color: var(--color-primary); border-color: var(--color-border-tertiary); }
+.pagination .page-link:focus { box-shadow: 0 0 0 0.2rem rgba(141, 29, 44, 0.12); }
+.pagination .page-item.active .page-link {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.breadcrumb-item.active { color: var(--color-text-muted); }
+.breadcrumb-item a { color: var(--color-primary); }
+
+/* --------------------------------------------------------------------------
+   9. Top navbar — white bar, thin border, brand-muted icons
+   -------------------------------------------------------------------------- */
+#main header .navbar,
+#main > header {
+  background: var(--color-surface);
+  border-bottom: 0.5px solid var(--color-border-tertiary);
+}
+#main > header { border-radius: var(--radius-lg); }
+#main header .navbar { border-radius: var(--radius-lg); }
+#main header .burger-btn i,
+#main header .navbar .nav-link i { color: var(--color-text-muted) !important; }
+#main header .burger-btn:hover i { color: var(--color-primary) !important; }
+#main header .user-name h6 { color: var(--color-text) !important; font-family: var(--font-ui); }
+#main header .user-name p { color: var(--color-text-muted) !important; }
+
+/* --------------------------------------------------------------------------
+   10. Misc
+   -------------------------------------------------------------------------- */
+.text-muted { color: var(--color-text-muted) !important; }
+
+.spinner-border.text-primary { color: var(--color-primary) !important; }
+
+.choices__inner { border-radius: var(--radius-md); border-color: var(--color-border-secondary); }
+.is-focused .choices__inner, .is-open .choices__inner { border-color: var(--color-primary); }
+.choices__list--multiple .choices__item {
+  background-color: var(--color-primary);
+  border-color: #6d1622;
+}

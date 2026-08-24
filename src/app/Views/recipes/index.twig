@@ -5,27 +5,27 @@
 {% block head %}
 <style>
 .rec-table th,.rec-table td{vertical-align:middle;}
-.rec-empty{text-align:center;padding:48px 16px;color:#94A3B8;}
+.rec-empty{text-align:center;padding:48px 16px;color:var(--color-text-muted);}
 .rec-empty i{font-size:32px;opacity:.4;display:block;margin-bottom:8px;}
 .rec-pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
 .rec-pill-active{background:#DCFCE7;color:#15803D;}
-.rec-pill-archived{background:#F1F5F9;color:#94A3B8;}
-.rec-action-btn{width:32px;height:32px;border-radius:6px;border:1px solid #E2E8F0;background:#fff;color:#475569;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
-.rec-action-btn:hover{background:#6366F1;color:#fff;border-color:#6366F1;}
+.rec-pill-archived{background:var(--color-background-secondary);color:var(--color-text-muted);}
+.rec-action-btn{width:32px;height:32px;border-radius:6px;border:1px solid var(--color-border-tertiary);background:#fff;color:var(--color-text-muted);display:inline-flex;align-items:center;justify-content:center;transition:all .15s;}
+.rec-action-btn:hover{background:var(--color-primary);color:#fff;border-color:var(--color-primary);}
 .rec-allergen-badge{display:inline-flex;align-items:center;gap:4px;background:#FEF3C7;color:#92400E;border:1px solid #FDE68A;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;margin:2px;}
-.rec-detail-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed #E2E8F0;}
+.rec-detail-row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed var(--color-border-tertiary);}
 .rec-detail-row:last-child{border-bottom:none;}
-.rec-detail-label{color:#64748B;font-size:12px;text-transform:uppercase;letter-spacing:.04em;}
-.rec-detail-value{font-weight:600;color:#0F172A;text-align:right;}
+.rec-detail-label{color:var(--color-text-muted);font-size:12px;text-transform:uppercase;letter-spacing:.04em;}
+.rec-detail-value{font-weight:600;color:var(--color-text);text-align:right;}
 .rec-ingredient-table th,.rec-ingredient-table td{vertical-align:middle;}
 .rec-ingredient-table .num{font-variant-numeric:tabular-nums;text-align:right;}
 .rec-no-price{color:#EF4444;font-size:10px;font-weight:600;}
-.rec-summary-bar{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px 16px;}
+.rec-summary-bar{background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:8px;padding:12px 16px;}
 .rec-summary-item{display:flex;flex-direction:column;align-items:center;}
-.rec-summary-value{font-size:20px;font-weight:700;color:#0F172A;font-variant-numeric:tabular-nums;}
-.rec-summary-label{font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.04em;}
+.rec-summary-value{font-size:20px;font-weight:700;color:var(--color-text);font-variant-numeric:tabular-nums;}
+.rec-summary-label{font-size:11px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.04em;}
 .rec-cost-incomplete{font-size:11px;color:#EF4444;margin-top:2px;}
-.rec-add-ingredient-form{background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:8px;padding:12px;}
+.rec-add-ingredient-form{background:var(--color-background-secondary);border:1px dashed var(--color-border-secondary);border-radius:8px;padding:12px;}
 </style>
 {% endblock %}
 

@@ -2,7 +2,7 @@
 {% block title %}{{ translations.rms_all_title }}{% endblock %}
 {% block head %}
 <style>
-.dash-sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--color-text-muted);margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
+.dash-sec{font-size:11px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:var(--color-text-muted);margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
 .dash-sec::after{content:'';flex:1;height:1px;background:var(--color-border-tertiary);}
 .qty-bar-wrap{flex:1;height:5px;background:var(--color-background-secondary);border-radius:4px;overflow:hidden;min-width:60px;}
 .qty-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--color-primary),#b0454f);}
@@ -115,19 +115,19 @@
         <div class="row g-3 mb-4">
             <div class="col-6 col-lg-3">
                 <div class="kpi-card border rounded p-3 bg-white">
-                    <div style="font-size:11px;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                    <div style="font-size:11px;font-weight:500;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
                         {{ translations.rms_kpi_products }}
                     </div>
-                    <div style="font-size:26px;font-weight:700;color:var(--color-text);line-height:1.1;">{{ productCount }}</div>
+                    <div style="font-size:22px;font-weight:500;color:var(--color-text);line-height:1.1;">{{ productCount }}</div>
                     <div style="font-size:11px;color:var(--color-text-muted);margin-top:4px;">{{ params.from }} → {{ params.to }}</div>
                 </div>
             </div>
             <div class="col-6 col-lg-3">
                 <div class="kpi-card border rounded p-3 bg-white">
-                    <div style="font-size:11px;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                    <div style="font-size:11px;font-weight:500;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
                         {{ translations.rms_all_kpi_shops }}
                     </div>
-                    <div style="font-size:26px;font-weight:700;color:var(--color-text);line-height:1.1;">{{ shopSet|length }}</div>
+                    <div style="font-size:22px;font-weight:500;color:var(--color-text);line-height:1.1;">{{ shopSet|length }}</div>
                     <div style="font-size:11px;color:var(--color-text-muted);margin-top:4px;">{{ translations.rms_all_kpi_shops_sub }}</div>
                 </div>
             </div>
@@ -195,7 +195,7 @@
                                                     <div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-text-muted);" title="{{ shop.shop_name }}">
                                                         {{ shop.shop_name }}
                                                     </div>
-                                                    <div style="font-weight:600;color:var(--color-text);min-width:30px;text-align:right;font-size:11px;">
+                                                    <div style="font-weight:500;color:var(--color-text);min-width:30px;text-align:right;font-size:11px;">
                                                         {{ shop.share }}%
                                                     </div>
                                                 </div>

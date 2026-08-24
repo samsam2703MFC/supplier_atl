@@ -41,20 +41,59 @@ a:hover { color: #6d1622; }
 ::-webkit-scrollbar-track { background: transparent; }
 
 /* --------------------------------------------------------------------------
+   1b. Density & weight — compact sizes, no heavy bold anywhere
+   (Gotham maps 700 to the Black cut; the design system only uses 400/500.)
+   -------------------------------------------------------------------------- */
+body { font-size: 14px; }
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 { font-weight: var(--weight-regular); }
+
+b, strong, th,
+.fw-bold, .fw-bolder, .font-bold { font-weight: var(--weight-medium) !important; }
+
+h6 { font-size: 14px; }
+
+.btn { font-size: 13px; font-weight: var(--weight-medium); }
+.btn-sm { font-size: 12px; }
+.btn-lg { font-size: 14px; }
+
+.form-control, .form-select { font-size: 13px; }
+label, .form-label { font-size: 12.5px; }
+
+.table { font-size: 13px; }
+.table > :not(caption) > * > * { padding: 0.5rem 0.6rem; }
+.table thead th { font-weight: var(--weight-medium); }
+
+.badge { font-weight: var(--weight-medium); font-size: 11px; }
+.dropdown-item { font-size: 13px; }
+.dropdown-header { font-size: 11px; }
+.nav-tabs .nav-link, .nav-pills .nav-link { font-size: 13px; }
+.pagination { font-size: 13px; }
+.alert { font-size: 13px; }
+.modal-title { font-size: 16px; font-weight: var(--weight-medium); }
+
+/* Rail is 236px (consultant_BO) — Mazer laid out for 300px */
+@media (min-width: 1200px) {
+  #main { margin-left: 236px; }
+}
+
+/* --------------------------------------------------------------------------
    2. Page headings — display face like the consultant_BO screens
    -------------------------------------------------------------------------- */
+.page-heading { margin-bottom: 1.4rem; }
 .page-heading h3,
 .page-heading h2 {
   font-family: var(--font-display);
   font-weight: var(--weight-regular);
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1.15;
   color: var(--color-text);
   margin-bottom: 0;
 }
 
 .page-heading .text-subtitle {
-  font-size: 13px;
+  font-size: 12.5px;
   color: var(--color-text-muted) !important;
   margin: 5px 0 0;
 }
@@ -62,6 +101,7 @@ a:hover { color: #6d1622; }
 .card-title, h4.card-title, h5.card-title {
   font-family: var(--font-ui);
   font-weight: var(--weight-medium);
+  font-size: 15px;
   color: var(--color-text);
 }
 

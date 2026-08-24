@@ -4,7 +4,7 @@
 
             <div class="modal-header">
                 <div>
-                    <h5 class="modal-title mb-0" id="specificationModalTitle">{{ translations.manage_specification|default('Manage Product Specification') }}</h5>
+                    <h5 class="modal-title mb-0" id="specificationModalTitle">{{ translations.manage_specification|default('Gérer la fiche produit') }}</h5>
                     <div class="small text-muted" id="specificationModalSubtitle"></div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translations.close }}"></button>
@@ -15,18 +15,18 @@
 
                 <div class="alert alert-light-primary small mb-3">
                     <i class="bi bi-info-circle me-1"></i>
-                    {{ translations.specification_modal_hint|default('Edit product specification in multiple languages. Each language has separate fields.') }}
+                    {{ translations.specification_modal_hint|default('Modifiez la fiche produit en plusieurs langues. Chaque langue a ses propres champs.') }}
                 </div>
 
                 <div class="alert alert-light-warning small mb-3">
                     <i class="bi bi-exclamation-triangle me-1"></i>
                     <strong>{{ translations.important|default('Important') }}:</strong>
-                    {{ translations.specification_save_hint|default('Clicking Save will only save the specification for the currently selected language.') }}
+                    {{ translations.specification_save_hint|default('« Enregistrer » ne sauvegarde que la langue actuellement sélectionnée.') }}
                 </div>
 
                 {# Language selector tabs #}
                 <div class="mb-3">
-                    <label class="form-label fw-bold">{{ translations.select_language|default('Select Language') }}</label>
+                    <label class="form-label fw-bold">{{ translations.select_language|default('Choisir la langue') }}</label>
                     <div class="btn-group w-100" role="group" id="specificationLanguageTabs">
                         <input type="radio" class="btn-check" name="specLang" id="specLangPL" value="pl" checked>
                         <label class="btn btn-outline-primary" for="specLangPL">
@@ -61,20 +61,20 @@
                     {# Polish #}
                     <div class="spec-lang-form" data-lang="pl">
                         <div class="mb-3">
-                            <label for="specStorageInfoPL" class="form-label">{{ translations.storage_info|default('Storage Info') }} (PL)</label>
-                            <textarea class="form-control" id="specStorageInfoPL" rows="2" placeholder="{{ translations.storage_info_placeholder|default('e.g., Store at 18°C') }}"></textarea>
+                            <label for="specStorageInfoPL" class="form-label">{{ translations.storage_info|default('Conservation') }} (PL)</label>
+                            <textarea class="form-control" id="specStorageInfoPL" rows="2" placeholder="{{ translations.storage_info_placeholder|default('ex. : conserver à 18 °C') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecStorageInfoPL"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specPreparationInfoPL" class="form-label">{{ translations.preparation_info|default('Preparation Info') }} (PL)</label>
-                            <textarea class="form-control" id="specPreparationInfoPL" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('e.g., Defrost before use') }}"></textarea>
+                            <label for="specPreparationInfoPL" class="form-label">{{ translations.preparation_info|default('Préparation') }} (PL)</label>
+                            <textarea class="form-control" id="specPreparationInfoPL" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('ex. : décongeler avant utilisation') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecPreparationInfoPL"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specCompositionPL" class="form-label">{{ translations.composition|default('Composition / Ingredients') }} (PL)</label>
-                            <textarea class="form-control" id="specCompositionPL" rows="3" placeholder="{{ translations.composition_placeholder|default('e.g., eggs, milk, flour, water, oil') }}"></textarea>
+                            <label for="specCompositionPL" class="form-label">{{ translations.composition|default('Composition / Ingrédients') }} (PL)</label>
+                            <textarea class="form-control" id="specCompositionPL" rows="3" placeholder="{{ translations.composition_placeholder|default('ex. : œufs, lait, farine, eau, huile') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecCompositionPL"></div>
                         </div>
                     </div>
@@ -82,20 +82,20 @@
                     {# English #}
                     <div class="spec-lang-form" data-lang="en" style="display: none;">
                         <div class="mb-3">
-                            <label for="specStorageInfoEN" class="form-label">{{ translations.storage_info|default('Storage Info') }} (EN)</label>
-                            <textarea class="form-control" id="specStorageInfoEN" rows="2" placeholder="{{ translations.storage_info_placeholder|default('e.g., Store at 18°C') }}"></textarea>
+                            <label for="specStorageInfoEN" class="form-label">{{ translations.storage_info|default('Conservation') }} (EN)</label>
+                            <textarea class="form-control" id="specStorageInfoEN" rows="2" placeholder="{{ translations.storage_info_placeholder|default('ex. : conserver à 18 °C') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecStorageInfoEN"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specPreparationInfoEN" class="form-label">{{ translations.preparation_info|default('Preparation Info') }} (EN)</label>
-                            <textarea class="form-control" id="specPreparationInfoEN" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('e.g., Defrost before use') }}"></textarea>
+                            <label for="specPreparationInfoEN" class="form-label">{{ translations.preparation_info|default('Préparation') }} (EN)</label>
+                            <textarea class="form-control" id="specPreparationInfoEN" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('ex. : décongeler avant utilisation') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecPreparationInfoEN"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specCompositionEN" class="form-label">{{ translations.composition|default('Composition / Ingredients') }} (EN)</label>
-                            <textarea class="form-control" id="specCompositionEN" rows="3" placeholder="{{ translations.composition_placeholder|default('e.g., eggs, milk, flour, water, oil') }}"></textarea>
+                            <label for="specCompositionEN" class="form-label">{{ translations.composition|default('Composition / Ingrédients') }} (EN)</label>
+                            <textarea class="form-control" id="specCompositionEN" rows="3" placeholder="{{ translations.composition_placeholder|default('ex. : œufs, lait, farine, eau, huile') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecCompositionEN"></div>
                         </div>
                     </div>
@@ -103,20 +103,20 @@
                     {# French #}
                     <div class="spec-lang-form" data-lang="fr" style="display: none;">
                         <div class="mb-3">
-                            <label for="specStorageInfoFR" class="form-label">{{ translations.storage_info|default('Storage Info') }} (FR)</label>
-                            <textarea class="form-control" id="specStorageInfoFR" rows="2" placeholder="{{ translations.storage_info_placeholder|default('e.g., Store at 18°C') }}"></textarea>
+                            <label for="specStorageInfoFR" class="form-label">{{ translations.storage_info|default('Conservation') }} (FR)</label>
+                            <textarea class="form-control" id="specStorageInfoFR" rows="2" placeholder="{{ translations.storage_info_placeholder|default('ex. : conserver à 18 °C') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecStorageInfoFR"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specPreparationInfoFR" class="form-label">{{ translations.preparation_info|default('Preparation Info') }} (FR)</label>
-                            <textarea class="form-control" id="specPreparationInfoFR" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('e.g., Defrost before use') }}"></textarea>
+                            <label for="specPreparationInfoFR" class="form-label">{{ translations.preparation_info|default('Préparation') }} (FR)</label>
+                            <textarea class="form-control" id="specPreparationInfoFR" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('ex. : décongeler avant utilisation') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecPreparationInfoFR"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specCompositionFR" class="form-label">{{ translations.composition|default('Composition / Ingredients') }} (FR)</label>
-                            <textarea class="form-control" id="specCompositionFR" rows="3" placeholder="{{ translations.composition_placeholder|default('e.g., eggs, milk, flour, water, oil') }}"></textarea>
+                            <label for="specCompositionFR" class="form-label">{{ translations.composition|default('Composition / Ingrédients') }} (FR)</label>
+                            <textarea class="form-control" id="specCompositionFR" rows="3" placeholder="{{ translations.composition_placeholder|default('ex. : œufs, lait, farine, eau, huile') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecCompositionFR"></div>
                         </div>
                     </div>
@@ -124,20 +124,20 @@
                     {# Dutch #}
                     <div class="spec-lang-form" data-lang="nl" style="display: none;">
                         <div class="mb-3">
-                            <label for="specStorageInfoNL" class="form-label">{{ translations.storage_info|default('Storage Info') }} (NL)</label>
-                            <textarea class="form-control" id="specStorageInfoNL" rows="2" placeholder="{{ translations.storage_info_placeholder|default('e.g., Store at 18°C') }}"></textarea>
+                            <label for="specStorageInfoNL" class="form-label">{{ translations.storage_info|default('Conservation') }} (NL)</label>
+                            <textarea class="form-control" id="specStorageInfoNL" rows="2" placeholder="{{ translations.storage_info_placeholder|default('ex. : conserver à 18 °C') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecStorageInfoNL"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specPreparationInfoNL" class="form-label">{{ translations.preparation_info|default('Preparation Info') }} (NL)</label>
-                            <textarea class="form-control" id="specPreparationInfoNL" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('e.g., Defrost before use') }}"></textarea>
+                            <label for="specPreparationInfoNL" class="form-label">{{ translations.preparation_info|default('Préparation') }} (NL)</label>
+                            <textarea class="form-control" id="specPreparationInfoNL" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('ex. : décongeler avant utilisation') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecPreparationInfoNL"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specCompositionNL" class="form-label">{{ translations.composition|default('Composition / Ingredients') }} (NL)</label>
-                            <textarea class="form-control" id="specCompositionNL" rows="3" placeholder="{{ translations.composition_placeholder|default('e.g., eggs, milk, flour, water, oil') }}"></textarea>
+                            <label for="specCompositionNL" class="form-label">{{ translations.composition|default('Composition / Ingrédients') }} (NL)</label>
+                            <textarea class="form-control" id="specCompositionNL" rows="3" placeholder="{{ translations.composition_placeholder|default('ex. : œufs, lait, farine, eau, huile') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecCompositionNL"></div>
                         </div>
                     </div>
@@ -145,20 +145,20 @@
                     {# Italian #}
                     <div class="spec-lang-form" data-lang="it" style="display: none;">
                         <div class="mb-3">
-                            <label for="specStorageInfoIT" class="form-label">{{ translations.storage_info|default('Storage Info') }} (IT)</label>
-                            <textarea class="form-control" id="specStorageInfoIT" rows="2" placeholder="{{ translations.storage_info_placeholder|default('e.g., Store at 18°C') }}"></textarea>
+                            <label for="specStorageInfoIT" class="form-label">{{ translations.storage_info|default('Conservation') }} (IT)</label>
+                            <textarea class="form-control" id="specStorageInfoIT" rows="2" placeholder="{{ translations.storage_info_placeholder|default('ex. : conserver à 18 °C') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecStorageInfoIT"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specPreparationInfoIT" class="form-label">{{ translations.preparation_info|default('Preparation Info') }} (IT)</label>
-                            <textarea class="form-control" id="specPreparationInfoIT" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('e.g., Defrost before use') }}"></textarea>
+                            <label for="specPreparationInfoIT" class="form-label">{{ translations.preparation_info|default('Préparation') }} (IT)</label>
+                            <textarea class="form-control" id="specPreparationInfoIT" rows="2" placeholder="{{ translations.preparation_info_placeholder|default('ex. : décongeler avant utilisation') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecPreparationInfoIT"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="specCompositionIT" class="form-label">{{ translations.composition|default('Composition / Ingredients') }} (IT)</label>
-                            <textarea class="form-control" id="specCompositionIT" rows="3" placeholder="{{ translations.composition_placeholder|default('e.g., eggs, milk, flour, water, oil') }}"></textarea>
+                            <label for="specCompositionIT" class="form-label">{{ translations.composition|default('Composition / Ingrédients') }} (IT)</label>
+                            <textarea class="form-control" id="specCompositionIT" rows="3" placeholder="{{ translations.composition_placeholder|default('ex. : œufs, lait, farine, eau, huile') }}"></textarea>
                             <div class="invalid-feedback" id="errSpecCompositionIT"></div>
                         </div>
                     </div>
@@ -170,11 +170,11 @@
             <div class="modal-footer">
                 <div class="me-auto small text-muted" id="specificationFooterMeta">
                     <i class="bi bi-globe me-1"></i>
-                    <span id="currentLangInfo">{{ translations.current_language|default('Current language') }}: <strong>Polski (PL)</strong></span>
+                    <span id="currentLangInfo">{{ translations.current_language|default('Langue actuelle') }}: <strong>Polski (PL)</strong></span>
                 </div>
                 <button class="btn btn-light" data-bs-dismiss="modal">{{ translations.close }}</button>
                 <button class="btn btn-primary" id="btnSaveSpecification">
-                    <i class="bi bi-save me-1"></i>{{ translations.save_current_language|default('Save Current Language') }}
+                    <i class="bi bi-save me-1"></i>{{ translations.save_current_language|default('Enregistrer cette langue') }}
                 </button>
             </div>
 

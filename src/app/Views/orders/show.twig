@@ -294,7 +294,7 @@
                             </div>
                         </div>
                         <div class="transport-form-section transport-form-section--delivery">
-                            <div class="transport-form-section-title">{{ translations.orders_transport_section_delivery ?? 'Dostawa' }}</div>
+                            <div class="transport-form-section-title">{{ translations.orders_transport_section_delivery ?? 'Livraison' }}</div>
                             <div>
                                 <label class="form-label">{{ translations.orders_details_supplier_planned_date }}</label>
                                 <input type="date" class="form-control form-control-sm" id="transport-planned-date" {{ canEditTransport ? '' : 'disabled' }}>
@@ -309,7 +309,7 @@
                             </div>
                         </div>
                         <div class="transport-form-section">
-                            <div class="transport-form-section-title">{{ translations.orders_transport_section_loading ?? 'Załadunek' }}</div>
+                            <div class="transport-form-section-title">{{ translations.orders_transport_section_loading ?? 'Chargement' }}</div>
                             <div>
                                 <label class="form-label">{{ translations.orders_transport_loading_place }}</label>
                                 <input type="text" class="form-control form-control-sm" id="transport-loading-place" {{ canEditTransport ? '' : 'disabled' }}>
@@ -330,10 +330,10 @@
                                 <i class="bi bi-save me-1"></i>{{ translations.orders_transport_save }}
                             </button>
                             <span class="transport-unsaved" id="transport-unsaved-badge">
-                                <i class="bi bi-exclamation-triangle"></i>{{ translations.orders_transport_unsaved_badge ?? 'Transport nie jest zapisany' }}
+                                <i class="bi bi-exclamation-triangle"></i>{{ translations.orders_transport_unsaved_badge ?? 'Transport non enregistré' }}
                             </span>
                         </div>
-                        <div class="transport-save-nudge mt-2" id="transport-save-nudge">{{ translations.orders_transport_save_nudge ?? 'Zapisz transport, aby odblokować finalizację zamówienia.' }}</div>
+                        <div class="transport-save-nudge mt-2" id="transport-save-nudge">{{ translations.orders_transport_save_nudge ?? 'Enregistrez le transport pour débloquer la finalisation de la commande.' }}</div>
                     {% endif %}
                     <div class="cmr-status-panel mt-3" id="cmr-status-panel" data-order-id="{{ order.id }}" data-can-generate="{{ canGenerateCmrDocument ? '1' : '0' }}" data-order-status="{{ order.supplier_fulfillment_status ?? '' }}" data-transport="{{ transport|json_encode|e('html_attr') }}" data-final-items="{{ finalItems|json_encode|e('html_attr') }}">
                         <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
@@ -488,7 +488,7 @@
                     <div>
                         <div class="section-title mb-1">{{ translations.orders_finalize_title }}</div>
                         <div class="order-lifecycle-note">{{ translations.orders_finalize_subtitle }}</div>
-                        <div class="transport-save-nudge mt-2" id="finalization-transport-nudge">{{ translations.orders_transport_finalize_nudge ?? 'Przed finalizacją zapisz transport. Dzięki temu dokumenty i status zamówienia będą bazowały na zatwierdzonych danych.' }}</div>
+                        <div class="transport-save-nudge mt-2" id="finalization-transport-nudge">{{ translations.orders_transport_finalize_nudge ?? 'Enregistrez le transport avant la finalisation : les documents et le statut de la commande s’appuieront sur des données validées.' }}</div>
                     </div>
                     <div>
                         <button type="button" class="btn btn-success" id="order-finalize-start">
@@ -547,7 +547,7 @@
                                     {% set documentType = row.type %}
                                     {% set typeKey = 'orders_document_type_' ~ documentType|lower|replace({'-': '_', ' ': '_'}) %}
                                     {% if document %}
-                                        {% set documentStatus = document.status ?? 'available' %}
+                                        {% set documentStatus = document.status ?? 'disponibles' %}
                                         {% set statusKey = 'orders_document_status_' ~ documentStatus|lower|replace({'-': '_', ' ': '_'}) %}
                                         {% set isVoided = documentStatus in ['VOIDED', 'voided', 'CANCELLED', 'cancelled', 'INVALIDATED', 'invalidated'] %}
                                         <tr class="{{ isVoided ? 'text-muted' : '' }}">
@@ -570,7 +570,7 @@
                                             <td><span class="badge bg-light text-dark">{{ translations[typeKey] ?? documentType }}</span></td>
                                             <td class="text-muted">—</td>
                                             <td class="text-muted">—</td>
-                                            <td><span class="badge bg-warning text-dark">{{ translations.orders_document_status_pending ?? 'Do wygenerowania' }}</span></td>
+                                            <td><span class="badge bg-warning text-dark">{{ translations.orders_document_status_pending ?? 'À générer' }}</span></td>
                                             <td class="text-end">
                                                 <button type="button" class="btn btn-sm btn-outline-primary js-document-generate" id="{{ row.button_id }}" data-document-kind="{{ row.button_kind }}">
                                                     <i class="bi {{ row.button_icon }} me-1"></i>{{ row.button_label }}
@@ -619,7 +619,7 @@
                                     {% if payload is iterable and payload is not empty %}
                                         <ul class="small mt-1 mb-0 text-muted ps-3">
                                             {% if statusFrom or statusTo %}
-                                                <li>{{ translations.orders_history_status_change ?? 'Status' }}: {{ statusFrom ?? '—' }} -> {{ statusTo ?? '—' }}</li>
+                                                <li>{{ translations.orders_history_status_change ?? 'Statut' }}: {{ statusFrom ?? '—' }} -> {{ statusTo ?? '—' }}</li>
                                             {% endif %}
                                             {% if plannedDeliveryDate %}
                                                 <li>{{ translations.orders_details_supplier_planned_date }}: {{ detail.date(plannedDeliveryDate) }}</li>
@@ -628,10 +628,10 @@
                                                 <li>{{ translations.orders_details_col_reason }}: {{ reason }}</li>
                                             {% endif %}
                                             {% if versionFrom is not null or versionTo is not null %}
-                                                <li>{{ translations.orders_history_version_change ?? 'Wersja pozycji' }}: {{ versionFrom ?? '—' }} -> {{ versionTo ?? '—' }}</li>
+                                                <li>{{ translations.orders_history_version_change ?? 'Version des lignes' }}: {{ versionFrom ?? '—' }} -> {{ versionTo ?? '—' }}</li>
                                             {% endif %}
                                             {% if summaryAfter is iterable and summaryAfter is not empty %}
-                                                <li>{{ translations.orders_history_changes_summary ?? 'Zmiany pozycji' }}:
+                                                <li>{{ translations.orders_history_changes_summary ?? 'Modifications des lignes' }}:
                                                     {% for type, count in summaryAfter %}
                                                         {% if count %}
                                                             {{ type }}: {{ count }}{% if not loop.last %}, {% endif %}
@@ -1326,30 +1326,30 @@
         savedText: {{ translations.orders_transport_saved_text|json_encode|raw }},
         externalCarrierRequired: {{ translations.orders_transport_external_carrier_required|json_encode|raw }},
         plannedDateRequired: {{ translations.orders_transport_planned_date_required|json_encode|raw }},
-        transportUnsavedTitle: {{ (translations.orders_transport_unsaved_title ?? 'Zapisz transport')|json_encode|raw }},
-        transportUnsavedText: {{ (translations.orders_transport_unsaved_text ?? 'Masz niezapisane dane transportu. Kliknij "Zapisz transport", a potem wróć do finalizacji.')|json_encode|raw }},
+        transportUnsavedTitle: {{ (translations.orders_transport_unsaved_title ?? 'Enregistrer le transport')|json_encode|raw }},
+        transportUnsavedText: {{ (translations.orders_transport_unsaved_text ?? 'Transport non enregistré. Cliquez sur « Enregistrer le transport », puis revenez à la finalisation.')|json_encode|raw }},
         carrierNameRequired: {{ translations.orders_carrier_name_required|json_encode|raw }},
         carriersTitle: {{ translations.orders_carriers_title|json_encode|raw }},
         carriersEmpty: {{ translations.orders_carriers_empty|json_encode|raw }},
         carrierAdd: {{ translations.orders_carrier_add|json_encode|raw }},
         carrierEdit: {{ translations.orders_carrier_edit|json_encode|raw }},
         carrierDeactivate: {{ translations.orders_carrier_deactivate|json_encode|raw }},
-        carrierCreatedTitle: {{ (translations.orders_carrier_created_title ?? 'Przewoźnik dodany')|json_encode|raw }},
-        carrierCreatedText: {{ (translations.orders_carrier_created_text ?? 'Przewoźnik został poprawnie dodany do bazy.')|json_encode|raw }},
-        carrierSavedTitle: {{ (translations.orders_carrier_saved_title ?? 'Przewoźnik zapisany')|json_encode|raw }},
-        carrierSavedText: {{ (translations.orders_carrier_saved_text ?? 'Dane przewoźnika zostały zapisane poprawnie.')|json_encode|raw }},
-        carrierActions: {{ (translations.orders_carrier_actions ?? 'Akcje')|json_encode|raw }},
-        carrierStatus: {{ (translations.orders_carrier_status ?? 'Status')|json_encode|raw }},
+        carrierCreatedTitle: {{ (translations.orders_carrier_created_title ?? 'Transporteur ajouté')|json_encode|raw }},
+        carrierCreatedText: {{ (translations.orders_carrier_created_text ?? 'Le transporteur a bien été ajouté.')|json_encode|raw }},
+        carrierSavedTitle: {{ (translations.orders_carrier_saved_title ?? 'Transporteur enregistré')|json_encode|raw }},
+        carrierSavedText: {{ (translations.orders_carrier_saved_text ?? 'Les données du transporteur ont été enregistrées.')|json_encode|raw }},
+        carrierActions: {{ (translations.orders_carrier_actions ?? 'Actions')|json_encode|raw }},
+        carrierStatus: {{ (translations.orders_carrier_status ?? 'Statut')|json_encode|raw }},
         carrierName: {{ translations.orders_carrier_name|json_encode|raw }},
-        carrierDriverName: {{ (translations.orders_carrier_driver_name ?? 'Imię i nazwisko kierowcy')|json_encode|raw }},
-        carrierAddress: {{ (translations.orders_carrier_address ?? 'Adres')|json_encode|raw }},
-        carrierPostalCode: {{ (translations.orders_carrier_postal_code ?? 'Kod pocztowy')|json_encode|raw }},
-        carrierCity: {{ (translations.orders_carrier_city ?? 'Miasto')|json_encode|raw }},
-        carrierCountry: {{ (translations.orders_carrier_country ?? 'Kraj')|json_encode|raw }},
-        carrierTaxIdentifier: {{ (translations.orders_carrier_tax_identifier ?? 'NIP / identyfikator podatkowy')|json_encode|raw }},
-        carrierPhone: {{ (translations.orders_carrier_phone ?? 'Telefon')|json_encode|raw }},
+        carrierDriverName: {{ (translations.orders_carrier_driver_name ?? 'Prénom et nom du chauffeur')|json_encode|raw }},
+        carrierAddress: {{ (translations.orders_carrier_address ?? 'Adresse')|json_encode|raw }},
+        carrierPostalCode: {{ (translations.orders_carrier_postal_code ?? 'Code postal')|json_encode|raw }},
+        carrierCity: {{ (translations.orders_carrier_city ?? 'Ville')|json_encode|raw }},
+        carrierCountry: {{ (translations.orders_carrier_country ?? 'Pays')|json_encode|raw }},
+        carrierTaxIdentifier: {{ (translations.orders_carrier_tax_identifier ?? 'N° TVA / identifiant fiscal')|json_encode|raw }},
+        carrierPhone: {{ (translations.orders_carrier_phone ?? 'Téléphone')|json_encode|raw }},
         carrierEmail: {{ (translations.orders_carrier_email ?? 'E-mail')|json_encode|raw }},
-        carrierVehicleRegistrationNumber: {{ (translations.orders_carrier_vehicle_registration_number ?? 'Numer rejestracyjny pojazdu')|json_encode|raw }},
+        carrierVehicleRegistrationNumber: {{ (translations.orders_carrier_vehicle_registration_number ?? 'Immatriculation du véhicule')|json_encode|raw }},
         supplierDefaultLabel: {{ (order.supplier_name ?? '—')|json_encode|raw }},
         carrierConfirmDeactivate: {{ translations.orders_carrier_confirm_deactivate|json_encode|raw }},
         close: {{ translations.orders_action_close|json_encode|raw }},
@@ -1368,21 +1368,21 @@
         finalizedText: {{ translations.orders_finalize_success_text|json_encode|raw }},
         refresh: {{ translations.orders_final_editor_refresh|json_encode|raw }},
         finalizationErrorMessages: {
-            SUPPLIER_ORDER_NOT_ACCEPTED: {{ (translations.orders_finalize_error_supplier_order_not_accepted ?? 'Zamówienie musi być najpierw przyjęte.')|json_encode|raw }},
-            SUPPLIER_FINAL_ITEMS_VERSION_REQUIRED: {{ (translations.orders_finalize_error_final_items_version_required ?? 'Brakuje wersji finalnych pozycji. Odśwież zamówienie i spróbuj ponownie.')|json_encode|raw }},
-            SUPPLIER_FINAL_ITEMS_VERSION_CONFLICT: {{ (translations.orders_finalize_error_final_items_version_conflict ?? 'Dane finalnych pozycji zmieniły się w międzyczasie. Odśwież zamówienie.')|json_encode|raw }},
-            SUPPLIER_PLANNED_DELIVERY_DATE_REQUIRED: {{ (translations.orders_finalize_error_supplier_planned_delivery_date_required ?? 'Ustaw przewidywaną datę dostawy przed finalizacją zamówienia.')|json_encode|raw }},
-            SUPPLIER_FINAL_ITEMS_POSITIVE_QUANTITY_REQUIRED: {{ (translations.orders_finalize_error_positive_quantity_required ?? 'Finalne pozycje muszą zawierać co najmniej jedną pozycję z ilością większą od zera.')|json_encode|raw }},
-            SUPPLIER_FINAL_ITEM_PRICE_REQUIRED: {{ (translations.orders_finalize_error_final_item_price_required ?? 'Co najmniej jedna finalna pozycja nie ma ceny netto.')|json_encode|raw }},
-            ORDER_TRANSPORT_REQUIRED: {{ (translations.orders_finalize_error_transport_required ?? 'Uzupełnij dane transportu przed finalizacją zamówienia.')|json_encode|raw }},
-            ORDER_TRANSPORT_MODE_REQUIRED: {{ (translations.orders_finalize_error_transport_mode_required ?? 'Uzupełnij tryb transportu.')|json_encode|raw }},
-            ORDER_TRANSPORT_TRANSPORT_TYPE_REQUIRED: {{ (translations.orders_finalize_error_transport_type_required ?? 'Uzupełnij typ transportu.')|json_encode|raw }},
-            ORDER_TRANSPORT_LOADING_PLACE_REQUIRED: {{ (translations.orders_finalize_error_loading_place_required ?? 'Uzupełnij miejsce załadunku.')|json_encode|raw }},
-            ORDER_TRANSPORT_LOADING_COUNTRY_REQUIRED: {{ (translations.orders_finalize_error_loading_country_required ?? 'Uzupełnij kraj załadunku.')|json_encode|raw }},
-            ORDER_TRANSPORT_DELIVERY_PLACE_REQUIRED: {{ (translations.orders_finalize_error_delivery_place_required ?? 'Uzupełnij miejsce dostawy.')|json_encode|raw }},
-            ORDER_TRANSPORT_DELIVERY_COUNTRY_REQUIRED: {{ (translations.orders_finalize_error_delivery_country_required ?? 'Uzupełnij kraj dostawy.')|json_encode|raw }},
-            ORDER_TRANSPORT_PLANNED_DELIVERY_DATE_REQUIRED: {{ (translations.orders_finalize_error_transport_planned_delivery_date_required ?? 'Uzupełnij planowaną datę dostawy w sekcji Transport.')|json_encode|raw }},
-            ORDER_TRANSPORT_CARRIER_SNAPSHOT_REQUIRED: {{ (translations.orders_finalize_error_carrier_snapshot_required ?? 'Dla transportu zewnętrznego wybierz przewoźnika.')|json_encode|raw }}
+            SUPPLIER_ORDER_NOT_ACCEPTED: {{ (translations.orders_finalize_error_supplier_order_not_accepted ?? 'La commande doit d’abord être acceptée.')|json_encode|raw }},
+            SUPPLIER_FINAL_ITEMS_VERSION_REQUIRED: {{ (translations.orders_finalize_error_final_items_version_required ?? 'Version des lignes finales manquante. Actualisez la commande et réessayez.')|json_encode|raw }},
+            SUPPLIER_FINAL_ITEMS_VERSION_CONFLICT: {{ (translations.orders_finalize_error_final_items_version_conflict ?? 'Les lignes finales ont changé entre-temps. Actualisez la commande.')|json_encode|raw }},
+            SUPPLIER_PLANNED_DELIVERY_DATE_REQUIRED: {{ (translations.orders_finalize_error_supplier_planned_delivery_date_required ?? 'Définissez la date de livraison prévue avant de finaliser la commande.')|json_encode|raw }},
+            SUPPLIER_FINAL_ITEMS_POSITIVE_QUANTITY_REQUIRED: {{ (translations.orders_finalize_error_positive_quantity_required ?? 'Les lignes finales doivent contenir au moins une ligne avec une quantité supérieure à zéro.')|json_encode|raw }},
+            SUPPLIER_FINAL_ITEM_PRICE_REQUIRED: {{ (translations.orders_finalize_error_final_item_price_required ?? 'Au moins une ligne finale n’a pas de prix net.')|json_encode|raw }},
+            ORDER_TRANSPORT_REQUIRED: {{ (translations.orders_finalize_error_transport_required ?? 'Complétez les données de transport avant de finaliser la commande.')|json_encode|raw }},
+            ORDER_TRANSPORT_MODE_REQUIRED: {{ (translations.orders_finalize_error_transport_mode_required ?? 'Complétez le mode de transport.')|json_encode|raw }},
+            ORDER_TRANSPORT_TRANSPORT_TYPE_REQUIRED: {{ (translations.orders_finalize_error_transport_type_required ?? 'Complétez le type de transport.')|json_encode|raw }},
+            ORDER_TRANSPORT_LOADING_PLACE_REQUIRED: {{ (translations.orders_finalize_error_loading_place_required ?? 'Complétez le lieu de chargement.')|json_encode|raw }},
+            ORDER_TRANSPORT_LOADING_COUNTRY_REQUIRED: {{ (translations.orders_finalize_error_loading_country_required ?? 'Complétez le pays de chargement.')|json_encode|raw }},
+            ORDER_TRANSPORT_DELIVERY_PLACE_REQUIRED: {{ (translations.orders_finalize_error_delivery_place_required ?? 'Complétez le lieu de livraison.')|json_encode|raw }},
+            ORDER_TRANSPORT_DELIVERY_COUNTRY_REQUIRED: {{ (translations.orders_finalize_error_delivery_country_required ?? 'Complétez le pays de livraison.')|json_encode|raw }},
+            ORDER_TRANSPORT_PLANNED_DELIVERY_DATE_REQUIRED: {{ (translations.orders_finalize_error_transport_planned_delivery_date_required ?? 'Complétez la date de livraison prévue dans la section Transport.')|json_encode|raw }},
+            ORDER_TRANSPORT_CARRIER_SNAPSHOT_REQUIRED: {{ (translations.orders_finalize_error_carrier_snapshot_required ?? 'Pour un transport externe, choisissez un transporteur.')|json_encode|raw }}
         }
     };
 
@@ -1853,24 +1853,24 @@
         close: {{ translations.orders_action_close|json_encode|raw }},
         downloadError: {{ translations.orders_documents_download_error|json_encode|raw }},
         missingPrefix: {{ translations.orders_cmr_missing_prefix|json_encode|raw }},
-        localPrefix: {{ translations.orders_cmr_local_missing_prefix|default('Wymagania do wygenerowania CMR:')|json_encode|raw }},
-        localStatusErrorPrefix: {{ translations.orders_cmr_local_status_error_prefix|default('Nie udało się pobrać statusu CMR. Lokalnie widoczne wymagania:')|json_encode|raw }},
-        localNoMissing: {{ translations.orders_cmr_local_no_missing|default('Nie wykryto braków w danych widocznych w panelu. Sprawdź odpowiedź API dla statusu CMR.')|json_encode|raw }},
+        localPrefix: {{ translations.orders_cmr_local_missing_prefix|default('Exigences pour générer le CMR :')|json_encode|raw }},
+        localStatusErrorPrefix: {{ translations.orders_cmr_local_status_error_prefix|default('Impossible de récupérer le statut CMR. Exigences visibles localement :')|json_encode|raw }},
+        localNoMissing: {{ translations.orders_cmr_local_no_missing|default('Aucun manque détecté dans les données du panneau. Vérifiez la réponse API du statut CMR.')|json_encode|raw }},
         errorMap: {
             ORDER_CMR_DOCUMENT_NOT_APPLICABLE: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_NOT_APPLICABLE|json_encode|raw }},
             ORDER_CMR_DOCUMENT_MISSING_DATA: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_MISSING_DATA|json_encode|raw }},
             ORDER_CMR_DOCUMENT_REQUIRES_FINALIZED: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_REQUIRES_FINALIZED|json_encode|raw }},
             ORDER_CMR_DOCUMENT_TRANSPORT_REQUIRED: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_TRANSPORT_REQUIRED|json_encode|raw }},
             ORDER_CMR_DOCUMENT_WEIGHT_REQUIRED: {{ translations.orders_document_error_ORDER_CMR_DOCUMENT_WEIGHT_REQUIRED|json_encode|raw }},
-            ORDER_NOT_FINALIZED: {{ translations.orders_cmr_requirement_order_finalized|default('Zamówienie musi być sfinalizowane.')|json_encode|raw }},
-            ORDER_TRANSPORT_REQUIRED: {{ translations.orders_cmr_requirement_transport_required|default('Uzupełnij dane transportu.')|json_encode|raw }},
-            ORDER_TRANSPORT_TYPE_ROAD_REQUIRED: {{ translations.orders_cmr_requirement_transport_type_road|default('Typ transportu musi być drogowy (ROAD).')|json_encode|raw }},
-            ORDER_TRANSPORT_LOADING_PLACE_REQUIRED: {{ translations.orders_cmr_requirement_loading_place|default('Uzupełnij miejsce załadunku.')|json_encode|raw }},
-            ORDER_TRANSPORT_LOADING_COUNTRY_REQUIRED: {{ translations.orders_cmr_requirement_loading_country|default('Uzupełnij kraj załadunku.')|json_encode|raw }},
-            ORDER_TRANSPORT_DELIVERY_PLACE_REQUIRED: {{ translations.orders_cmr_requirement_delivery_place|default('Uzupełnij miejsce dostawy.')|json_encode|raw }},
-            ORDER_TRANSPORT_DELIVERY_COUNTRY_REQUIRED: {{ translations.orders_cmr_requirement_delivery_country|default('Uzupełnij kraj dostawy.')|json_encode|raw }},
-            ORDER_TRANSPORT_PLANNED_DELIVERY_DATE_REQUIRED: {{ translations.orders_cmr_requirement_planned_delivery_date|default('Uzupełnij planowaną datę dostawy.')|json_encode|raw }},
-            CMR_FINAL_ITEMS_REQUIRED: {{ translations.orders_cmr_requirement_final_items|default('Finalne pozycje muszą zawierać co najmniej jedną pozycję z ilością większą od zera.')|json_encode|raw }},
+            ORDER_NOT_FINALIZED: {{ translations.orders_cmr_requirement_order_finalized|default('La commande doit être finalisée.')|json_encode|raw }},
+            ORDER_TRANSPORT_REQUIRED: {{ translations.orders_cmr_requirement_transport_required|default('Complétez les données de transport.')|json_encode|raw }},
+            ORDER_TRANSPORT_TYPE_ROAD_REQUIRED: {{ translations.orders_cmr_requirement_transport_type_road|default('Le type de transport doit être routier (ROAD).')|json_encode|raw }},
+            ORDER_TRANSPORT_LOADING_PLACE_REQUIRED: {{ translations.orders_cmr_requirement_loading_place|default('Complétez le lieu de chargement.')|json_encode|raw }},
+            ORDER_TRANSPORT_LOADING_COUNTRY_REQUIRED: {{ translations.orders_cmr_requirement_loading_country|default('Complétez le pays de chargement.')|json_encode|raw }},
+            ORDER_TRANSPORT_DELIVERY_PLACE_REQUIRED: {{ translations.orders_cmr_requirement_delivery_place|default('Complétez le lieu de livraison.')|json_encode|raw }},
+            ORDER_TRANSPORT_DELIVERY_COUNTRY_REQUIRED: {{ translations.orders_cmr_requirement_delivery_country|default('Complétez le pays de livraison.')|json_encode|raw }},
+            ORDER_TRANSPORT_PLANNED_DELIVERY_DATE_REQUIRED: {{ translations.orders_cmr_requirement_planned_delivery_date|default('Complétez la date de livraison prévue.')|json_encode|raw }},
+            CMR_FINAL_ITEMS_REQUIRED: {{ translations.orders_cmr_requirement_final_items|default('Les lignes finales doivent contenir au moins une ligne avec une quantité supérieure à zéro.')|json_encode|raw }},
             ORDER_DOCUMENT_NOT_FOUND: {{ translations.orders_document_error_ORDER_DOCUMENT_NOT_FOUND|json_encode|raw }},
             ORDER_DOCUMENT_NOT_ACTIVE: {{ translations.orders_document_error_ORDER_DOCUMENT_NOT_ACTIVE|json_encode|raw }},
             IDEMPOTENCY_KEY_CONFLICT: {{ translations.orders_document_error_IDEMPOTENCY_KEY_CONFLICT|json_encode|raw }}

@@ -16,16 +16,17 @@
     <div class="card mb-4">
         <div class="card-body">
             <form method="GET" action="{{ ROOT }}/orders" class="row g-3 align-items-end">
-                <div class="col-12 col-md-3">
-                    <label class="form-label">{{ translations.orders_filter_status }}</label>
-                    <select name="status" class="form-select">
-                        <option value="">{{ translations.orders_status_all }}</option>
-                        <option value="NEW" {% if filters.status == 'NEW' %}selected{% endif %}>{{ translations.orders_status_new }}</option>
-                        <option value="IN_TRANSIT" {% if filters.status == 'IN_TRANSIT' %}selected{% endif %}>{{ translations.orders_status_in_transit }}</option>
-                        <option value="DELIVERED" {% if filters.status == 'DELIVERED' %}selected{% endif %}>{{ translations.orders_status_delivered }}</option>
-                        <option value="CANCELLED" {% if filters.status == 'CANCELLED' %}selected{% endif %}>{{ translations.orders_status_cancelled }}</option>
-                        <option value="ARCHIVED" {% if filters.status == 'ARCHIVED' %}selected{% endif %}>{{ translations.orders_status_archived }}</option>
-                    </select>
+                <div class="col-12">
+                    <label class="form-label d-block">{{ translations.orders_filter_status }}</label>
+                    {% set currentStatus = filters.status ?? '' %}
+                    <div class="seg">
+                        <button type="submit" name="status" value="" class="seg-item {{ currentStatus == '' ? 'active' : '' }}">{{ translations.orders_status_all }}</button>
+                        <button type="submit" name="status" value="NEW" class="seg-item {{ currentStatus == 'NEW' ? 'active' : '' }}">{{ translations.orders_status_new }}</button>
+                        <button type="submit" name="status" value="IN_TRANSIT" class="seg-item {{ currentStatus == 'IN_TRANSIT' ? 'active' : '' }}">{{ translations.orders_status_in_transit }}</button>
+                        <button type="submit" name="status" value="DELIVERED" class="seg-item {{ currentStatus == 'DELIVERED' ? 'active' : '' }}">{{ translations.orders_status_delivered }}</button>
+                        <button type="submit" name="status" value="CANCELLED" class="seg-item {{ currentStatus == 'CANCELLED' ? 'active' : '' }}">{{ translations.orders_status_cancelled }}</button>
+                        <button type="submit" name="status" value="ARCHIVED" class="seg-item {{ currentStatus == 'ARCHIVED' ? 'active' : '' }}">{{ translations.orders_status_archived }}</button>
+                    </div>
                 </div>
                 <div class="col-12 col-md-3">
                     <label class="form-label">{{ translations.orders_filter_from }}</label>
@@ -36,7 +37,7 @@
                     <input type="date" name="to" class="form-control" value="{{ filters.to ?? '' }}">
                 </div>
                 <div class="col-12 col-md-3">
-                    <button type="submit" class="btn btn-primary w-100">
+                    <button type="submit" name="status" value="{{ currentStatus }}" class="btn btn-primary w-100">
                         <i class="bi bi-funnel"></i> {{ translations.orders_filter_apply }}
                     </button>
                 </div>

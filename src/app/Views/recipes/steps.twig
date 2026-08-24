@@ -1,6 +1,6 @@
 {% extends "layouts/base.twig" %}
 
-{% block title %}{{ recipe.name ?? 'Receptura' }} — {{ translations.steps_page_title|default('Kroki przygotowania') }}{% endblock %}
+{% block title %}{{ recipe.name ?? 'Recette' }} — {{ translations.steps_page_title|default('Étapes de préparation') }}{% endblock %}
 
 {% block head %}
 <style>
@@ -182,18 +182,18 @@
         <ol class="breadcrumb mb-1">
             <li class="breadcrumb-item">
                 <a href="{{ ROOT }}/recipes" class="text-muted small text-decoration-none">
-                    <i class="bi bi-book me-1"></i>{{ translations.recipes_title|default('Receptury') }}
+                    <i class="bi bi-book me-1"></i>{{ translations.recipes_title|default('Recettes') }}
                 </a>
             </li>
             <li class="breadcrumb-item">
                 <a href="{{ ROOT }}/recipes/{{ recipeId }}" class="text-muted small text-decoration-none">
-                    {{ recipe.name|default('Receptura') }}
+                    {{ recipe.name|default('Recette') }}
                 </a>
             </li>
-            <li class="breadcrumb-item active small">{{ translations.steps_page_title|default('Kroki przygotowania') }}</li>
+            <li class="breadcrumb-item active small">{{ translations.steps_page_title|default('Étapes de préparation') }}</li>
         </ol>
     </nav>
-    <h3>{{ translations.steps_page_title|default('Kroki przygotowania') }}</h3>
+    <h3>{{ translations.steps_page_title|default('Étapes de préparation') }}</h3>
     <p class="text-subtitle text-muted">{{ recipe.name|default('') }}</p>
 </div>
 {% endblock %}
@@ -209,7 +209,7 @@
         <div class="alert alert-light-primary d-flex align-items-start gap-2 mb-4">
             <i class="bi bi-info-circle mt-1"></i>
             <div class="small">
-                {{ translations.steps_info|default('Dodaj kolejne kroki przygotowania receptury. Do każdego kroku możesz dołączyć do 3 zdjęć. Kolejność możesz zmieniać przeciągając karty lub przyciskami strzałek.') }}
+                {{ translations.steps_info|default('Ajoutez les étapes de préparation de la recette. Chaque étape peut recevoir jusqu’à 3 photos. Réordonnez en glissant les cartes ou avec les flèches.') }}
             </div>
         </div>
 
@@ -218,13 +218,13 @@
             {# Steps rendered by JS on load #}
             <div class="steps-empty" id="stepsEmpty" style="display:none;">
                 <i class="bi bi-list-ol"></i>
-                {{ translations.steps_empty|default('Brak kroków. Dodaj pierwszy krok przygotowania.') }}
+                {{ translations.steps_empty|default('Aucune étape. Ajoutez la première étape de préparation.') }}
             </div>
         </div>
 
         {# Add step card #}
         <div class="add-step-card mt-2" id="btnAddStep">
-            <i class="bi bi-plus-circle me-2"></i>{{ translations.steps_add|default('Dodaj krok') }}
+            <i class="bi bi-plus-circle me-2"></i>{{ translations.steps_add|default('Ajouter une étape') }}
         </div>
 
     </div>
@@ -235,15 +235,15 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">{{ translations.steps_delete_confirm_title|default('Usuń krok') }}</h5>
+                <h5 class="modal-title">{{ translations.steps_delete_confirm_title|default('Supprimer l’étape') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                {{ translations.steps_delete_confirm_body|default('Czy na pewno chcesz usunąć ten krok? Zdjęcia zostaną trwale usunięte.') }}
+                {{ translations.steps_delete_confirm_body|default('Supprimer cette étape ? Les photos seront définitivement supprimées.') }}
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel|default('Anuluj') }}</button>
-                <button type="button" class="btn btn-danger" id="btnConfirmDelete">{{ translations.delete|default('Usuń') }}</button>
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ translations.cancel|default('Annuler') }}</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmDelete">{{ translations.delete|default('Supprimer') }}</button>
             </div>
         </div>
     </div>
@@ -305,7 +305,7 @@
 
         div.innerHTML = `
 <div class="d-flex align-items-start gap-2">
-    <span class="step-drag-handle" title="{{ translations.steps_drag_hint|default('Przeciągnij, aby zmienić kolejność') }}">
+    <span class="step-drag-handle" title="{{ translations.steps_drag_hint|default('Glissez pour réordonner') }}">
         <i class="bi bi-grip-vertical"></i>
     </span>
     <span class="step-badge">${idx + 1}</span>
@@ -313,15 +313,15 @@
         <textarea class="form-control step-textarea"
             rows="3"
             data-id="${escapeHtml(String(step.id))}"
-            placeholder="{{ translations.steps_description_placeholder|default('Opisz krok przygotowania…') }}"
+            placeholder="{{ translations.steps_description_placeholder|default('Décrivez l’étape de préparation…') }}"
         >${escapeHtml(step.description)}</textarea>
         <span class="save-indicator mt-1 d-block" id="save-${escapeHtml(String(step.id))}"></span>
     </div>
     <div class="d-flex flex-column gap-1">
-        <button type="button" class="step-order-btn btn-move-up" data-id="${escapeHtml(String(step.id))}" title="{{ translations.steps_move_up|default('Przesuń wyżej') }}"${idx === 0 ? ' disabled' : ''}>
+        <button type="button" class="step-order-btn btn-move-up" data-id="${escapeHtml(String(step.id))}" title="{{ translations.steps_move_up|default('Monter') }}"${idx === 0 ? ' disabled' : ''}>
             <i class="bi bi-chevron-up"></i>
         </button>
-        <button type="button" class="step-order-btn btn-move-down" data-id="${escapeHtml(String(step.id))}" title="{{ translations.steps_move_down|default('Przesuń niżej') }}"${idx === steps.length - 1 ? ' disabled' : ''}>
+        <button type="button" class="step-order-btn btn-move-down" data-id="${escapeHtml(String(step.id))}" title="{{ translations.steps_move_down|default('Descendre') }}"${idx === steps.length - 1 ? ' disabled' : ''}>
             <i class="bi bi-chevron-down"></i>
         </button>
     </div>
@@ -329,7 +329,7 @@
 <div class="step-photos">${photoSlots}</div>
 <div class="step-actions">
     <button type="button" class="btn btn-sm btn-danger btn-delete-step" data-id="${escapeHtml(String(step.id))}">
-        <i class="bi bi-trash me-1"></i>{{ translations.delete|default('Usuń krok') }}
+        <i class="bi bi-trash me-1"></i>{{ translations.delete|default('Supprimer l’étape') }}
     </button>
 </div>
 `;
@@ -339,7 +339,7 @@
         let saveTimer;
         ta.addEventListener('input', () => {
             clearTimeout(saveTimer);
-            setIndicator(step.id, 'saving', '{{ translations.steps_saving|default('Zapisywanie…') }}');
+            setIndicator(step.id, 'saving', '{{ translations.steps_saving|default('Enregistrement…') }}');
             saveTimer = setTimeout(() => saveDescription(step.id, ta.value), 900);
         });
 
@@ -377,7 +377,7 @@
         if (url) {
             return `<div class="photo-slot" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}">
     <img src="${escapeHtml(url)}" alt="foto ${slot}" />
-    <button type="button" class="photo-delete" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}" title="{{ translations.steps_photo_delete|default('Usuń zdjęcie') }}">
+    <button type="button" class="photo-delete" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}" title="{{ translations.steps_photo_delete|default('Supprimer la photo') }}">
         <i class="bi bi-x"></i>
     </button>
     <input type="file" class="photo-input" accept="image/*" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}" style="display:none;">
@@ -386,7 +386,7 @@
         return `<div class="photo-slot" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}">
     <div class="photo-placeholder">
         <i class="bi bi-camera"></i>
-        <span>{{ translations.steps_photo_slot|default('Zdjęcie') }} ${slot}</span>
+        <span>{{ translations.steps_photo_slot|default('Photo') }} ${slot}</span>
     </div>
     <input type="file" class="photo-input" accept="image/*" data-step-id="${escapeHtml(String(step.id))}" data-slot="${slot}">
 </div>`;
@@ -415,9 +415,9 @@
         if (resp.ok || resp.success) {
             const s = steps.find(s => s.id == stepId);
             if (s) s.description = description;
-            setIndicator(stepId, 'saved', '{{ translations.steps_saved|default('Zapisano') }}');
+            setIndicator(stepId, 'saved', '{{ translations.steps_saved|default('Enregistré') }}');
         } else {
-            setIndicator(stepId, 'error', '{{ translations.steps_save_error|default('Błąd zapisu') }}');
+            setIndicator(stepId, 'error', '{{ translations.steps_save_error|default('Erreur d’enregistrement') }}');
         }
     }
 
@@ -454,7 +454,7 @@
             const last  = cards[cards.length - 1];
             last?.querySelector('.step-textarea')?.focus();
         } else {
-            Swal.fire({ icon: 'error', title: 'Błąd', text: resp.message || '{{ translations.undefined_error_occurred|default('Nieoczekiwany błąd') }}' });
+            Swal.fire({ icon: 'error', title: 'Erreur', text: resp.message || '{{ translations.undefined_error_occurred|default('Erreur inattendue') }}' });
         }
     }
 
@@ -476,7 +476,7 @@
             deleteTarget = null;
             renderAll();
         } else {
-            Swal.fire({ icon: 'error', title: 'Błąd', text: resp.message || '{{ translations.undefined_error_occurred|default('Nieoczekiwany błąd') }}' });
+            Swal.fire({ icon: 'error', title: 'Erreur', text: resp.message || '{{ translations.undefined_error_occurred|default('Erreur inattendue') }}' });
         }
     });
 
@@ -555,7 +555,7 @@
         const slot_div = input.closest('.photo-slot');
         const uploading = document.createElement('div');
         uploading.className = 'photo-uploading';
-        uploading.innerHTML = '<span>{{ translations.steps_uploading|default('Wysyłanie…') }}</span>';
+        uploading.innerHTML = '<span>{{ translations.steps_uploading|default('Envoi…') }}</span>';
         slot_div.appendChild(uploading);
 
         const formData = new FormData();
@@ -577,7 +577,7 @@
             }
             renderAll();
         } else {
-            Swal.fire({ icon: 'error', title: 'Błąd', text: resp.message || '{{ translations.steps_photo_error|default('Błąd wysyłania zdjęcia') }}' });
+            Swal.fire({ icon: 'error', title: 'Erreur', text: resp.message || '{{ translations.steps_photo_error|default('Erreur d’envoi de la photo') }}' });
         }
     }
 
@@ -599,7 +599,7 @@
             }
             renderAll();
         } else {
-            Swal.fire({ icon: 'error', title: 'Błąd', text: resp.message || '{{ translations.undefined_error_occurred|default('Nieoczekiwany błąd') }}' });
+            Swal.fire({ icon: 'error', title: 'Erreur', text: resp.message || '{{ translations.undefined_error_occurred|default('Erreur inattendue') }}' });
         }
     }
 

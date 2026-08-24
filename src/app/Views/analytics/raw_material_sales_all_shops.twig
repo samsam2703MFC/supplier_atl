@@ -24,7 +24,7 @@
             </div>
             <div class="d-flex gap-2 flex-wrap">
                 <a href="{{ ROOT }}/analytics/raw-material-sales" class="btn btn-sm btn-outline-secondary">
-                    <i class="bi bi-shop"></i> {{ translations.rms_menu ?? 'Per shop' }}
+                    <i class="bi bi-shop"></i> {{ translations.rms_menu ?? 'Par magasin' }}
                 </a>
                 <a href="{{ ROOT }}/analytics" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-bar-chart"></i> {{ translations.analytics_heading }}
@@ -47,19 +47,19 @@
     {% set yearStart  = 'now'|date('Y-01-01') %}
 
     {% set presets = [
-        { key: 'today',      label: translations.rms_preset_today      ?? 'Today',          from: today,          to: today },
-        { key: '7d',         label: translations.rms_preset_7d         ?? 'Last 7 days',    from: d7,             to: today },
-        { key: '30d',        label: translations.rms_preset_30d        ?? 'Last 30 days',   from: d30,            to: today },
-        { key: '90d',        label: translations.rms_preset_90d        ?? 'Last 90 days',   from: d90,            to: today },
-        { key: 'this_month', label: translations.rms_preset_this_month ?? 'This month',     from: monthStart,     to: today },
-        { key: 'last_month', label: translations.rms_preset_last_month ?? 'Last month',     from: lastMonthStart, to: lastMonthEnd },
-        { key: 'ytd',        label: translations.rms_preset_ytd        ?? 'YTD',            from: yearStart,      to: today }
+        { key: 'today',      label: translations.rms_preset_today      ?? 'Aujourd’hui',          from: today,          to: today },
+        { key: '7d',         label: translations.rms_preset_7d         ?? '7 derniers jours',    from: d7,             to: today },
+        { key: '30d',        label: translations.rms_preset_30d        ?? '30 derniers jours',   from: d30,            to: today },
+        { key: '90d',        label: translations.rms_preset_90d        ?? '90 derniers jours',   from: d90,            to: today },
+        { key: 'this_month', label: translations.rms_preset_this_month ?? 'Ce mois-ci',     from: monthStart,     to: today },
+        { key: 'last_month', label: translations.rms_preset_last_month ?? 'Mois dernier',     from: lastMonthStart, to: lastMonthEnd },
+        { key: 'ytd',        label: translations.rms_preset_ytd        ?? 'Depuis le 1ᵉʳ janv.',            from: yearStart,      to: today }
     ] %}
 
     <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
         <span class="text-muted small me-1">
             <i class="bi bi-calendar-range"></i>
-            {{ translations.rms_presets_label ?? 'Quick range:' }}
+            {{ translations.rms_presets_label ?? 'Période rapide :' }}
         </span>
         {% for p in presets %}
             <a href="{{ ROOT }}/analytics/raw-material-sales-all-shops?from={{ p.from }}&to={{ p.to }}"
@@ -142,7 +142,7 @@
                     </span>
                     <input type="search" id="rmsProductSearch"
                            class="form-control border-start-0 ps-0"
-                           placeholder="{{ translations.rms_all_search_placeholder ?? 'Search product…' }}"
+                           placeholder="{{ translations.rms_all_search_placeholder ?? 'Rechercher un produit…' }}"
                            autocomplete="off"
                            style="font-size:13px;">
                 </div>

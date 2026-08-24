@@ -13,7 +13,7 @@
         <nav class="ds-side__nav">
 
             {# ── Pilotage / Zarządzanie ──────────────────────────────────── #}
-            <div class="ds-side__group-title">{{ translations.menu_group_management|default('Zarządzanie') }}</div>
+            <div class="ds-side__group-title">{{ translations.menu_group_management|default('Pilotage') }}</div>
             <ul class="ds-side__list">
                 <li class="sidebar-item {{ p starts with '/dashboard' ? 'active' : '' }}">
                     <a href="{{ ROOT }}/dashboard" class="sidebar-link ds-side__link">
@@ -27,13 +27,13 @@
                 </li>
                 <li class="sidebar-item {{ p starts with '/analytics/raw-material-sales-all-shops' ? 'active' : '' }}">
                     <a href="{{ ROOT }}/analytics/raw-material-sales-all-shops" class="sidebar-link ds-side__link">
-                        <span>{{ translations.rms_all_menu ?? 'All Shops Sales' }}</span>
+                        <span>{{ translations.rms_all_menu ?? 'Ventes tous magasins' }}</span>
                     </a>
                 </li>
             </ul>
 
             {# ── Offre / Oferta ──────────────────────────────────────────── #}
-            <div class="ds-side__group-title">{{ translations.menu_group_offer|default('Oferta') }}</div>
+            <div class="ds-side__group-title">{{ translations.menu_group_offer|default('Offre') }}</div>
             <ul class="ds-side__list">
                 <li class="sidebar-item {{ p starts with '/catalog' ? 'active' : '' }}">
                     <a href="{{ ROOT }}/catalog" class="sidebar-link ds-side__link">
@@ -52,13 +52,13 @@
                 </li>
                 <li class="sidebar-item {{ p starts with '/price-list' ? 'active' : '' }}">
                     <a href="{{ ROOT }}/price-list" class="sidebar-link ds-side__link">
-                        <span>{{ translations.global_price_list_menu|default('Cennik') }}</span>
+                        <span>{{ translations.global_price_list_menu|default('Tarifs') }}</span>
                     </a>
                 </li>
             </ul>
 
             {# ── Activité / Działalność ──────────────────────────────────── #}
-            <div class="ds-side__group-title">{{ translations.menu_group_activity|default('Działalność') }}</div>
+            <div class="ds-side__group-title">{{ translations.menu_group_activity|default('Activité') }}</div>
             <ul class="ds-side__list">
                 <li class="sidebar-item {{ p starts with '/orders' ? 'active' : '' }}">
                     <a href="{{ ROOT }}/orders" class="sidebar-link ds-side__link">
@@ -86,7 +86,7 @@
             </ul>
 
             {# ── Compte / Konto ──────────────────────────────────────────── #}
-            <div class="ds-side__group-title">{{ translations.menu_group_account|default('Konto') }}</div>
+            <div class="ds-side__group-title">{{ translations.menu_group_account|default('Compte') }}</div>
             <ul class="ds-side__list">
                 <li class="sidebar-item {{ p starts with '/me' ? 'active' : '' }}">
                     <a href="{{ ROOT }}/me" class="sidebar-link ds-side__link">

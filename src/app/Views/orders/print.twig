@@ -1,0 +1,191 @@
+{# Bon de commande — document imprimable aux couleurs L'Atelier.
+   Page autonome : le navigateur produit le PDF (Imprimer → Enregistrer en PDF).
+   Le PDF TCPDF du backend reste disponible dans la section Documents. #}
+{% macro date(value) %}{{ value ? value|date('d.m.Y') : '—' }}{% endmacro %}
+{% macro money(value, currency) %}{{ value is not null ? value|number_format(2, ',', ' ') ~ ' ' ~ (currency ?? '') : '—' }}{% endmacro %}
+{% import _self as fmt %}
+
+{% set orderKey = order.order_key ?? ('#' ~ (order.id ?? '')) %}
+{% set shop = order.shop ?? [] %}
+{% set currency = order.currency_code ?? order.currency ?? '€' %}
+{% set finalItems = order.final_items ?? [] %}
+{% set items = finalItems is not empty ? finalItems : (order.items ?? order.original_items ?? []) %}
+{% set usesFinal = finalItems is not empty %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ translations.orders_print_title|default('Bon de commande') }} {{ orderKey }}</title>
+    <link rel="stylesheet" href="{{ ROOT }}/assets/css/design-system.css">
+    <style>
+        html, body { margin: 0; padding: 0; background: #E9E4DD; }
+        body { font-family: var(--font-ui); font-weight: 300; font-size: 12.5px; color: var(--color-text); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+        .sheet { width: 210mm; min-height: 296mm; margin: 24px auto; background: #fff; padding: 16mm 15mm 14mm; box-sizing: border-box; box-shadow: 0 10px 40px rgba(34,34,34,.16); display: flex; flex-direction: column; }
+
+        .doc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; padding-bottom: 14px; border-bottom: 2px solid var(--color-primary); }
+        .doc-logo { width: 168px; height: auto; display: block; }
+        .doc-portal { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: .09em; color: var(--color-text-muted); margin-top: 7px; }
+        .doc-kind { text-align: right; }
+        .doc-kind h1 { font-family: var(--font-display); font-size: 24px; font-weight: 400; margin: 0; line-height: 1.1; }
+        .doc-key { font-size: 11.5px; color: var(--color-primary); margin-top: 4px; letter-spacing: .02em; }
+        .doc-status { display: inline-block; margin-top: 7px; font-size: 9.5px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; padding: 3px 10px; border-radius: 999px; background: var(--color-secondary); color: var(--color-on-abricot); }
+
+        .doc-parties { display: flex; gap: 14px; margin: 16px 0 6px; }
+        .party { flex: 1; background: var(--color-background-secondary); border-radius: 8px; padding: 11px 13px; }
+        .party-k { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: .09em; color: var(--color-text-muted); margin-bottom: 5px; }
+        .party-name { font-size: 13px; font-weight: 500; }
+        .party-line { font-size: 11.5px; color: var(--color-text-muted); margin-top: 2px; }
+
+        .doc-meta { display: flex; gap: 22px; margin: 12px 0 16px; flex-wrap: wrap; }
+        .meta-item .k { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--color-text-muted); }
+        .meta-item .v { font-size: 12px; font-weight: 500; margin-top: 2px; }
+
+        table.items { width: 100%; border-collapse: collapse; }
+        table.items thead th { font-size: 9px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--color-text-muted); text-align: left; padding: 7px 8px; border-bottom: 1.5px solid var(--color-primary); }
+        table.items thead th.num, table.items td.num { text-align: right; font-variant-numeric: tabular-nums; }
+        table.items tbody td { padding: 7px 8px; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 11.5px; }
+        table.items tbody tr:nth-child(even) td { background: rgba(234, 228, 220, 0.35); }
+        table.items .sku { color: var(--color-text-muted); font-size: 10.5px; }
+        table.items tfoot td { padding: 9px 8px; font-size: 12.5px; font-weight: 500; border-top: 1.5px solid var(--color-primary); }
+
+        .doc-note { font-size: 10px; color: var(--color-text-muted); margin-top: 8px; }
+
+        .doc-foot { margin-top: auto; padding-top: 12px; border-top: 0.5px solid var(--color-border-secondary); display: flex; justify-content: space-between; gap: 16px; font-size: 9.5px; color: var(--color-text-muted); line-height: 1.6; }
+        .doc-foot .brand { color: var(--color-primary); font-weight: 500; }
+
+        .toolbar { max-width: 210mm; margin: 18px auto 0; display: flex; justify-content: flex-end; gap: 8px; }
+        .toolbar button, .toolbar a { font-family: var(--font-ui); font-size: 13px; font-weight: 500; border-radius: 8px; padding: 8px 16px; cursor: pointer; text-decoration: none; }
+        .toolbar .primary { background: var(--color-primary); color: #fff; border: 1px solid var(--color-primary); }
+        .toolbar .ghost { background: #fff; color: var(--color-text); border: 0.5px solid var(--color-border-secondary); }
+
+        @media print {
+            html, body { background: #fff; }
+            .sheet { width: auto; min-height: auto; margin: 0; padding: 0; box-shadow: none; }
+            .toolbar { display: none; }
+            @page { size: A4; margin: 14mm 13mm; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <a class="ghost" href="{{ ROOT }}/orders/{{ order.id }}">← {{ translations.orders_print_back|default('Retour à la commande') }}</a>
+    <button class="primary" onclick="window.print()">{{ translations.orders_print_save|default('Imprimer / Enregistrer en PDF') }}</button>
+</div>
+
+<div class="sheet">
+
+    <div class="doc-head">
+        <div>
+            <img class="doc-logo" src="{{ ROOT }}/assets/images/atelierby-dark.png" alt="L'Atelier by">
+            <div class="doc-portal">{{ translations.supplier_portal|default('Portail Fournisseur') }}</div>
+        </div>
+        <div class="doc-kind">
+            <h1>{{ translations.orders_print_title|default('Bon de commande') }}</h1>
+            <div class="doc-key">{{ orderKey }}</div>
+            {% set statusKey = 'orders_fulfillment_status_' ~ (order.supplier_fulfillment_status|default('')|lower|replace({'-': '_', ' ': '_'})) %}
+            <span class="doc-status">{{ translations[statusKey] ?? order.supplier_fulfillment_status ?? '' }}</span>
+        </div>
+    </div>
+
+    <div class="doc-parties">
+        <div class="party">
+            <div class="party-k">{{ translations.orders_details_supplier|default('Fournisseur') }}</div>
+            <div class="party-name">{{ order.supplier_name ?? user.displayName ?? '—' }}</div>
+        </div>
+        <div class="party">
+            <div class="party-k">{{ translations.orders_print_client|default('Client') }}</div>
+            <div class="party-name">{{ shop.name ?? order.shop_name ?? '—' }}</div>
+            {% if shop.address ?? order.shop_address ?? false %}
+                <div class="party-line">{{ shop.address ?? order.shop_address }}</div>
+            {% endif %}
+            {% if shop.email ?? false %}<div class="party-line">{{ shop.email }}</div>{% endif %}
+        </div>
+    </div>
+
+    <div class="doc-meta">
+        <div class="meta-item">
+            <div class="k">{{ translations.orders_col_order_date|default('Date de commande') }}</div>
+            <div class="v">{{ fmt.date(order.order_date ?? order.created_at ?? null) }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="k">{{ translations.orders_details_expected_date|default('Livraison prévue') }}</div>
+            <div class="v">{{ fmt.date(order.expected_date ?? order.shop_expected_date ?? null) }}</div>
+        </div>
+        <div class="meta-item">
+            <div class="k">{{ translations.orders_details_supplier_planned_date|default('Date prévue fournisseur') }}</div>
+            <div class="v">{{ fmt.date(order.supplier_planned_date ?? order.planned_delivery_date ?? null) }}</div>
+        </div>
+        {% if order.delivered_on ?? false %}
+        <div class="meta-item">
+            <div class="k">{{ translations.orders_details_delivered_on|default('Livré le') }}</div>
+            <div class="v">{{ fmt.date(order.delivered_on) }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <table class="items">
+        <thead>
+            <tr>
+                <th style="width:26px">#</th>
+                <th style="width:120px">{{ translations.orders_details_col_sku|default('SKU') }}</th>
+                <th>{{ translations.orders_details_col_name|default('Produit') }}</th>
+                <th class="num" style="width:80px">{{ translations.orders_details_col_ordered_pack_quantity|default('Colis') }}</th>
+                <th class="num" style="width:90px">{{ translations.orders_details_col_price|default('Prix net') }}</th>
+                <th class="num" style="width:100px">{{ translations.orders_print_line_total|default('Total ligne') }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set grandTotal = 0 %}
+            {% for item in items %}
+                {% set qty = item.final_pack_quantity ?? item.ordered_pack_quantity ?? item.pack_quantity ?? item.quantity ?? 0 %}
+                {% set price = item.pack_price_net ?? item.price_net ?? null %}
+                {% set lineTotal = price is not null ? qty * price : null %}
+                {% set grandTotal = grandTotal + (lineTotal ?? 0) %}
+                <tr>
+                    <td class="sku">{{ loop.index }}</td>
+                    <td class="sku">{{ item.supplier_sku ?? item.sku ?? '—' }}</td>
+                    <td>{{ item.material_name ?? item.name ?? '—' }}</td>
+                    <td class="num">{{ qty }}</td>
+                    <td class="num">{{ fmt.money(price, currency) }}</td>
+                    <td class="num">{{ fmt.money(lineTotal, currency) }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5">{{ translations.orders_print_total|default('Total net') }}</td>
+                <td class="num">{{ fmt.money(order.approximate_value_net ?? order.value_net ?? grandTotal, currency) }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if usesFinal %}
+        <div class="doc-note">{{ translations.orders_print_final_note|default('Quantités finales validées par le fournisseur.') }}</div>
+    {% endif %}
+
+    <div class="doc-foot">
+        <div>
+            <span class="brand">{{ shop.name ?? order.shop_name ?? "L'Atelier by" }}</span>
+            {% if shop.address ?? order.shop_address ?? false %} — {{ shop.address ?? order.shop_address }}{% endif %}<br>
+            {% if shop.vat_number ?? shop.vat ?? false %}{{ translations.orders_print_vat|default('N° TVA') }} : {{ shop.vat_number ?? shop.vat }}{% endif %}
+            {% if shop.iban ?? false %} · IBAN : {{ shop.iban }}{% endif %}
+            {% if shop.email ?? false %} · {{ shop.email }}{% endif %}
+        </div>
+        <div style="text-align:right; white-space:nowrap">
+            {{ translations.orders_print_generated|default('Édité le') }} {{ "now"|date('d.m.Y H:i') }}<br>
+            {{ orderKey }}
+        </div>
+    </div>
+
+</div>
+
+<script>
+    window.addEventListener('load', function () {
+        setTimeout(function () { window.print(); }, 350);
+    });
+</script>
+</body>
+</html>

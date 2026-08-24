@@ -91,7 +91,7 @@
             </div>
             {% if api_status == 200 and order.id is defined %}
                 <div class="d-flex align-items-start gap-2">
-                    <a href="{{ ROOT }}/orders/{{ order.id }}/document" class="btn btn-outline-primary">
+                    <a href="{{ ROOT }}/orders/{{ order.id }}/print" target="_blank" rel="noopener" class="btn btn-outline-primary">
                         <i class="bi bi-download me-1"></i>{{ translations.orders_action_pdf }}
                     </a>
                 </div>

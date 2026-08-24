@@ -44,7 +44,11 @@ a:hover { color: #6d1622; }
    1b. Density & weight — compact sizes, no heavy bold anywhere
    (Gotham maps 700 to the Black cut; the design system only uses 400/500.)
    -------------------------------------------------------------------------- */
-body { font-size: 14px; }
+/* Body copy runs in the Gotham Light cut, like the rail entries; labels,
+   buttons and emphasis keep regular/medium so hierarchy stays readable. */
+body { font-size: 14px; font-weight: 300; }
+
+.form-control, .form-select { font-weight: var(--weight-regular); }
 
 h1, h2, h3, h4, h5, h6,
 .h1, .h2, .h3, .h4, .h5, .h6 { font-weight: var(--weight-regular); }

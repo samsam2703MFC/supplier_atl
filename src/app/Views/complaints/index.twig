@@ -16,36 +16,36 @@
     {# Filtry jako badge #}
     <div class="card mb-3">
         <div class="card-body py-3">
-            <div class="d-flex flex-wrap align-items-center gap-1 mb-2">
-                <span class="text-muted small fw-semibold me-2" style="min-width:4rem;">{{ translations.complaints_filter_status }}:</span>
-                <span class="badge rounded-pill filter-badge status-badge bg-secondary text-white active" data-value="all">{{ translations.complaints_status_all }}</span>
-                <span class="badge rounded-pill filter-badge status-badge bg-secondary" data-value="NEW">{{ translations.complaints_status_new }}</span>
-                <span class="badge rounded-pill filter-badge status-badge bg-info text-dark" data-value="IN_REVIEW">{{ translations.complaints_status_in_review }}</span>
-                <span class="badge rounded-pill filter-badge status-badge bg-success" data-value="ACCEPTED">{{ translations.complaints_status_accepted }}</span>
-                <span class="badge rounded-pill filter-badge status-badge bg-danger" data-value="REJECTED">{{ translations.complaints_status_rejected }}</span>
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <span class="seg-label">{{ translations.complaints_filter_status }} :</span>
+                <div class="seg">
+                    <button type="button" class="filter-badge status-badge active" data-value="all">{{ translations.complaints_status_all }}</button>
+                    <button type="button" class="filter-badge status-badge" data-value="NEW">{{ translations.complaints_status_new }}</button>
+                    <button type="button" class="filter-badge status-badge" data-value="IN_REVIEW">{{ translations.complaints_status_in_review }}</button>
+                    <button type="button" class="filter-badge status-badge" data-value="ACCEPTED">{{ translations.complaints_status_accepted }}</button>
+                    <button type="button" class="filter-badge status-badge" data-value="REJECTED">{{ translations.complaints_status_rejected }}</button>
+                </div>
             </div>
-            <div class="d-flex flex-wrap align-items-center gap-1 mb-2">
-                <span class="text-muted small fw-semibold me-2" style="min-width:4rem;">{{ translations.complaints_col_shop }}:</span>
-                <span class="badge rounded-pill filter-badge shop-badge bg-secondary text-white active" data-value="all">{{ translations.complaints_status_all }}</span>
-                {% set seenShops = [] %}
-                {% for complaint in complaints %}
-                    {% if complaint.shop_name is not empty and complaint.shop_name not in seenShops %}
-                        {% set seenShops = seenShops|merge([complaint.shop_name]) %}
-                        <span class="badge rounded-pill filter-badge shop-badge bg-light text-dark border"
-                              data-value="{{ complaint.shop_name }}">{{ complaint.shop_name }}</span>
-                    {% endif %}
-                {% endfor %}
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                <span class="seg-label">{{ translations.complaints_col_shop }} :</span>
+                <div class="seg">
+                    <button type="button" class="filter-badge shop-badge active" data-value="all">{{ translations.complaints_status_all }}</button>
+                    {% set seenShops = [] %}
+                    {% for complaint in complaints %}
+                        {% if complaint.shop_name is not empty and complaint.shop_name not in seenShops %}
+                            {% set seenShops = seenShops|merge([complaint.shop_name]) %}
+                            <button type="button" class="filter-badge shop-badge" data-value="{{ complaint.shop_name }}">{{ complaint.shop_name }}</button>
+                        {% endif %}
+                    {% endfor %}
+                </div>
             </div>
-            <div class="d-flex flex-wrap align-items-center gap-1">
-                <span class="text-muted small fw-semibold me-2" style="min-width:4rem;">Tryb:</span>
-                <span class="badge rounded-pill filter-badge mode-badge bg-secondary text-white active" data-value="all">{{ translations.complaints_status_all }}</span>
-                <span class="badge rounded-pill filter-badge mode-badge bg-primary" data-value="portal">
-                    <i class="bi bi-pencil-square me-1"></i>{{ translations.complaints_portal_managed }}
-                </span>
-                <span class="badge rounded-pill filter-badge mode-badge" data-value="integration"
-                      style="background-color:#6f42c1; color:#fff;">
-                    <i class="bi bi-plug me-1"></i>{{ translations.complaints_integration_managed }}
-                </span>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="seg-label">{{ translations.complaints_filter_mode|default('Mode') }} :</span>
+                <div class="seg">
+                    <button type="button" class="filter-badge mode-badge active" data-value="all">{{ translations.complaints_status_all }}</button>
+                    <button type="button" class="filter-badge mode-badge" data-value="portal"><i class="bi bi-pencil-square me-1"></i>{{ translations.complaints_portal_managed }}</button>
+                    <button type="button" class="filter-badge mode-badge" data-value="integration"><i class="bi bi-plug me-1"></i>{{ translations.complaints_integration_managed }}</button>
+                </div>
             </div>
         </div>
     </div>
@@ -130,10 +130,9 @@
 
                                     {# Status + data aktualizacji #}
                                     <td class="text-center align-middle">
-                                        {% set statusMap = {'NEW':'secondary','IN_REVIEW':'info','ACCEPTED':'success','REJECTED':'danger'} %}
-                                        {% set badgeColor = statusMap[complaint.status] ?? 'secondary' %}
-                                        {% set darkText = complaint.status in ['IN_REVIEW'] %}
-                                        <span class="badge bg-{{ badgeColor }}{% if darkText %} text-dark{% endif %}">
+                                        {% set statusColors = {'NEW':'#9b8f80','IN_REVIEW':'#c17a2a','ACCEPTED':'#2d7a3e','REJECTED':'var(--color-primary)'} %}
+                                        <span class="status-mark">
+                                            <span class="bar" style="background:{{ statusColors[complaint.status] ?? '#9b8f80' }}"></span>
                                             {{ translations['complaints_status_' ~ complaint.status|lower] ?? complaint.status }}
                                         </span>
                                         <div style="font-size:.72rem;" class="text-muted">
@@ -146,13 +145,12 @@
                                     {# Tryb zarządzania #}
                                     <td class="text-center align-middle">
                                         {% if portalManaged %}
-                                            <span class="badge bg-primary"
+                                            <span class="mode-mark mode-mark--portal"
                                                   title="{{ translations.complaints_portal_managed }}">
                                                 <i class="bi bi-pencil-square"></i>
                                             </span>
                                         {% else %}
-                                            <span class="badge text-white"
-                                                  style="background-color:#6f42c1;"
+                                            <span class="mode-mark"
                                                   title="{{ translations.complaints_integration_managed_tooltip }}">
                                                 <i class="bi bi-plug"></i>
                                             </span>
@@ -367,12 +365,12 @@
 
     function getStatusBadge(status) {
         const map = {
-            NEW:       `<span class="badge bg-secondary">${t.status_new}</span>`,
-            IN_REVIEW: `<span class="badge bg-info text-dark">${t.status_in_review}</span>`,
-            ACCEPTED:  `<span class="badge bg-success">${t.status_accepted}</span>`,
-            REJECTED:  `<span class="badge bg-danger">${t.status_rejected}</span>`,
+            NEW:       `<span class="status-mark"><span class="bar" style="background:#9b8f80"></span>${t.status_new}</span>`,
+            IN_REVIEW: `<span class="status-mark"><span class="bar" style="background:#c17a2a"></span>${t.status_in_review}</span>`,
+            ACCEPTED:  `<span class="status-mark"><span class="bar" style="background:#2d7a3e"></span>${t.status_accepted}</span>`,
+            REJECTED:  `<span class="status-mark"><span class="bar" style="background:var(--color-primary)"></span>${t.status_rejected}</span>`,
         };
-        return map[status] ?? `<span class="badge bg-light text-dark">${status || '—'}</span>`;
+        return map[status] ?? `<span class="status-mark"><span class="bar" style="background:#9b8f80"></span>${status || '—'}</span>`;
     }
 
     function getMimeIcon(mime) {
@@ -511,11 +509,11 @@
             modeAlert.style.display = 'block';
             modeAlert.innerHTML = `
                 <div class="alert alert-warning d-flex align-items-center gap-2 mb-0 rounded-0 border-0 border-bottom py-2 px-4" style="font-size:.85rem;">
-                    <i class="bi bi-plug-fill fs-5 flex-shrink-0" style="color:#6f42c1;"></i>
+                    <i class="bi bi-plug-fill fs-5 flex-shrink-0" style="color:var(--color-text-muted);"></i>
                     <span>
                         <strong>${t.integration_managed}</strong> — ${t.integration_managed_tooltip}
                     </span>
-                    <span class="badge ms-auto" style="background-color:#6f42c1;">${t.read_only}</span>
+                    <span class="badge ms-auto" style="background:rgba(141,29,44,0.09);color:var(--color-primary);">${t.read_only}</span>
                 </div>`;
         }
 
@@ -782,19 +780,67 @@
     }
 </script>
 <style>
-    .filter-badge {
+    /* Filtres — barres segmentées (proposition C) */
+    .seg-label { font-size: 12px; color: var(--color-text-muted); min-width: 4.6rem; }
+    .seg {
+        display: inline-flex;
+        flex-wrap: wrap;
+        background: var(--color-background-secondary);
+        border: 0.5px solid var(--color-border-tertiary);
+        border-radius: 10px;
+        padding: 3px;
+        gap: 2px;
+    }
+    .seg .filter-badge {
+        border: none;
+        background: transparent;
+        font-family: var(--font-ui);
+        font-size: 12px;
+        font-weight: var(--weight-regular);
+        color: var(--color-text-muted);
+        padding: 5px 14px;
+        border-radius: 8px;
         cursor: pointer;
-        opacity: .5;
-        transition: opacity .15s ease, box-shadow .15s ease;
         user-select: none;
+        transition: background .12s ease, color .12s ease;
+        white-space: nowrap;
     }
-    .filter-badge:hover { opacity: .8; }
-    .filter-badge.active {
-        opacity: 1;
-        box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(0,0,0,.35);
+    .seg .filter-badge:hover { color: var(--color-text); }
+    .seg .filter-badge.active {
+        background: var(--color-surface);
+        color: var(--color-primary);
+        font-weight: var(--weight-medium);
+        box-shadow: 0 1px 4px rgba(34, 34, 34, 0.10);
     }
-    .shop-badge.bg-light.active {
-        box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-text-muted);
+
+    /* Statuts — barrette de couleur + texte (proposition C) */
+    .status-mark {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12.5px;
+        color: var(--color-text);
+        white-space: nowrap;
+    }
+    .status-mark .bar { width: 3px; height: 14px; border-radius: 2px; flex: 0 0 auto; }
+
+    /* Mode de gestion — pictogramme discret */
+    .mode-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: var(--color-background-secondary);
+        border: 0.5px solid var(--color-border-tertiary);
+        color: var(--color-text-muted);
+        font-size: 13px;
+    }
+    .mode-mark--portal {
+        background: rgba(141, 29, 44, 0.08);
+        border-color: rgba(141, 29, 44, 0.20);
+        color: var(--color-primary);
     }
     /* Subtelne przyciemnienie wierszy integracji */
     .table-row-integration {

@@ -5,6 +5,7 @@
 {% block title %}{{ translations.orders_details_page_title }} {{ orderKey }}{% endblock %}
 
 {% block head %}
+<link rel="stylesheet" href="{{ ROOT }}/assets/css/pages/order-wizard.css">
 <style>
 .order-detail-wrap { max-width: 1180px; margin: 0 auto; }
 .order-detail-card { border: 1px solid var(--color-border-tertiary); border-radius: 8px; background: #fff; }
@@ -90,6 +91,9 @@
             </div>
             {% if api_status == 200 and order.id is defined %}
                 <div class="d-flex align-items-start gap-2">
+                    <button type="button" class="btn btn-secondary wiz-toggle js-wiz-toggle"
+                            data-label-classic="{{ translations.orders_wizard_view_classic|default('Vue classique') }}"
+                            data-label-wizard="{{ translations.orders_wizard_view_wizard|default('Mode wizard') }}">{{ translations.orders_wizard_view_classic|default('Vue classique') }}</button>
                     <a href="{{ ROOT }}/orders/{{ order.id }}/document" class="btn btn-outline-primary">
                         <i class="bi bi-download me-1"></i>{{ translations.orders_action_pdf }}
                     </a>
@@ -149,8 +153,17 @@
         {% set hasGeneratedDocument = hasGeneratedDifferenceDocument or hasGeneratedReleaseDocument or hasGeneratedCmrDocument %}
         {% set isFinalEditorEditable = canEditFinalItems %}
 
+        {# ── Wizard de validation : barre d'étapes (la logique vit dans order-wizard.js) ── #}
+        <div class="wiz-stepper" id="order-wizard-stepper" data-allowed-actions="{{ allowedActions|json_encode|e('html_attr') }}">
+            <button type="button" class="wiz-step todo"><span class="wiz-dot">1</span><span class="wiz-lab">{{ translations.orders_wizard_step_accept|default('Acceptation') }}</span></button>
+            <button type="button" class="wiz-step todo"><span class="wiz-dot">2</span><span class="wiz-lab">{{ translations.orders_wizard_step_final_items|default('Quantités finales') }}</span></button>
+            <button type="button" class="wiz-step todo"><span class="wiz-dot">3</span><span class="wiz-lab">{{ translations.orders_wizard_step_transport|default('Transport') }}</span></button>
+            <button type="button" class="wiz-step todo"><span class="wiz-dot">4</span><span class="wiz-lab">{{ translations.orders_wizard_step_finalize|default('Contrôle & finalisation') }}</span></button>
+            <button type="button" class="wiz-step todo"><span class="wiz-dot">5</span><span class="wiz-lab">{{ translations.orders_wizard_step_documents|default('Documents') }}</span></button>
+        </div>
+
         {% if canAccept or canReject or canCancel %}
-            <div class="order-detail-card p-3 mb-3" id="order-lifecycle-panel" data-order-id="{{ order.id }}">
+            <div class="order-detail-card p-3 mb-3" data-wiz="1" id="order-lifecycle-panel" data-order-id="{{ order.id }}">
                 <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
                     <div>
                         <div class="section-title mb-1">{{ translations.orders_lifecycle_title }}</div>
@@ -178,7 +191,7 @@
         {% endif %}
 
         <div class="row g-3 mb-3">
-            <div class="col-12 col-xl-8">
+            <div class="col-12 col-xl-8" data-wiz="1">
                 <div class="order-detail-card p-3 h-100">
                     <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
                         <div>
@@ -209,7 +222,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-4">
+            <div class="col-12 col-xl-4" data-wiz="1">
                 <div class="order-detail-card p-3 h-100">
                     <div class="section-title mb-3">{{ translations.orders_details_dates }}</div>
                     <div class="order-detail-meta">
@@ -235,7 +248,7 @@
         </div>
 
         <div class="row g-3 mb-3">
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-6" data-wiz="1">
                 <div class="order-detail-card p-3 h-100">
                     <div class="section-title mb-3">{{ translations.orders_details_shop_section }}</div>
                     <dl class="row mb-0">
@@ -248,7 +261,7 @@
                     </dl>
                 </div>
             </div>
-            <div class="col-12 col-lg-6">
+            <div class="col-12 col-lg-6" data-wiz="3">
                 <div class="order-detail-card p-3 h-100" id="transport-editor"
                      data-order-id="{{ order.id }}"
                      data-version="{{ order.version ?? '' }}"
@@ -355,7 +368,7 @@
             </div>
         </div>
 
-        <div class="order-detail-card p-3 mb-3">
+        <div class="order-detail-card p-3 mb-3" data-wiz="1">
             <div class="section-title mb-3">{{ translations.orders_details_original_items }}</div>
             {% if originalItems is empty %}
                 <div class="order-detail-empty">{{ translations.orders_details_no_products }}</div>
@@ -385,7 +398,7 @@
             {% endif %}
         </div>
 
-        <div class="order-detail-card p-3 mb-3" id="final-items-editor"
+        <div class="order-detail-card p-3 mb-3" data-wiz="2" id="final-items-editor"
              data-order-id="{{ order.id }}"
              data-version="{{ order.version ?? '' }}"
              data-editable="{{ isFinalEditorEditable ? '1' : '0' }}"
@@ -439,7 +452,7 @@
             </div>
         </div>
 
-        <div class="order-detail-card p-3 mb-3">
+        <div class="order-detail-card p-3 mb-3" data-wiz="2 4">
             <div class="section-title mb-3">{{ translations.orders_details_comparison }}</div>
             {% if comparison is empty %}
                 <div class="order-detail-empty">{{ translations.orders_details_no_comparison }}</div>
@@ -473,7 +486,7 @@
         </div>
 
         {% if canFinalizationCheck or canFinalize %}
-            <div class="order-detail-card p-3 mb-3" id="finalization-panel" data-order-id="{{ order.id }}" data-version="{{ order.version ?? '' }}">
+            <div class="order-detail-card p-3 mb-3" data-wiz="4" id="finalization-panel" data-order-id="{{ order.id }}" data-version="{{ order.version ?? '' }}">
                 <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
                     <div>
                         <div class="section-title mb-1">{{ translations.orders_finalize_title }}</div>
@@ -490,7 +503,7 @@
         {% endif %}
 
         <div class="row g-3">
-            <div class="col-12 col-xl-8">
+            <div class="col-12 col-xl-8" data-wiz="5">
                 <div class="order-detail-card p-3 h-100" id="order-documents-panel" data-order-id="{{ order.id }}">
                     <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
                         <div>
@@ -579,7 +592,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-12 col-xl-4">
+            <div class="col-12 col-xl-4" data-wiz="5">
                 <div class="order-detail-card p-3 h-100">
                     <div class="section-title mb-2">{{ translations.orders_details_history }}</div>
                     {% if history is empty %}
@@ -638,12 +651,23 @@
                 </div>
             </div>
         </div>
+
+        {# ── Wizard : navigation Retour / Continuer ── #}
+        <div class="wiz-nav" id="order-wizard-nav"
+             data-orders-url="{{ ROOT }}/orders"
+             data-label-next="{{ translations.orders_wizard_next|default('Continuer') }}"
+             data-label-finish="{{ translations.orders_wizard_finish|default('Terminer — retour aux commandes') }}">
+            <button type="button" class="btn btn-sm btn-secondary" id="wiz-prev"><i class="bi bi-arrow-left me-1"></i>{{ translations.orders_wizard_back|default('Retour') }}</button>
+            <span class="wiz-nav-note" id="wiz-note"></span>
+            <button type="button" class="btn btn-primary" id="wiz-next">{{ translations.orders_wizard_next|default('Continuer') }}</button>
+        </div>
     {% endif %}
 </div>
 {% endblock %}
 
 
 {% block scripts %}
+<script src="{{ ROOT }}/assets/js/order-wizard.js"></script>
 <script>
 (() => {
     const panel = document.getElementById('order-lifecycle-panel');

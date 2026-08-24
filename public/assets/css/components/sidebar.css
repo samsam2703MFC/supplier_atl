@@ -26,14 +26,13 @@
   padding: 22px 20px 14px;
   flex: 0 0 auto;
 }
-#sidebar .ds-side__brand-name {
+#sidebar .ds-side__logo-link { display: inline-flex; max-width: 100%; }
+#sidebar .ds-side__brand img {
+  width: 176px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
   display: block;
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: var(--weight-regular);
-  color: var(--color-primary);
-  line-height: 1.1;
-  text-decoration: none;
 }
 #sidebar .ds-side__portal {
   font-size: 11px;
@@ -41,7 +40,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 /* --- Nav ----------------------------------------------------------------- */
@@ -50,14 +49,16 @@
   overflow-y: auto;
   padding: 0 12px 16px;
 }
+/* The section heading carries the weight; the entries no longer do
+   (same rationale as the Cockpit rail). */
 #sidebar .ds-side__group-title {
   font-family: var(--font-ui);
-  font-size: 10px;
-  font-weight: var(--weight-medium);
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  color: var(--color-text-muted);
-  padding: 18px 10px 6px;
+  color: var(--color-text);
+  padding: 18px 10px 7px;
 }
 #sidebar .ds-side__group-title:first-child { padding-top: 0; }
 #sidebar .ds-side__list {
@@ -84,7 +85,7 @@
   line-height: 1.4;
   text-decoration: none;
   color: var(--color-text);
-  font-weight: var(--weight-regular);
+  font-weight: 300;
   transition: background .12s ease, color .12s ease;
 }
 #sidebar .ds-side__link > span:not(.ds-side__badge) { flex: 1; min-width: 0; }

@@ -68,6 +68,24 @@ class OrdersController extends Controller
         $this->view('orders/show', $data);
     }
 
+    #[Route('GET', '/orders/{orderId:\d+}/print')]
+    public function printView(string $orderId): void
+    {
+        $response = $this->orderService->getDetails((int) $orderId);
+
+        if (empty($response['success'])) {
+            $statusCode = (int) ($response['error'] ?? 502);
+            http_response_code(in_array($statusCode, [403, 404], true) ? $statusCode : 502);
+            redirect('/orders/' . (int) $orderId);
+            return;
+        }
+
+        $this->view('orders/print', [
+            'order' => $response['data'] ?? [],
+            'current_path' => '/orders',
+        ]);
+    }
+
     #[Route('POST', '/ajax/orders/{orderId:\d+}/accept')]
     public function accept(string $orderId): JsonResponse
     {

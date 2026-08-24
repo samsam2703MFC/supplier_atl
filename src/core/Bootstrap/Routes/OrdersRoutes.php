@@ -19,6 +19,11 @@ return function (RouteCollector $r) {
         'method'     => 'details',
     ]);
 
+    $r->addRoute('GET', '/orders/{orderId:\d+}/print', [
+        'controller' => \App\Supplier\app\Http\Controllers\Orders\OrdersController::class,
+        'method'     => 'printView',
+    ]);
+
     $r->addRoute('POST', '/ajax/orders/{orderId:\d+}/accept', [
         'controller' => \App\Supplier\app\Http\Controllers\Orders\OrdersController::class,
         'method'     => 'accept',

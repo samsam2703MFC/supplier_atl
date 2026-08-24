@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "TFB Supplier Portal — API",
+    "title": "Portail Fournisseur TFB — API",
     "version": "1.0.0",
-    "description": "API consumed by the **TFB Supplier Portal** (`samsam2703MFC/supplier_atl`), served by the **TF Buddy** backend.\n\nAll endpoints are relative to `‹host›/api/v1`. The portal resolves the host from the `API_BASE_URL` environment variable (default: the TF Buddy test environment).\n\n## Authentication\n\n`POST /material-suppliers/auth/login` with the supplier's **external user** credentials returns an `access_token` (HS512 JWT, 30 min) and a `refresh_token`. Every other call sends `Authorization: Bearer ‹access_token›`; when the access token nears expiry the portal transparently calls `/material-suppliers/auth/refresh`. An `Accept-Language` header selects the response language. Supplier login accounts are managed by an administrator (`/material-suppliers/{id}/external-user`).\n\n## Portal routes\n\nThe portal itself is a server-rendered PHP app mounted at `‹host›/supplier`. Its pages (`/auth`, `/dashboard`, `/analytics`, `/catalog`, `/raw-materials`, `/recipes`, `/price-list`, `/orders`, `/logistics`, `/complaints`, `/clients`, `/me`, `/logout`) each consume the endpoints below server-side; the page-local `/ajax/*` routes proxy the same endpoints for in-page actions. The full route list lives in `src/core/Bootstrap/Routes/`.\n",
+    "description": "API consommée par le **Portail Fournisseur TFB** (`samsam2703MFC/supplier_atl`), servie par le backend **TF Buddy**.\n\nTous les endpoints sont relatifs à `‹hôte›/api/v1`. Le portail résout l'hôte via la variable d'environnement `API_BASE_URL` (défaut : l'environnement de test TF Buddy).\n\n## Authentification\n\n`POST /material-suppliers/auth/login` avec les identifiants du **compte externe** du fournisseur renvoie un `access_token` (JWT HS512, 30 min) et un `refresh_token`. Chaque autre appel envoie `Authorization: Bearer ‹access_token›` ; à l'approche de l'expiration, le portail appelle `/material-suppliers/auth/refresh` de manière transparente. L'en-tête `Accept-Language` choisit la langue des réponses. Les comptes de connexion fournisseur sont gérés par un administrateur (`/material-suppliers/{id}/external-user`).\n\n## Routes du portail\n\nLe portail est une application PHP rendue côté serveur, montée sur `‹hôte›/supplier`. Ses pages (`/auth`, `/dashboard`, `/analytics`, `/catalog`, `/raw-materials`, `/recipes`, `/price-list`, `/orders` — **Commandes**, `/logistics`, `/complaints`, `/clients`, `/me`, `/logout`) consomment les endpoints ci-dessous côté serveur ; les routes `/ajax/*` relaient les mêmes endpoints pour les actions en page. La liste complète des routes vit dans `src/core/Bootstrap/Routes/`.\n",
     "contact": {
       "name": "L’Atelier by — Supplier Portal"
     }
@@ -20,55 +20,55 @@
   ],
   "tags": [
     {
-      "name": "Auth"
+      "name": "Authentification"
     },
     {
-      "name": "Supplier profile"
+      "name": "Profil fournisseur"
     },
     {
-      "name": "Catalog"
+      "name": "Catalogue"
     },
     {
-      "name": "Ingredients"
+      "name": "Ingrédients"
     },
     {
-      "name": "Raw materials"
+      "name": "Matières premières"
     },
     {
-      "name": "Recipes"
+      "name": "Recettes"
     },
     {
-      "name": "Price lists"
+      "name": "Cennik (tarifs)"
     },
     {
-      "name": "Orders"
+      "name": "Commandes"
     },
     {
-      "name": "Order documents"
+      "name": "Documents de commande"
     },
     {
-      "name": "Carriers"
+      "name": "Transporteurs"
     },
     {
-      "name": "Logistics"
+      "name": "Logistique"
     },
     {
-      "name": "Complaints"
+      "name": "Réclamations"
     },
     {
       "name": "Analytics"
     },
     {
-      "name": "Reference data"
+      "name": "Référentiels"
     }
   ],
   "paths": {
     "/material-suppliers/auth/login": {
       "post": {
         "tags": [
-          "Auth"
+          "Authentification"
         ],
-        "summary": "Log in a material supplier",
+        "summary": "Connexion d’un fournisseur (login + mot de passe)",
         "operationId": "post_material-suppliers_auth_login",
         "requestBody": {
           "required": true,
@@ -118,9 +118,9 @@
     "/material-suppliers/auth/refresh": {
       "post": {
         "tags": [
-          "Auth"
+          "Authentification"
         ],
-        "summary": "Refresh the access token",
+        "summary": "Rafraîchir le jeton d’accès",
         "operationId": "post_material-suppliers_auth_refresh",
         "requestBody": {
           "required": true,
@@ -168,9 +168,9 @@
     "/material-suppliers/{supplierId}": {
       "get": {
         "tags": [
-          "Supplier profile"
+          "Profil fournisseur"
         ],
-        "summary": "Get the supplier profile",
+        "summary": "Obtenir le profil du fournisseur",
         "operationId": "get_material-suppliers_supplierId",
         "parameters": [
           {
@@ -205,9 +205,9 @@
     "/material-suppliers/{supplierId}/profile": {
       "patch": {
         "tags": [
-          "Supplier profile"
+          "Profil fournisseur"
         ],
-        "summary": "Update the supplier profile",
+        "summary": "Mettre à jour le profil du fournisseur",
         "operationId": "patch_material-suppliers_supplierId_profile",
         "parameters": [
           {
@@ -253,9 +253,9 @@
     "/material-suppliers/{supplierId}/labor-defaults": {
       "get": {
         "tags": [
-          "Supplier profile"
+          "Profil fournisseur"
         ],
-        "summary": "Get labor cost defaults",
+        "summary": "Obtenir les coûts de main-d’œuvre par défaut",
         "operationId": "get_material-suppliers_supplierId_labor-defaults",
         "parameters": [
           {
@@ -288,9 +288,9 @@
       },
       "patch": {
         "tags": [
-          "Supplier profile"
+          "Profil fournisseur"
         ],
-        "summary": "Update labor cost defaults",
+        "summary": "Mettre à jour les coûts de main-d’œuvre par défaut",
         "operationId": "patch_material-suppliers_supplierId_labor-defaults",
         "parameters": [
           {
@@ -336,9 +336,9 @@
     "/material-suppliers/{supplierId}/logo": {
       "post": {
         "tags": [
-          "Supplier profile"
+          "Profil fournisseur"
         ],
-        "summary": "Upload the supplier logo",
+        "summary": "Téléverser le logo du fournisseur",
         "operationId": "post_material-suppliers_supplierId_logo",
         "parameters": [
           {
@@ -392,9 +392,9 @@
     "/material-suppliers/{supplierId}/order-config": {
       "get": {
         "tags": [
-          "Supplier profile"
+          "Profil fournisseur"
         ],
-        "summary": "Get the order configuration",
+        "summary": "Obtenir la configuration des commandes",
         "operationId": "get_material-suppliers_supplierId_order-config",
         "parameters": [
           {
@@ -427,9 +427,9 @@
       },
       "put": {
         "tags": [
-          "Supplier profile"
+          "Profil fournisseur"
         ],
-        "summary": "Replace the order configuration",
+        "summary": "Remplacer la configuration des commandes",
         "operationId": "put_material-suppliers_supplierId_order-config",
         "parameters": [
           {
@@ -475,9 +475,9 @@
     "/material-suppliers/{supplierId}/catalog/categories": {
       "get": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "List catalog categories",
+        "summary": "Lister les catégories du catalogue",
         "operationId": "get_material-suppliers_supplierId_catalog_categories",
         "parameters": [
           {
@@ -512,9 +512,9 @@
     "/material-suppliers/{supplierId}/catalog/products": {
       "get": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "List catalog products",
+        "summary": "Lister les produits du catalogue",
         "operationId": "get_material-suppliers_supplierId_catalog_products",
         "parameters": [
           {
@@ -581,9 +581,9 @@
     "/material-suppliers/catalog/products": {
       "post": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "Create a catalog product",
+        "summary": "Créer un produit du catalogue",
         "operationId": "post_material-suppliers_catalog_products",
         "requestBody": {
           "required": true,
@@ -619,9 +619,9 @@
     "/material-suppliers/catalog/products/{productId}": {
       "patch": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "Update a catalog product",
+        "summary": "Mettre à jour un produit du catalogue",
         "operationId": "patch_material-suppliers_catalog_products_productId",
         "parameters": [
           {
@@ -665,9 +665,9 @@
       },
       "delete": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "Delete a catalog product",
+        "summary": "Supprimer un produit du catalogue",
         "operationId": "delete_material-suppliers_catalog_products_productId",
         "parameters": [
           {
@@ -702,9 +702,9 @@
     "/material-suppliers/catalog/products/{productId}/specification": {
       "post": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "Upload / update the product specification",
+        "summary": "Téléverser / mettre à jour la fiche technique du produit",
         "operationId": "post_material-suppliers_catalog_products_productId_specification",
         "parameters": [
           {
@@ -750,9 +750,9 @@
     "/material-suppliers/catalog/products/{productId}/photo": {
       "post": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "Upload the product photo",
+        "summary": "Téléverser la photo du produit",
         "operationId": "post_material-suppliers_catalog_products_productId_photo",
         "parameters": [
           {
@@ -804,9 +804,9 @@
       },
       "delete": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "Delete the product photo",
+        "summary": "Supprimer la photo du produit",
         "operationId": "delete_material-suppliers_catalog_products_productId_photo",
         "parameters": [
           {
@@ -841,9 +841,9 @@
     "/material-suppliers/catalog/products/{productId}/allergens": {
       "post": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "Attach an allergen to a product",
+        "summary": "Associer un allergène à un produit",
         "operationId": "post_material-suppliers_catalog_products_productId_allergens",
         "parameters": [
           {
@@ -889,9 +889,9 @@
     "/material-suppliers/catalog/products/{productId}/allergens/{allergenId}": {
       "delete": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "Detach an allergen from a product",
+        "summary": "Retirer un allergène d’un produit",
         "operationId": "delete_material-suppliers_catalog_products_productId_allergens_allergenId",
         "parameters": [
           {
@@ -934,9 +934,9 @@
     "/material-suppliers/{supplierId}/catalog/products/import": {
       "post": {
         "tags": [
-          "Catalog"
+          "Catalogue"
         ],
-        "summary": "Bulk-import catalog products",
+        "summary": "Importer des produits du catalogue en masse",
         "operationId": "post_material-suppliers_supplierId_catalog_products_import",
         "parameters": [
           {
@@ -982,9 +982,9 @@
     "/material-suppliers/ingredients": {
       "get": {
         "tags": [
-          "Ingredients"
+          "Ingrédients"
         ],
-        "summary": "List the supplier ingredient dictionary",
+        "summary": "Lister le dictionnaire d’ingrédients du fournisseur",
         "operationId": "get_material-suppliers_ingredients",
         "responses": {
           "200": {
@@ -1007,9 +1007,9 @@
       },
       "post": {
         "tags": [
-          "Ingredients"
+          "Ingrédients"
         ],
-        "summary": "Create an ingredient",
+        "summary": "Créer un ingrédient",
         "operationId": "post_material-suppliers_ingredients",
         "requestBody": {
           "required": true,
@@ -1045,9 +1045,9 @@
     "/material-suppliers/products/{productId}/ingredients": {
       "get": {
         "tags": [
-          "Ingredients"
+          "Ingrédients"
         ],
-        "summary": "List the ingredients of a product",
+        "summary": "Lister les ingrédients d’un produit",
         "operationId": "get_material-suppliers_products_productId_ingredients",
         "parameters": [
           {
@@ -1080,9 +1080,9 @@
       },
       "post": {
         "tags": [
-          "Ingredients"
+          "Ingrédients"
         ],
-        "summary": "Attach an ingredient to a product",
+        "summary": "Associer un ingrédient à un produit",
         "operationId": "post_material-suppliers_products_productId_ingredients",
         "parameters": [
           {
@@ -1128,9 +1128,9 @@
     "/material-suppliers/products/{productId}/ingredients/{ingredientId}": {
       "delete": {
         "tags": [
-          "Ingredients"
+          "Ingrédients"
         ],
-        "summary": "Detach an ingredient from a product",
+        "summary": "Retirer un ingrédient d’un produit",
         "operationId": "delete_material-suppliers_products_productId_ingredients_ingredientId",
         "parameters": [
           {
@@ -1173,9 +1173,9 @@
     "/material-suppliers/{supplierId}/raw-materials": {
       "get": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "List raw materials",
+        "summary": "Lister les matières premières",
         "operationId": "get_material-suppliers_supplierId_raw-materials",
         "parameters": [
           {
@@ -1248,9 +1248,9 @@
       },
       "post": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Create a raw material",
+        "summary": "Créer une matière première",
         "operationId": "post_material-suppliers_supplierId_raw-materials",
         "parameters": [
           {
@@ -1296,9 +1296,9 @@
     "/material-suppliers/{supplierId}/raw-materials/{id}": {
       "patch": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Update a raw material",
+        "summary": "Mettre à jour une matière première",
         "operationId": "patch_material-suppliers_supplierId_raw-materials_id",
         "parameters": [
           {
@@ -1350,9 +1350,9 @@
       },
       "delete": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Delete a raw material",
+        "summary": "Supprimer une matière première",
         "operationId": "delete_material-suppliers_supplierId_raw-materials_id",
         "parameters": [
           {
@@ -1395,9 +1395,9 @@
     "/material-suppliers/{supplierId}/raw-materials/{id}/archive": {
       "patch": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Archive a raw material",
+        "summary": "Archiver une matière première",
         "operationId": "patch_material-suppliers_supplierId_raw-materials_id_archive",
         "parameters": [
           {
@@ -1440,9 +1440,9 @@
     "/material-suppliers/{supplierId}/raw-materials/{id}/restore": {
       "patch": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Restore an archived raw material",
+        "summary": "Restaurer une matière première archivée",
         "operationId": "patch_material-suppliers_supplierId_raw-materials_id_restore",
         "parameters": [
           {
@@ -1485,9 +1485,9 @@
     "/material-suppliers/{supplierId}/raw-materials/{id}/allergens": {
       "get": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "List the allergens of a raw material",
+        "summary": "Lister les allergènes d’une matière première",
         "operationId": "get_material-suppliers_supplierId_raw-materials_id_allergens",
         "parameters": [
           {
@@ -1528,9 +1528,9 @@
       },
       "post": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Attach an allergen to a raw material",
+        "summary": "Associer un allergène à une matière première",
         "operationId": "post_material-suppliers_supplierId_raw-materials_id_allergens",
         "parameters": [
           {
@@ -1584,9 +1584,9 @@
     "/material-suppliers/{supplierId}/raw-materials/{id}/allergens/{allergenId}": {
       "delete": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Detach an allergen from a raw material",
+        "summary": "Retirer un allergène d’une matière première",
         "operationId": "delete_material-suppliers_supplierId_raw-materials_id_allergens_allergenId",
         "parameters": [
           {
@@ -1637,9 +1637,9 @@
     "/material-suppliers/{supplierId}/raw-materials/{id}/price-history": {
       "get": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Get the price history of a raw material",
+        "summary": "Obtenir l’historique de prix d’une matière première",
         "operationId": "get_material-suppliers_supplierId_raw-materials_id_price-history",
         "parameters": [
           {
@@ -1680,9 +1680,9 @@
       },
       "post": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Add a price history entry",
+        "summary": "Ajouter une entrée à l’historique de prix",
         "operationId": "post_material-suppliers_supplierId_raw-materials_id_price-history",
         "parameters": [
           {
@@ -1736,9 +1736,9 @@
     "/material-suppliers/{supplierId}/raw-material-categories": {
       "get": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "List raw material categories",
+        "summary": "Lister les catégories de matières premières",
         "operationId": "get_material-suppliers_supplierId_raw-material-categories",
         "parameters": [
           {
@@ -1771,9 +1771,9 @@
       },
       "post": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Create a raw material category",
+        "summary": "Créer une catégorie de matières premières",
         "operationId": "post_material-suppliers_supplierId_raw-material-categories",
         "parameters": [
           {
@@ -1819,9 +1819,9 @@
     "/material-suppliers/{supplierId}/raw-material-categories/{id}": {
       "patch": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Update a raw material category",
+        "summary": "Mettre à jour une catégorie de matières premières",
         "operationId": "patch_material-suppliers_supplierId_raw-material-categories_id",
         "parameters": [
           {
@@ -1873,9 +1873,9 @@
       },
       "delete": {
         "tags": [
-          "Raw materials"
+          "Matières premières"
         ],
-        "summary": "Delete a raw material category",
+        "summary": "Supprimer une catégorie de matières premières",
         "operationId": "delete_material-suppliers_supplierId_raw-material-categories_id",
         "parameters": [
           {
@@ -1918,9 +1918,9 @@
     "/material-suppliers/{supplierId}/recipes": {
       "get": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "List recipes",
+        "summary": "Lister les recettes",
         "operationId": "get_material-suppliers_supplierId_recipes",
         "parameters": [
           {
@@ -1985,9 +1985,9 @@
       },
       "post": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Create a recipe",
+        "summary": "Créer une recette",
         "operationId": "post_material-suppliers_supplierId_recipes",
         "parameters": [
           {
@@ -2033,9 +2033,9 @@
     "/material-suppliers/{supplierId}/recipes/{id}": {
       "get": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Get a recipe",
+        "summary": "Obtenir une recette",
         "operationId": "get_material-suppliers_supplierId_recipes_id",
         "parameters": [
           {
@@ -2076,9 +2076,9 @@
       },
       "patch": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Update a recipe",
+        "summary": "Mettre à jour une recette",
         "operationId": "patch_material-suppliers_supplierId_recipes_id",
         "parameters": [
           {
@@ -2130,9 +2130,9 @@
       },
       "delete": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Delete a recipe",
+        "summary": "Supprimer une recette",
         "operationId": "delete_material-suppliers_supplierId_recipes_id",
         "parameters": [
           {
@@ -2175,9 +2175,9 @@
     "/material-suppliers/{supplierId}/recipes/{id}/archive": {
       "patch": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Archive a recipe",
+        "summary": "Archiver une recette",
         "operationId": "patch_material-suppliers_supplierId_recipes_id_archive",
         "parameters": [
           {
@@ -2220,9 +2220,9 @@
     "/material-suppliers/{supplierId}/recipes/{id}/restore": {
       "patch": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Restore an archived recipe",
+        "summary": "Restaurer une recette archivée",
         "operationId": "patch_material-suppliers_supplierId_recipes_id_restore",
         "parameters": [
           {
@@ -2265,9 +2265,9 @@
     "/material-suppliers/{supplierId}/recipes/{recipeId}/summary": {
       "get": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Get the recipe cost summary",
+        "summary": "Obtenir la synthèse des coûts de la recette",
         "operationId": "get_material-suppliers_supplierId_recipes_recipeId_summary",
         "parameters": [
           {
@@ -2310,9 +2310,9 @@
     "/material-suppliers/{supplierId}/recipes/{id}/overhead/recalculate": {
       "post": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Recalculate recipe overhead costs",
+        "summary": "Recalculer les frais généraux de la recette",
         "operationId": "post_material-suppliers_supplierId_recipes_id_overhead_recalculate",
         "parameters": [
           {
@@ -2355,9 +2355,9 @@
     "/material-suppliers/{supplierId}/recipes/{recipeId}/ingredients": {
       "get": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "List recipe ingredients",
+        "summary": "Lister les ingrédients de la recette",
         "operationId": "get_material-suppliers_supplierId_recipes_recipeId_ingredients",
         "parameters": [
           {
@@ -2398,9 +2398,9 @@
       },
       "post": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Add an ingredient to a recipe",
+        "summary": "Ajouter un ingrédient à la recette",
         "operationId": "post_material-suppliers_supplierId_recipes_recipeId_ingredients",
         "parameters": [
           {
@@ -2454,9 +2454,9 @@
     "/material-suppliers/{supplierId}/recipes/{recipeId}/ingredients/{id}": {
       "patch": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Update a recipe ingredient",
+        "summary": "Mettre à jour un ingrédient de la recette",
         "operationId": "patch_material-suppliers_supplierId_recipes_recipeId_ingredients_id",
         "parameters": [
           {
@@ -2516,9 +2516,9 @@
       },
       "delete": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Remove an ingredient from a recipe",
+        "summary": "Retirer un ingrédient de la recette",
         "operationId": "delete_material-suppliers_supplierId_recipes_recipeId_ingredients_id",
         "parameters": [
           {
@@ -2569,9 +2569,9 @@
     "/material-suppliers/{supplierId}/recipes/{recipeId}/steps": {
       "get": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "List recipe steps",
+        "summary": "Lister les étapes de la recette",
         "operationId": "get_material-suppliers_supplierId_recipes_recipeId_steps",
         "parameters": [
           {
@@ -2612,9 +2612,9 @@
       },
       "post": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Create a recipe step",
+        "summary": "Créer une étape de recette",
         "operationId": "post_material-suppliers_supplierId_recipes_recipeId_steps",
         "parameters": [
           {
@@ -2668,9 +2668,9 @@
     "/material-suppliers/{supplierId}/recipes/{recipeId}/steps/{stepId}/photos/{slot}": {
       "post": {
         "tags": [
-          "Recipes"
+          "Recettes"
         ],
-        "summary": "Upload a step photo",
+        "summary": "Téléverser la photo d’une étape",
         "operationId": "post_material-suppliers_supplierId_recipes_recipeId_steps_stepId_photos_slot",
         "parameters": [
           {
@@ -2748,9 +2748,9 @@
     "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/current": {
       "get": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Get the current price list for a shop",
+        "summary": "Obtenir le cennik actuel d’un magasin",
         "operationId": "get_material-suppliers_supplierId_shops_clientId_price-lists_current",
         "parameters": [
           {
@@ -2793,9 +2793,9 @@
     "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/latest": {
       "get": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Get the latest price list for a shop",
+        "summary": "Obtenir le dernier cennik d’un magasin",
         "operationId": "get_material-suppliers_supplierId_shops_clientId_price-lists_latest",
         "parameters": [
           {
@@ -2838,9 +2838,9 @@
     "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/schedule": {
       "get": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Get the scheduled price changes for a shop",
+        "summary": "Obtenir les changements de prix planifiés d’un magasin",
         "operationId": "get_material-suppliers_supplierId_shops_clientId_price-lists_schedule",
         "parameters": [
           {
@@ -2883,9 +2883,9 @@
     "/material-suppliers/{supplierId}/price-lists/global/schedule": {
       "get": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Get the global scheduled price changes",
+        "summary": "Obtenir les changements de prix planifiés globaux",
         "operationId": "get_material-suppliers_supplierId_price-lists_global_schedule",
         "parameters": [
           {
@@ -2920,9 +2920,9 @@
     "/material-suppliers/{supplierId}/shops/{clientId}/products/{productId}/price": {
       "post": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Set a product price for one shop",
+        "summary": "Définir le prix d’un produit pour un magasin",
         "operationId": "post_material-suppliers_supplierId_shops_clientId_products_productId_price",
         "parameters": [
           {
@@ -2984,9 +2984,9 @@
     "/material-suppliers/{supplierId}/products/{productId}/price/all-shops": {
       "post": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Set a product price for all shops",
+        "summary": "Définir le prix d’un produit pour tous les magasins",
         "operationId": "post_material-suppliers_supplierId_products_productId_price_all-shops",
         "parameters": [
           {
@@ -3040,9 +3040,9 @@
     "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/{priceId}": {
       "delete": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Delete a shop price entry",
+        "summary": "Supprimer une entrée de prix d’un magasin",
         "operationId": "delete_material-suppliers_supplierId_shops_clientId_price-lists_priceId",
         "parameters": [
           {
@@ -3093,9 +3093,9 @@
     "/material-suppliers/{supplierId}/products/{productId}/price-lists/scheduled/{validFrom}": {
       "delete": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Cancel a scheduled all-shops price change",
+        "summary": "Annuler un changement de prix planifié (tous magasins)",
         "operationId": "delete_material-suppliers_supplierId_products_productId_price-lists_scheduled_validFrom",
         "parameters": [
           {
@@ -3147,9 +3147,9 @@
     "/material-suppliers/{supplierId}/shops/{clientId}/price-lists/import": {
       "post": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Import a price list for one shop",
+        "summary": "Importer un cennik pour un magasin",
         "operationId": "post_material-suppliers_supplierId_shops_clientId_price-lists_import",
         "parameters": [
           {
@@ -3203,9 +3203,9 @@
     "/material-suppliers/{supplierId}/price-lists/import/all-shops": {
       "post": {
         "tags": [
-          "Price lists"
+          "Cennik (tarifs)"
         ],
-        "summary": "Import a price list for all shops",
+        "summary": "Importer un cennik pour tous les magasins",
         "operationId": "post_material-suppliers_supplierId_price-lists_import_all-shops",
         "parameters": [
           {
@@ -3251,9 +3251,9 @@
     "/material-suppliers/{supplierId}/orders": {
       "get": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "List orders",
+        "summary": "Lister les commandes",
         "operationId": "get_material-suppliers_supplierId_orders",
         "parameters": [
           {
@@ -3336,9 +3336,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}": {
       "get": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "Get an order",
+        "summary": "Obtenir une commande",
         "operationId": "get_material-suppliers_supplierId_orders_orderId",
         "parameters": [
           {
@@ -3389,9 +3389,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/read-model": {
       "get": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "Get the full order read model",
+        "summary": "Obtenir le modèle de lecture complet de la commande",
         "operationId": "get_material-suppliers_supplierId_orders_orderId_read-model",
         "parameters": [
           {
@@ -3434,9 +3434,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/accept": {
       "post": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "Accept an order",
+        "summary": "Accepter une commande",
         "operationId": "post_material-suppliers_supplierId_orders_orderId_accept",
         "parameters": [
           {
@@ -3490,9 +3490,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/reject": {
       "post": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "Reject an order",
+        "summary": "Refuser une commande",
         "operationId": "post_material-suppliers_supplierId_orders_orderId_reject",
         "parameters": [
           {
@@ -3546,9 +3546,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/cancel": {
       "post": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "Cancel an order",
+        "summary": "Annuler une commande",
         "operationId": "post_material-suppliers_supplierId_orders_orderId_cancel",
         "parameters": [
           {
@@ -3602,9 +3602,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/final-items": {
       "put": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "Replace the final order items",
+        "summary": "Remplacer les lignes finales de la commande",
         "operationId": "put_material-suppliers_supplierId_orders_orderId_final-items",
         "parameters": [
           {
@@ -3658,9 +3658,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/transport": {
       "put": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "Set the order transport details",
+        "summary": "Définir les informations de transport de la commande",
         "operationId": "put_material-suppliers_supplierId_orders_orderId_transport",
         "parameters": [
           {
@@ -3714,9 +3714,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/finalization-check": {
       "post": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "Check whether the order can be finalized",
+        "summary": "Vérifier si la commande peut être finalisée",
         "operationId": "post_material-suppliers_supplierId_orders_orderId_finalization-check",
         "parameters": [
           {
@@ -3759,9 +3759,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/finalize": {
       "post": {
         "tags": [
-          "Orders"
+          "Commandes"
         ],
-        "summary": "Finalize an order",
+        "summary": "Finaliser une commande",
         "operationId": "post_material-suppliers_supplierId_orders_orderId_finalize",
         "parameters": [
           {
@@ -3815,9 +3815,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/documents": {
       "get": {
         "tags": [
-          "Order documents"
+          "Documents de commande"
         ],
-        "summary": "List the documents of an order",
+        "summary": "Lister les documents d’une commande",
         "operationId": "get_material-suppliers_supplierId_orders_orderId_documents",
         "parameters": [
           {
@@ -3860,9 +3860,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/documents/{documentId}": {
       "get": {
         "tags": [
-          "Order documents"
+          "Documents de commande"
         ],
-        "summary": "Download one order document",
+        "summary": "Télécharger un document de commande",
         "operationId": "get_material-suppliers_supplierId_orders_orderId_documents_documentId",
         "parameters": [
           {
@@ -3908,9 +3908,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/document": {
       "get": {
         "tags": [
-          "Order documents"
+          "Documents de commande"
         ],
-        "summary": "Download the main order document (PDF)",
+        "summary": "Télécharger le document principal de la commande (PDF)",
         "operationId": "get_material-suppliers_supplierId_orders_orderId_document",
         "parameters": [
           {
@@ -3948,9 +3948,9 @@
     "/material-suppliers/{supplierId}/orders/documents": {
       "post": {
         "tags": [
-          "Order documents"
+          "Documents de commande"
         ],
-        "summary": "Download documents for several orders at once",
+        "summary": "Télécharger les documents de plusieurs commandes à la fois",
         "operationId": "post_material-suppliers_supplierId_orders_documents",
         "parameters": [
           {
@@ -4001,9 +4001,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/documents/cmr/status": {
       "get": {
         "tags": [
-          "Order documents"
+          "Documents de commande"
         ],
-        "summary": "Get the CMR generation status",
+        "summary": "Obtenir le statut de génération du CMR",
         "operationId": "get_material-suppliers_supplierId_orders_orderId_documents_cmr_status",
         "parameters": [
           {
@@ -4046,9 +4046,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/documents/cmr": {
       "post": {
         "tags": [
-          "Order documents"
+          "Documents de commande"
         ],
-        "summary": "Generate the CMR document",
+        "summary": "Générer le document CMR",
         "operationId": "post_material-suppliers_supplierId_orders_orderId_documents_cmr",
         "parameters": [
           {
@@ -4102,9 +4102,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/documents/difference": {
       "post": {
         "tags": [
-          "Order documents"
+          "Documents de commande"
         ],
-        "summary": "Generate the difference document",
+        "summary": "Générer le document d’écart",
         "operationId": "post_material-suppliers_supplierId_orders_orderId_documents_difference",
         "parameters": [
           {
@@ -4158,9 +4158,9 @@
     "/material-suppliers/{supplierId}/orders/{orderId}/documents/release": {
       "post": {
         "tags": [
-          "Order documents"
+          "Documents de commande"
         ],
-        "summary": "Generate the release document",
+        "summary": "Générer le bon de sortie",
         "operationId": "post_material-suppliers_supplierId_orders_orderId_documents_release",
         "parameters": [
           {
@@ -4214,9 +4214,9 @@
     "/material-suppliers/{supplierId}/carriers": {
       "get": {
         "tags": [
-          "Carriers"
+          "Transporteurs"
         ],
-        "summary": "List carriers",
+        "summary": "Lister les transporteurs",
         "operationId": "get_material-suppliers_supplierId_carriers",
         "parameters": [
           {
@@ -4257,9 +4257,9 @@
       },
       "post": {
         "tags": [
-          "Carriers"
+          "Transporteurs"
         ],
-        "summary": "Create a carrier",
+        "summary": "Créer un transporteur",
         "operationId": "post_material-suppliers_supplierId_carriers",
         "parameters": [
           {
@@ -4305,9 +4305,9 @@
     "/material-suppliers/{supplierId}/carriers/{carrierId}": {
       "patch": {
         "tags": [
-          "Carriers"
+          "Transporteurs"
         ],
-        "summary": "Update a carrier",
+        "summary": "Mettre à jour un transporteur",
         "operationId": "patch_material-suppliers_supplierId_carriers_carrierId",
         "parameters": [
           {
@@ -4359,9 +4359,9 @@
       },
       "delete": {
         "tags": [
-          "Carriers"
+          "Transporteurs"
         ],
-        "summary": "Delete a carrier",
+        "summary": "Supprimer un transporteur",
         "operationId": "delete_material-suppliers_supplierId_carriers_carrierId",
         "parameters": [
           {
@@ -4404,9 +4404,9 @@
     "/material-suppliers/{supplierId}/upcoming-deliveries": {
       "get": {
         "tags": [
-          "Logistics"
+          "Logistique"
         ],
-        "summary": "List upcoming deliveries",
+        "summary": "Lister les livraisons à venir",
         "operationId": "get_material-suppliers_supplierId_upcoming-deliveries",
         "parameters": [
           {
@@ -4441,9 +4441,9 @@
     "/material-suppliers/{supplierId}/complaints": {
       "get": {
         "tags": [
-          "Complaints"
+          "Réclamations"
         ],
-        "summary": "List complaints",
+        "summary": "Lister les réclamations",
         "operationId": "get_material-suppliers_supplierId_complaints",
         "parameters": [
           {
@@ -4478,9 +4478,9 @@
     "/material-suppliers/{supplierId}/complaints/{complaintId}": {
       "patch": {
         "tags": [
-          "Complaints"
+          "Réclamations"
         ],
-        "summary": "Update a complaint (status, answer)",
+        "summary": "Mettre à jour une réclamation (statut, réponse)",
         "operationId": "patch_material-suppliers_supplierId_complaints_complaintId",
         "parameters": [
           {
@@ -4534,9 +4534,9 @@
     "/attachments/{uuid}/presigned-url": {
       "get": {
         "tags": [
-          "Complaints"
+          "Réclamations"
         ],
-        "summary": "Get a presigned URL for a complaint attachment",
+        "summary": "Obtenir une URL présignée pour une pièce jointe de réclamation",
         "operationId": "get_attachments_uuid_presigned-url",
         "parameters": [
           {
@@ -4574,7 +4574,7 @@
         "tags": [
           "Analytics"
         ],
-        "summary": "Get the sales analytics summary",
+        "summary": "Obtenir la synthèse analytique des ventes",
         "operationId": "get_material-suppliers_supplierId_analytics_summary",
         "parameters": [
           {
@@ -4627,7 +4627,7 @@
         "tags": [
           "Analytics"
         ],
-        "summary": "Get per-shop sales analytics",
+        "summary": "Obtenir l’analytique des ventes par magasin",
         "operationId": "get_material-suppliers_supplierId_analytics_shops",
         "parameters": [
           {
@@ -4678,9 +4678,9 @@
     "/allergens": {
       "get": {
         "tags": [
-          "Reference data"
+          "Référentiels"
         ],
-        "summary": "List all allergens",
+        "summary": "Lister tous les allergènes",
         "operationId": "get_allergens",
         "responses": {
           "200": {
@@ -4705,9 +4705,9 @@
     "/units": {
       "get": {
         "tags": [
-          "Reference data"
+          "Référentiels"
         ],
-        "summary": "List all measurement units",
+        "summary": "Lister toutes les unités de mesure",
         "operationId": "get_units",
         "responses": {
           "200": {
@@ -4732,9 +4732,9 @@
     "/shops": {
       "get": {
         "tags": [
-          "Reference data"
+          "Référentiels"
         ],
-        "summary": "List all shops (supplier clients)",
+        "summary": "Lister tous les magasins (clients du fournisseur)",
         "operationId": "get_shops",
         "responses": {
           "200": {
@@ -4759,9 +4759,9 @@
     "/shops/{shopId}": {
       "get": {
         "tags": [
-          "Reference data"
+          "Référentiels"
         ],
-        "summary": "Get one shop",
+        "summary": "Obtenir un magasin",
         "operationId": "get_shops_shopId",
         "parameters": [
           {

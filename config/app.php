@@ -9,9 +9,9 @@ define('ROOT',
         : 'http://') . $_SERVER['SERVER_NAME'] . '/supplier');
 
 // API backend (TF Buddy). Set the API_BASE_URL env var to point elsewhere
-// (e.g. production); the default targets the test environment so the portal
-// reaches the real API whatever domain it is deployed on.
-define('API_BASE_URL', rtrim($_ENV['API_BASE_URL'] ?? 'https://test.tfbuddy.com/api/v1', '/'));
+// (e.g. the test environment); the default targets the Atelier by production
+// environment, where the real shops place their orders.
+define('API_BASE_URL', rtrim($_ENV['API_BASE_URL'] ?? 'https://atelierby.tfbuddy.com/api/v1', '/'));
 
 define('SHARED_FILES_URL',
     (((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ||

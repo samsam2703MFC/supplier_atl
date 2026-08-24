@@ -306,6 +306,8 @@ label, .form-label { color: var(--color-text); }
    -------------------------------------------------------------------------- */
 .text-muted { color: var(--color-text-muted) !important; }
 
+code { color: var(--color-primary); }
+
 .spinner-border.text-primary { color: var(--color-primary) !important; }
 
 .choices__inner { border-radius: var(--radius-md); border-color: var(--color-border-secondary); }

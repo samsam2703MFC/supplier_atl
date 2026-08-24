@@ -103,7 +103,9 @@
                 <div class="ds-side__user-name">{{ user.displayName|default(translations.supplier|default('Fournisseur')) }}</div>
                 <div class="ds-side__user-role">{{ user.role|default(translations.supplier|default('Fournisseur')) }}</div>
             </div>
-            <a href="{{ ROOT }}/logout" class="ds-side__logout" title="{{ translations.logout }}">{{ translations.logout|default('Quitter') }}</a>
+            <a href="{{ ROOT }}/logout" class="ds-side__logout" title="{{ translations.logout|default('Déconnexion') }}" aria-label="{{ translations.logout|default('Déconnexion') }}">
+                <i class="bi bi-box-arrow-right"></i>
+            </a>
         </div>
 
         <button class="sidebar-toggler btn x"><i data-feather="x"></i></button>

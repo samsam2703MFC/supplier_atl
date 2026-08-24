@@ -4,21 +4,21 @@
 
 {% block head %}
 <style>
-.dash-sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#64748B;margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
-.dash-sec::after{content:'';flex:1;height:1px;background:#E2E8F0;}
-.kpi-card{border-radius:10px;border:1px solid #E2E8F0;padding:18px 20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05);}
-.kpi-label{font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
-.kpi-value{font-size:26px;font-weight:700;color:#0F172A;line-height:1.1;}
-.kpi-sub{font-size:11px;color:#94A3B8;margin-top:4px;}
-.filter-pill{display:inline-block;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid #E2E8F0;background:#fff;color:#64748B;text-decoration:none;transition:all .15s;}
-.filter-pill:hover{border-color:#6366F1;color:#6366F1;}
-.filter-pill.active{background:#6366F1;color:#fff;border-color:#6366F1;box-shadow:0 2px 8px rgba(99,102,241,.25);}
-.t5-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #F1F5F9;}
+.dash-sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--color-text-muted);margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
+.dash-sec::after{content:'';flex:1;height:1px;background:var(--color-border-tertiary);}
+.kpi-card{border-radius:10px;border:1px solid var(--color-border-tertiary);padding:18px 20px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+.kpi-label{font-size:11px;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+.kpi-value{font-size:26px;font-weight:700;color:var(--color-text);line-height:1.1;}
+.kpi-sub{font-size:11px;color:var(--color-text-muted);margin-top:4px;}
+.filter-pill{display:inline-block;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--color-border-tertiary);background:#fff;color:var(--color-text-muted);text-decoration:none;transition:all .15s;}
+.filter-pill:hover{border-color:var(--color-primary);color:var(--color-primary);}
+.filter-pill.active{background:var(--color-primary);color:#fff;border-color:var(--color-primary);box-shadow:0 2px 8px rgba(141,29,44,.25);}
+.t5-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--color-background-secondary);}
 .t5-item:last-child{border-bottom:none;}
 .t5-rank{width:22px;height:22px;border-radius:5px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.t5-bar-wrap{flex:1;height:5px;background:#F1F5F9;border-radius:4px;overflow:hidden;}
-.t5-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#6366F1,#818CF8);}
-.t5-val{font-size:12px;font-weight:700;color:#0F172A;min-width:70px;text-align:right;}
+.t5-bar-wrap{flex:1;height:5px;background:var(--color-background-secondary);border-radius:4px;overflow:hidden;}
+.t5-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--color-primary),#b0454f);}
+.t5-val{font-size:12px;font-weight:700;color:var(--color-text);min-width:70px;text-align:right;}
 </style>
 {% endblock %}
 
@@ -216,11 +216,11 @@
                                 {% if i == 0 %}
                                     <div class="t5-rank" style="background:#FEF3C7;color:#D97706;">1</div>
                                 {% elseif i == 1 %}
-                                    <div class="t5-rank" style="background:#F1F5F9;color:#475569;">2</div>
+                                    <div class="t5-rank" style="background:var(--color-background-secondary);color:var(--color-text-muted);">2</div>
                                 {% elseif i == 2 %}
                                     <div class="t5-rank" style="background:#FEF2E7;color:#92400E;">3</div>
                                 {% else %}
-                                    <div class="t5-rank" style="background:#EEF2FF;color:#6366F1;">{{ i + 1 }}</div>
+                                    <div class="t5-rank" style="background:rgba(141,29,44,0.08);color:var(--color-primary);">{{ i + 1 }}</div>
                                 {% endif %}
                                 <div style="flex:1;min-width:0;">
                                     <div class="fw-semibold text-truncate" style="font-size:13px;">{{ product.material_name ?? '—' }}</div>
@@ -258,8 +258,8 @@
             datasets: [{
                 label: '{{ translations.analytics_chart_legend|e('js') }}',
                 data: barValues,
-                backgroundColor: 'rgba(99,102,241,0.75)',
-                borderColor: 'rgba(99,102,241,1)',
+                backgroundColor: 'rgba(141,29,44,0.75)',
+                borderColor: 'rgba(141,29,44,1)',
                 borderWidth: 1
             }]
         },
@@ -291,7 +291,7 @@
     var shopLabels = {{ shop_revenue|map(r => r.shop_name)|json_encode|raw }};
     var shopValues = {{ shop_revenue|map(r => r.revenue_net)|json_encode|raw }};
     var shopColors = [
-        '#6366F1','#22C55E','#F59E0B','#EF4444','#14B8A6',
+        '#8D1D2C','#22C55E','#F59E0B','#78554B','#14B8A6',
         '#8B5CF6','#F97316','#06B6D4','#EC4899','#84CC16'
     ];
 

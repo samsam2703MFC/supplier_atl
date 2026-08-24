@@ -4,10 +4,10 @@
 
 {% block head %}
 <style>
-.dash-sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#64748B;margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
-.dash-sec::after{content:'';flex:1;height:1px;background:#E2E8F0;}
-.qty-bar-wrap{flex:1;height:5px;background:#F1F5F9;border-radius:4px;overflow:hidden;min-width:60px;}
-.qty-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,#6366F1,#818CF8);}
+.dash-sec{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--color-text-muted);margin:24px 0 12px;display:flex;align-items:center;gap:8px;}
+.dash-sec::after{content:'';flex:1;height:1px;background:var(--color-border-tertiary);}
+.qty-bar-wrap{flex:1;height:5px;background:var(--color-background-secondary);border-radius:4px;overflow:hidden;min-width:60px;}
+.qty-bar{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--color-primary),#b0454f);}
 </style>
 {% endblock %}
 
@@ -94,11 +94,11 @@
             <div class="row g-3 mb-4">
                 <div class="col-6 col-lg-3">
                     <div class="kpi-card border rounded p-3 bg-white">
-                        <div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
+                        <div style="font-size:11px;font-weight:600;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">
                             {{ translations.rms_kpi_products }}
                         </div>
-                        <div style="font-size:26px;font-weight:700;color:#0F172A;line-height:1.1;">{{ productCount }}</div>
-                        <div style="font-size:11px;color:#94A3B8;margin-top:4px;">{{ params.from }} → {{ params.to }}</div>
+                        <div style="font-size:26px;font-weight:700;color:var(--color-text);line-height:1.1;">{{ productCount }}</div>
+                        <div style="font-size:11px;color:var(--color-text-muted);margin-top:4px;">{{ params.from }} → {{ params.to }}</div>
                     </div>
                 </div>
             </div>
@@ -137,7 +137,7 @@
                                                 <div class="qty-bar-wrap">
                                                     <div class="qty-bar" style="width:{{ maxQty > 0 ? ((row.total_sold_quantity / maxQty) * 100)|round : 0 }}%"></div>
                                                 </div>
-                                                <span style="font-size:10px;color:#94A3B8;min-width:32px;text-align:right;">
+                                                <span style="font-size:10px;color:var(--color-text-muted);min-width:32px;text-align:right;">
                                                     {{ maxQty > 0 ? ((row.total_sold_quantity / maxQty) * 100)|round : 0 }}%
                                                 </span>
                                             </div>

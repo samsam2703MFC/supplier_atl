@@ -7,7 +7,7 @@
 .calc-tile-num {
     width: 28px; height: 28px;
     border-radius: 50%;
-    background: #6366F1;
+    background: var(--color-primary);
     color: #fff;
     display: inline-flex;
     align-items: center;
@@ -17,16 +17,16 @@
     flex-shrink: 0;
 }
 .calc-product-card {
-    border: 1px solid #E2E8F0;
+    border: 1px solid var(--color-border-tertiary);
     border-radius: 8px;
     padding: 14px 16px;
-    background: #F8FAFC;
+    background: var(--color-background-secondary);
 }
 .calc-product-avatar {
     width: 52px; height: 52px;
     border-radius: 8px;
-    background: #EEF2FF;
-    color: #3730A3;
+    background: rgba(141,29,44,0.08);
+    color: var(--color-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -36,15 +36,15 @@
 }
 .calc-ing-table th,.calc-ing-table td { vertical-align: middle; }
 .calc-ing-table .num { font-variant-numeric: tabular-nums; }
-.calc-empty { text-align: center; padding: 48px 16px; color: #94A3B8; }
+.calc-empty { text-align: center; padding: 48px 16px; color: var(--color-text-muted); }
 .calc-empty i { font-size: 32px; opacity: .4; display: block; margin-bottom: 8px; }
 .calc-no-price { color: #EF4444; font-size: 10px; font-weight: 600; }
 .calc-action-btn {
     width: 28px; height: 28px;
     border-radius: 6px;
-    border: 1px solid #E2E8F0;
+    border: 1px solid var(--color-border-tertiary);
     background: #fff;
-    color: #94A3B8;
+    color: var(--color-text-muted);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -64,18 +64,18 @@
     font-weight: 600;
     margin: 2px;
 }
-.calc-add-form-bar { background: #F8FAFC; border-bottom: 1px solid #E2E8F0; padding: 12px 16px; }
-.is-archived-badge { display: inline-block; background: #F1F5F9; color: #94A3B8; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; margin-left: 4px; }
+.calc-add-form-bar { background: var(--color-background-secondary); border-bottom: 1px solid var(--color-border-tertiary); padding: 12px 16px; }
+.is-archived-badge { display: inline-block; background: var(--color-background-secondary); color: var(--color-text-muted); padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; margin-left: 4px; }
 .calc-page-wrap { max-width: 900px; margin: 0 auto; }
 .calc-summary-banner {
-    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    background: linear-gradient(135deg, rgba(141,29,44,0.08) 0%, #E0E7FF 100%);
     border: 1px solid #C7D2FE;
     border-radius: 12px;
     padding: 16px 20px;
 }
 .calc-summary-icon {
     width: 40px; height: 40px;
-    background: #6366F1;
+    background: var(--color-primary);
     color: #fff;
     border-radius: 10px;
     display: flex;
@@ -84,8 +84,8 @@
     font-size: 18px;
     flex-shrink: 0;
 }
-.calc-summary-text { color: #374151; font-size: 14px; line-height: 1.7; }
-.calc-summary-text strong { color: #3730A3; }
+.calc-summary-text { color: var(--color-text-muted); font-size: 14px; line-height: 1.7; }
+.calc-summary-text strong { color: var(--color-primary); }
 .calc-summary-text .text-success strong { color: #059669 !important; }
 </style>
 {% endblock %}
@@ -1240,7 +1240,7 @@
                         </div>
 
                         <div class="col-12">
-                            <div class="rm-price-add-form" style="background:#F8FAFC;border:1px dashed #CBD5E1;border-radius:8px;padding:12px;">
+                            <div class="rm-price-add-form" style="background:var(--color-background-secondary);border:1px dashed var(--color-border-secondary);border-radius:8px;padding:12px;">
                                 <div class="small text-muted text-uppercase fw-semibold mb-2">
                                     <i class="bi bi-calculator me-1"></i>{{ translations.initial_price_optional }}
                                 </div>

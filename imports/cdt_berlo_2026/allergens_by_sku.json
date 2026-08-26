@@ -1,34 +1,34 @@
 {
-  "SPOON-N": [],
-  "SPOON-E": [],
-  "MATINE-N": [],
-  "MATINE-L": [
+  "SPOON_N": [],
+  "SPOON_E": [],
+  "MATINE_N": [],
+  "MATINE_L": [
     "milk"
   ],
-  "MASSEP-D": [
+  "MASSEP_D": [
     "nuts_almond"
   ],
-  "GUIMAU-D": [
+  "GUIMAU_D": [
     "milk"
   ],
-  "GRANOL-N": [
+  "GRANOL_N": [
     "gluten_barley",
     "gluten_oats",
     "gluten_wheat"
   ],
-  "GRANOL-L": [
+  "GRANOL_L": [
     "gluten_barley",
     "gluten_oats",
     "gluten_wheat",
     "milk"
   ],
-  "MUESLI-N": [
+  "MUESLI_N": [
     "gluten_barley",
     "gluten_oats",
     "gluten_wheat",
     "soy"
   ],
-  "MUESLI-L": [
+  "MUESLI_L": [
     "gluten_barley",
     "gluten_oats",
     "gluten_wheat",
@@ -39,47 +39,47 @@
     "soy",
     "sulphites"
   ],
-  "SABLE-N": [
+  "SABLE_N": [
     "gluten_wheat",
     "milk"
   ],
-  "BALLS-N-N": [
+  "BALLS_N_N": [
     "nuts_hazelnut"
   ],
-  "BALLS-N-L": [
+  "BALLS_N_L": [
     "milk",
     "nuts_hazelnut"
   ],
-  "BALLS-A-N": [
+  "BALLS_A_N": [
     "nuts_almond"
   ],
-  "BALLS-A-L": [
+  "BALLS_A_L": [
     "milk",
     "nuts_almond"
   ],
-  "OURSON-N": [],
-  "OURSON-L": [
+  "OURSON_N": [],
+  "OURSON_L": [
     "milk"
   ],
-  "STNIC-N": [],
-  "STNIC-L": [
+  "STNIC_N": [],
+  "STNIC_L": [
     "milk"
   ],
-  "STNIC-B": [
+  "STNIC_B": [
     "milk"
   ],
-  "SAPIN-N": [],
-  "SAPIN-L": [
+  "SAPIN_N": [],
+  "SAPIN_L": [
     "milk"
   ],
-  "SAPIN-B": [
+  "SAPIN_B": [
     "milk"
   ],
-  "SAPIN-F-N": [
+  "SAPIN_F_N": [
     "milk",
     "nuts_hazelnut"
   ],
-  "SAPIN-F-L": [
+  "SAPIN_F_L": [
     "milk",
     "nuts_hazelnut"
   ]

@@ -1,173 +1,173 @@
 {
-  "SPOON-N": {
+  "SPOON_N": {
     "lang_code": "fr",
     "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "SPOON-E": {
+  "SPOON_E": {
     "lang_code": "fr",
     "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), épices (Badiane, poivre du brésil, graines d'anis, gingembre, girofle, noix de muscade, cannelle de Ceylan)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "MATINE-N": {
+  "MATINE_N": {
     "lang_code": "fr",
     "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "MATINE-L": {
+  "MATINE_L": {
     "lang_code": "fr",
     "composition": "Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "MASSEP-D": {
+  "MASSEP_D": {
     "lang_code": "fr",
     "composition": "AMANDES de Faro, sucre, dextrose, Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "8 mois"
   },
-  "GUIMAU-D": {
+  "GUIMAU_D": {
     "lang_code": "fr",
     "composition": "Guimauves Vanille (sucre, eau, glucose, dextrose, gélatine de porc, vanille de Madagascar), Chocolat Noir et Lait (Fèves de cacao, beurre de cacao, sucre, poudre de LAIT).",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "8 mois"
   },
-  "GRANOL-N": {
+  "GRANOL_N": {
     "lang_code": "fr",
     "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), granola (Flocons d'AVOINE complète , de BLÉ complet, sirop de glucose, huile de tournesol non hydrogénée, sucre, riz soufflé (farine de BLÉ, sucre, malt d'ORGE), fruits rouges lyophilisés (fraises, cerises acide, framboises), noix de coco râpée, farine d'AVOINE complète, extrait de malt d'ORGE, miel, sucre caramélisé, extrait de vanille, correcteur d'acidité (bicarbonate de sodium), arômes naturels, antioxydant (extrait riche en tocophérols)).",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "GRANOL-L": {
+  "GRANOL_L": {
     "lang_code": "fr",
     "composition": "Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre), granola (Flocons d'AVOINE complète , de BLÉ complet, sirop de glucose, huile de tournesol non hydrogénée, sucre, riz soufflé (farine de BLÉ, sucre, malt d'ORGE), fruits rouges lyophilisés (fraises, cerises acide, framboises), noix de coco râpée, farine d'AVOINE complète, extrait de malt d'ORGE, miel, sucre caramélisé, extrait de vanille, correcteur d'acidité (bicarbonate de sodium), arômes naturels, antioxydant (extrait riche en tocophérols)).",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "MUESLI-N": {
+  "MUESLI_N": {
     "lang_code": "fr",
     "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), muesli (Flocons d'AVOINE complète, d'ORGE, de SOJA et BLÉ malté grillés, morceaux de pruneaux secs, canneberges (humectant (glycérine)), huile de tournesol non hydrogénée), cassis",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "MUESLI-L": {
+  "MUESLI_L": {
     "lang_code": "fr",
     "composition": "Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre), muesli (Flocons d'AVOINE complète, d'ORGE, de SOJA et BLÉ malté grillés, morceaux de pruneaux secs, canneberges (humectant (glycérine)), huile de tournesol non hydrogénée), cassis séché, graines de tournesol, baies de goji séchées, NOIX DU BRESIL effilées, AMANDES, graines de lin, NOISETTES, raisins secs, abricots secs (antioxydant (dioxyde de soufre), graines de courge)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "SABLE-N": {
+  "SABLE_N": {
     "lang_code": "fr",
     "composition": "Sablé breton (farine de BLÉ, BEURRE, OEUFS, sucre, sel, LAIT), Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre).",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "8 mois"
   },
-  "BALLS-N-N": {
+  "BALLS_N_N": {
     "lang_code": "fr",
     "composition": "NOISETTES du Piémont IGP, Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), fleur de sel.",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "BALLS-N-L": {
+  "BALLS_N_L": {
     "lang_code": "fr",
     "composition": "NOISETTES du Piémont IGP Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre), fleur de sel.",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "BALLS-A-N": {
+  "BALLS_A_N": {
     "lang_code": "fr",
     "composition": "AMANDES, Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), fleur de sel.",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "BALLS-A-L": {
+  "BALLS_A_L": {
     "lang_code": "fr",
     "composition": "AMANDES, Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre), fleur de sel.",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "OURSON-N": {
+  "OURSON_N": {
     "lang_code": "fr",
     "composition": "Guimauves Vanille (sucre, eau, glucose, dextrose, gélatine de porc, vanille de Madagascar), Chocolat Noir (Fèves de cacao, beurre de cacao, sucre)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "8 mois"
   },
-  "OURSON-L": {
+  "OURSON_L": {
     "lang_code": "fr",
     "composition": "Guimauves Vanille (sucre, eau, glucose, dextrose, gélatine de porc, vanille de Madagascar), Chocolat Lait (Fèves de cacao, beurre de cacao, sucre, poudre de LAIT)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "8 mois"
   },
-  "STNIC-N": {
+  "STNIC_N": {
     "lang_code": "fr",
     "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "STNIC-L": {
+  "STNIC_L": {
     "lang_code": "fr",
     "composition": "Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "STNIC-B": {
+  "STNIC_B": {
     "lang_code": "fr",
     "composition": "Chocolat Blanc (beurre de cacao, poudre de LAIT, sucre, vanille de Madagascar)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "8 mois"
   },
-  "SAPIN-N": {
+  "SAPIN_N": {
     "lang_code": "fr",
     "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "8 mois"
   },
-  "SAPIN-L": {
+  "SAPIN_L": {
     "lang_code": "fr",
     "composition": "Chocolat Blanc (beurre de cacao, poudre de LAIT, sucre, vanille de Madagascar)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "SAPIN-B": {
+  "SAPIN_B": {
     "lang_code": "fr",
     "composition": "Chocolat Blanc (beurre de cacao, poudre de LAIT, sucre, vanille de Madagascar)",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "SAPIN-F-N": {
+  "SAPIN_F_N": {
     "lang_code": "fr",
     "composition": "Chocolat Noir et Lait (Fèves de cacao, beurre de cacao, sucre, poudre de LAIT), NOISETTES du Piémont IGP.",
     "storage_info": null,
     "preparation_info": null,
     "dlc_dluo": "12 mois"
   },
-  "SAPIN-F-L": {
+  "SAPIN_F_L": {
     "lang_code": "fr",
     "composition": "Chocolat Noir et Lait (Fèves de cacao, beurre de cacao, sucre, poudre de LAIT), NOISETTES du Piémont IGP.",
     "storage_info": null,

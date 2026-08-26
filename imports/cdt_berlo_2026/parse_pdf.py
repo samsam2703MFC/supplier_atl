@@ -126,7 +126,17 @@ def extract_rows(pdf_path):
     return rows
 
 
-def build(pdf_path, vat_rate):
+def normalize_sku(sku, separator):
+    """Zamienia myslnik w referencji dostawcy (SPOON-N) na wybrany separator.
+
+    Referencje w PDF maja myslniki; jesli API ich nie przyjmuje, separator "_"
+    daje SPOON_N, a "" daje SPOONN. Zmiana dotyczy wszystkich plikow naraz,
+    bo cennik, sklad i alergeny sa kluczowane po SKU.
+    """
+    return sku.replace("-", separator)
+
+
+def build(pdf_path, vat_rate, sku_separator="_"):
     products, prices, specs, allergens = [], [], {}, {}
 
     for cells, section in extract_rows(pdf_path):
@@ -136,6 +146,8 @@ def build(pdf_path, vat_rate):
             wrong, right = NAME_FIXES[sku]
             if name == wrong:
                 name = right
+
+        sku = normalize_sku(sku, sku_separator)
 
         package_size, package_unit, weight_grams = parse_package(poids, carton)
 
@@ -182,10 +194,13 @@ def main():
     ap.add_argument("--vat", default="0.06",
                     help="Stawka VAT jako ulamek dziesietny, np. 0.06 lub 0.23")
     ap.add_argument("--out", default=".")
+    ap.add_argument("--sku-separator", default="_",
+                    help='Czym zastapic myslnik w SKU: "_" (domyslnie), "" '
+                         'albo dowolny inny znak')
     args = ap.parse_args()
 
     out = Path(args.out)
-    products, prices, specs, allergens = build(args.pdf, args.vat)
+    products, prices, specs, allergens = build(args.pdf, args.vat, args.sku_separator)
 
     def dump(filename, payload):
         path = out / filename

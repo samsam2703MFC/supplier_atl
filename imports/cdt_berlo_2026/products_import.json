@@ -1,279 +1,561 @@
 {
+  "export_info": {
+    "language": "fr",
+    "language_name": "Français",
+    "total_products": 25
+  },
   "products": [
     {
       "sku": "SPOON_N",
       "name": "Cuiller Chocolat chaud Nature",
-      "package_size": 2,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 70,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 2,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
+      "allergens": [],
+      "allergens_text": ""
     },
     {
       "sku": "SPOON_E",
       "name": "Cuiller Chocolat chaud Épices de Nowel",
-      "package_size": 2,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 70,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 2,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), épices (Badiane, poivre du brésil, graines d'anis, gingembre, girofle, noix de muscade, cannelle de Ceylan)",
+      "allergens": [],
+      "allergens_text": ""
     },
     {
       "sku": "MATINE_N",
       "name": "Matinettes Chocolat Noir Origine",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
+      "allergens": [],
+      "allergens_text": ""
     },
     {
       "sku": "MATINE_L",
       "name": "Matinettes Chocolat Lait Origine",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre)",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        }
+      ],
+      "allergens_text": "mleko"
     },
     {
       "sku": "MASSEP_D",
       "name": "Massepain Duo",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 240
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 240,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "AMANDES de Faro, sucre, dextrose, Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
+      "allergens": [
+        {
+          "code": "nuts",
+          "name": "orzechy"
+        }
+      ],
+      "allergens_text": "orzechy"
     },
     {
       "sku": "GUIMAU_D",
       "name": "Cubes Guimauve Duo",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 240
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 240,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Guimauves Vanille (sucre, eau, glucose, dextrose, gélatine de porc, vanille de Madagascar), Chocolat Noir et Lait (Fèves de cacao, beurre de cacao, sucre, poudre de LAIT).",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        }
+      ],
+      "allergens_text": "mleko"
     },
     {
       "sku": "GRANOL_N",
       "name": "Granola fruit rouges Chocolat Noir",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), granola (Flocons d'AVOINE complète , de BLÉ complet, sirop de glucose, huile de tournesol non hydrogénée, sucre, riz soufflé (farine de BLÉ, sucre, malt d'ORGE), fruits rouges lyophilisés (fraises, cerises acide, framboises), noix de coco râpée, farine d'AVOINE complète, extrait de malt d'ORGE, miel, sucre caramélisé, extrait de vanille, correcteur d'acidité (bicarbonate de sodium), arômes naturels, antioxydant (extrait riche en tocophérols)).",
+      "allergens": [
+        {
+          "code": "cereals_gluten",
+          "name": "zboża zawierające gluten"
+        }
+      ],
+      "allergens_text": "zboża zawierające gluten"
     },
     {
       "sku": "GRANOL_L",
       "name": "Granola fruit rouges Chocolat Lait",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre), granola (Flocons d'AVOINE complète , de BLÉ complet, sirop de glucose, huile de tournesol non hydrogénée, sucre, riz soufflé (farine de BLÉ, sucre, malt d'ORGE), fruits rouges lyophilisés (fraises, cerises acide, framboises), noix de coco râpée, farine d'AVOINE complète, extrait de malt d'ORGE, miel, sucre caramélisé, extrait de vanille, correcteur d'acidité (bicarbonate de sodium), arômes naturels, antioxydant (extrait riche en tocophérols)).",
+      "allergens": [
+        {
+          "code": "cereals_gluten",
+          "name": "zboża zawierające gluten"
+        },
+        {
+          "code": "milk",
+          "name": "mleko"
+        }
+      ],
+      "allergens_text": "zboża zawierające gluten, mleko"
     },
     {
       "sku": "MUESLI_N",
       "name": "Tuiles muesli Chocolat Noir",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), muesli (Flocons d'AVOINE complète, d'ORGE, de SOJA et BLÉ malté grillés, morceaux de pruneaux secs, canneberges (humectant (glycérine)), huile de tournesol non hydrogénée), cassis",
+      "allergens": [
+        {
+          "code": "cereals_gluten",
+          "name": "zboża zawierające gluten"
+        }
+      ],
+      "allergens_text": "zboża zawierające gluten"
     },
     {
       "sku": "MUESLI_L",
       "name": "Tuiles muesli Chocolat Lait",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre), muesli (Flocons d'AVOINE complète, d'ORGE, de SOJA et BLÉ malté grillés, morceaux de pruneaux secs, canneberges (humectant (glycérine)), huile de tournesol non hydrogénée), cassis séché, graines de tournesol, baies de goji séchées, NOIX DU BRESIL effilées, AMANDES, graines de lin, NOISETTES, raisins secs, abricots secs (antioxydant (dioxyde de soufre), graines de courge)",
+      "allergens": [
+        {
+          "code": "cereals_gluten",
+          "name": "zboża zawierające gluten"
+        },
+        {
+          "code": "milk",
+          "name": "mleko"
+        },
+        {
+          "code": "nuts",
+          "name": "orzechy"
+        }
+      ],
+      "allergens_text": "zboża zawierające gluten, mleko, orzechy"
     },
     {
       "sku": "SABLE_N",
       "name": "Sablés Chocolat noir",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 240
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 240,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Sablé breton (farine de BLÉ, BEURRE, OEUFS, sucre, sel, LAIT), Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre).",
+      "allergens": [
+        {
+          "code": "cereals_gluten",
+          "name": "zboża zawierające gluten"
+        },
+        {
+          "code": "milk",
+          "name": "mleko"
+        }
+      ],
+      "allergens_text": "zboża zawierające gluten, mleko"
     },
     {
       "sku": "BALLS_N_N",
       "name": "Noisettes du Piémont IGP – enrobées Choc Noir",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "NOISETTES du Piémont IGP, Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), fleur de sel.",
+      "allergens": [
+        {
+          "code": "nuts",
+          "name": "orzechy"
+        }
+      ],
+      "allergens_text": "orzechy"
     },
     {
       "sku": "BALLS_N_L",
       "name": "Noisettes du Piémont IGP – enrobées Choc Lait",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "NOISETTES du Piémont IGP Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre), fleur de sel.",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        },
+        {
+          "code": "nuts",
+          "name": "orzechy"
+        }
+      ],
+      "allergens_text": "mleko, orzechy"
     },
     {
       "sku": "BALLS_A_N",
       "name": "Amandes grillées & salées - enrobées Choc Noir",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "AMANDES, Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre), fleur de sel.",
+      "allergens": [
+        {
+          "code": "nuts",
+          "name": "orzechy"
+        }
+      ],
+      "allergens_text": "orzechy"
     },
     {
       "sku": "BALLS_A_L",
       "name": "Amandes grillées & salées - enrobées Choc Lait",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "AMANDES, Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre), fleur de sel.",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        },
+        {
+          "code": "nuts",
+          "name": "orzechy"
+        }
+      ],
+      "allergens_text": "mleko, orzechy"
     },
     {
       "sku": "OURSON_N",
       "name": "Nounours Guimauve Chocolat Noir",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 240
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 240,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Guimauves Vanille (sucre, eau, glucose, dextrose, gélatine de porc, vanille de Madagascar), Chocolat Noir (Fèves de cacao, beurre de cacao, sucre)",
+      "allergens": [],
+      "allergens_text": ""
     },
     {
       "sku": "OURSON_L",
       "name": "Nounours Guimauve Chocolat Lait",
-      "package_size": 100,
-      "package_unit": "g",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": 100,
       "weight_unit": "g",
-      "shelf_life_days": 240
+      "package_size": 100,
+      "package_unit": "g",
+      "vat_rate": "0.06",
+      "shelf_life_days": 240,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Guimauves Vanille (sucre, eau, glucose, dextrose, gélatine de porc, vanille de Madagascar), Chocolat Lait (Fèves de cacao, beurre de cacao, sucre, poudre de LAIT)",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        }
+      ],
+      "allergens_text": "mleko"
     },
     {
       "sku": "STNIC_N",
       "name": "St Nicolas 150 mm Chocolat Noir",
-      "package_size": 1,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": null,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 1,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
+      "allergens": [],
+      "allergens_text": ""
     },
     {
       "sku": "STNIC_L",
       "name": "St Nicolas 150 mm Chocolat Lait",
-      "package_size": 1,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": null,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 1,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Lait Origine (fèves de cacao, beurre de cacao, poudre de LAIT, sucre)",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        }
+      ],
+      "allergens_text": "mleko"
     },
     {
       "sku": "STNIC_B",
       "name": "St Nicolas 150 mm Chocolat Blanc",
-      "package_size": 1,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": null,
       "weight_unit": "g",
-      "shelf_life_days": 240
+      "package_size": 1,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 240,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Blanc (beurre de cacao, poudre de LAIT, sucre, vanille de Madagascar)",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        }
+      ],
+      "allergens_text": "mleko"
     },
     {
       "sku": "SAPIN_N",
       "name": "Sapin de Noël Plein Chocolat Noir",
-      "package_size": 1,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": null,
       "weight_unit": "g",
-      "shelf_life_days": 240
+      "package_size": 1,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 240,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Noir Origine (fèves de cacao, beurre de cacao, sucre)",
+      "allergens": [],
+      "allergens_text": ""
     },
     {
       "sku": "SAPIN_L",
       "name": "Sapin de Noël Plein Chocolat Lait",
-      "package_size": 1,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": null,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 1,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Blanc (beurre de cacao, poudre de LAIT, sucre, vanille de Madagascar)",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        }
+      ],
+      "allergens_text": "mleko"
     },
     {
       "sku": "SAPIN_B",
       "name": "Sapin de Noël Plein Chocolat Blanc",
-      "package_size": 1,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": null,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 1,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Blanc (beurre de cacao, poudre de LAIT, sucre, vanille de Madagascar)",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        }
+      ],
+      "allergens_text": "mleko"
     },
     {
       "sku": "SAPIN_F_N",
       "name": "Sapin de Noël Fourré Praliné Noisettes du Piémont IGP - Choc Noir",
-      "package_size": 1,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": null,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 1,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Noir et Lait (Fèves de cacao, beurre de cacao, sucre, poudre de LAIT), NOISETTES du Piémont IGP.",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        },
+        {
+          "code": "nuts",
+          "name": "orzechy"
+        }
+      ],
+      "allergens_text": "mleko, orzechy"
     },
     {
       "sku": "SAPIN_F_L",
       "name": "Sapin de Noël Fourré Praliné Noisettes du Piémont IGP - Choc Lait",
-      "package_size": 1,
-      "package_unit": "pcs",
-      "vat_rate": "0.06",
+      "active": true,
       "is_active": 1,
       "weight_grams": null,
       "weight_unit": "g",
-      "shelf_life_days": 360
+      "package_size": 1,
+      "package_unit": "pcs",
+      "vat_rate": "0.06",
+      "shelf_life_days": 360,
+      "storage_info": null,
+      "preparation_info": null,
+      "composition": "Chocolat Noir et Lait (Fèves de cacao, beurre de cacao, sucre, poudre de LAIT), NOISETTES du Piémont IGP.",
+      "allergens": [
+        {
+          "code": "milk",
+          "name": "mleko"
+        },
+        {
+          "code": "nuts",
+          "name": "orzechy"
+        }
+      ],
+      "allergens_text": "mleko, orzechy"
     }
   ]
 }

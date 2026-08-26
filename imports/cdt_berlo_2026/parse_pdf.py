@@ -38,6 +38,22 @@ ALLERGEN_PATTERNS = [
     ("dioxyde de soufre", "sulphites"),
 ]
 
+# Slownik alergenow w panelu jest gruboziarnisty (z eksportu produktow:
+# cereals_gluten / eggs / milk / nuts). Mapujemy na niego kody z parsera.
+# soy, sesame i sulphites nie wystapily w probce eksportu - ich kodow nie
+# potwierdzono, wiec ida tylko do allergens_text, nie do listy `allergens`.
+ALLERGEN_DICT = {
+    "milk":          ("milk", "mleko"),
+    "gluten_wheat":  ("cereals_gluten", "zboża zawierające gluten"),
+    "gluten_oats":   ("cereals_gluten", "zboża zawierające gluten"),
+    "gluten_barley": ("cereals_gluten", "zboża zawierające gluten"),
+    "nuts_almond":   ("nuts", "orzechy"),
+    "nuts_hazelnut": ("nuts", "orzechy"),
+    "nuts_brazil":   ("nuts", "orzechy"),
+    "nuts":          ("nuts", "orzechy"),
+}
+UNCONFIRMED_CODES = {"soy", "sesame", "sulphites"}
+
 # Literowka w PDF dostawcy - poprawiona swiadomie, patrz README.
 NAME_FIXES = {
     "MUESLI-L": ("Tuiles muesli Chocolat Lair", "Tuiles muesli Chocolat Lait"),
@@ -151,19 +167,37 @@ def build(pdf_path, vat_rate, sku_separator="_"):
 
         package_size, package_unit, weight_grams = parse_package(poids, carton)
 
-        # Uklad pol jak w formularzu "Dodaj produkt" w panelu
-        # (catalog.twig, saveProduct): API oczekuje "is_active", nie "active",
-        # a puste pola ida jako null - klucz zawsze jest obecny.
+        # Uklad pol jak w eksporcie produktow z panelu (products_export_*.json):
+        # to jest format, ktory system rozumie. `is_active` dokladamy obok
+        # `active`, bo formularz "Dodaj produkt" (catalog.twig, saveProduct)
+        # wysyla wlasnie ta nazwe - nadmiarowy klucz jest ignorowany, brakujacy
+        # nie. category_id pomijamy: panel dostawcy nie ma slownika kategorii
+        # katalogu (jest tylko /ajax/raw-material-categories).
+        found = detect_allergens(ingredients)
+        seen, allergen_list = set(), []
+        for code in found:
+            if code in ALLERGEN_DICT:
+                dict_code, dict_name = ALLERGEN_DICT[code]
+                if dict_code not in seen:
+                    seen.add(dict_code)
+                    allergen_list.append({"code": dict_code, "name": dict_name})
+
         product = {
             "sku": sku,
             "name": name,
-            "package_size": package_size,
-            "package_unit": package_unit,
-            "vat_rate": vat_rate,
+            "active": True,
             "is_active": 1,
             "weight_grams": weight_grams,
             "weight_unit": "g",
+            "package_size": package_size,
+            "package_unit": package_unit,
+            "vat_rate": vat_rate,
             "shelf_life_days": parse_shelf_life(dlc),
+            "storage_info": None,
+            "preparation_info": None,
+            "composition": clean(ingredients) or None,
+            "allergens": allergen_list,
+            "allergens_text": ", ".join(a["name"] for a in allergen_list),
         }
         products.append(product)
 
@@ -213,7 +247,12 @@ def main():
     print(f"Sparsowano {len(products)} produktow z {args.pdf}")
     # API odrzuca gola tablice bledem INVALID_JSON_STRUCTURE - lista musi byc
     # opakowana w {"products": [...]}, tak samo jak w eksporcie z panelu.
-    dump("products_import.json", {"products": products}, len(products))
+    dump("products_import.json",
+         {"export_info": {"language": "fr",
+                          "language_name": "Français",
+                          "total_products": len(products)},
+          "products": products},
+         len(products))
     dump("prices_by_sku.json", prices)
     dump("specifications_by_sku.json", specs)
     dump("allergens_by_sku.json", allergens)

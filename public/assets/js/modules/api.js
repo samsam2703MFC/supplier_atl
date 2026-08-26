@@ -19,12 +19,33 @@ export async function api(endpoint, { method = 'GET', data = null, headers = {} 
         payload = await res.json();
     } catch (e) {}
 
+    // `res` to Response - nie ma pola `success`, wiec dotad bylo tu undefined,
+    // a wolajacy sprawdzaja `resp.success || resp.ok`. Przy odpowiedzi
+    // HTTP 200 z {"success": false} `resp.ok` ratowalo warunek i blad API
+    // pokazywal sie jako sukces (tak przechodzil nieudany import katalogu).
+    // Odpowiedz jest udana tylko wtedy, gdy status jest 2xx ORAZ cialo nie
+    // zglasza bledu.
+    const apiReportedFailure = !!payload && payload.success === false;
+    const succeeded = res.ok && !apiReportedFailure;
+
+    // API zwraca powod pod `description` (czasem w `data.description`), a
+    // widoki pokazuja `resp.message`, ktore bywa puste - dlatego kazdy blad
+    // wygladal tak samo ("sprawdz format pliku"). Uzupelniamy `message`, gdy
+    // jest puste, zeby prawdziwy powod dotarl do uzytkownika.
+    const apiMessage =
+        (payload && (payload.message
+            || payload.description
+            || (payload.data && payload.data.description))) || '';
+
     return {
-        ok:      res.ok,
-        success:      res.success,
+        ...payload,
+        message: apiMessage,
+        ok:      succeeded,
+        success: succeeded,
         status:  res.status,
-        data:    payload,
-        ...payload
+        // Zachowane zachowanie: {"data": X} daje X, a goła tablica/obiekt
+        // wraca w calosci (wczesniej wychodzilo to ze spreadu po `data`).
+        data:    payload && payload.data !== undefined ? payload.data : payload,
     };
 }
 

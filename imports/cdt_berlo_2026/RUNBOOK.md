@@ -68,8 +68,11 @@ python3 build_price_list.py --catalog catalog.json --scope all-shops --section h
 Cennik → **„Importuj cennik"** → pick the effective date → select the file →
 „Rozpocznij import".
 
-- the effective date is chosen **in the modal**, not in the file, and **must be
-  in the future** — the panel rejects today or earlier
+- the effective date is chosen **in the modal**, not in the file, and must not
+  be in the past — the panel rejects any date **before today**
+  (`src/app/Views/price_list/index.twig`). Today itself passes the panel's own
+  check, but the upstream API may still want a future date, so pick tomorrow or
+  later to be safe
 - prices apply to every shop at once
 - page reloads on success
 
@@ -114,22 +117,15 @@ Also: GUIMAU-D, OURSON-N and OURSON-L contain **pork gelatine**.
 Both errors are transcribed **as printed** — nothing was silently corrected.
 One typo was fixed: MUESLI-L "Chocolat **Lair**" → "**Lait**".
 
-## 8. Push the branch (blocked on access)
+## 8. Where these files live
 
-Two commits sit on `claude/supplier-products-pricing-61zr1e`. Pushing is
-refused — the Claude GitHub App has read but not write on this repo:
+Merged into `samsam2703MFC/supplier_atl` under `imports/cdt_berlo_2026/`, so
+nothing needs to be applied from a bundle any more. The three original commits
+are preserved in the history behind the merge.
 
-> Claude doesn't have GitHub access to ThaiZu/TFB-Supplier for your organization.
-
-Either grant access — an org admin installs the app at
-https://github.com/apps/claude/installations/select_target, or re-link from
-https://claude.ai/customize/connectors?auth_start=github&auth_start_force=1 —
-or push it yourself from the bundle, applied on top of `master` at `9b6c2b8`:
-
-```bash
-git fetch /path/to/cdt-import.bundle claude/supplier-products-pricing-61zr1e:claude/supplier-products-pricing-61zr1e
-git push -u origin claude/supplier-products-pricing-61zr1e
-```
+Everything here was re-checked against the panel code in this repo before the
+merge — see the endpoint table below; `parse_pdf.py` regenerates all four JSON
+files byte-identically from the PDF.
 
 ---
 
@@ -205,6 +201,6 @@ python3 parse_pdf.py --vat 0.23
 |---|---|
 | „Nieprawidłowy format pliku" | not `.json` — check the extension |
 | „Nieprawidłowy plik JSON" | file edited by hand and broken; re-run the script |
-| date rejected on price import | `valid_from` must be a **future** date |
+| date rejected on price import | `valid_from` is before today — pick a future date |
 | script warns about unmatched SKUs | those products are not in the catalog — redo step 2 |
 | prices import but show against wrong products | `catalog.json` is stale — re-pull it (step 3) |

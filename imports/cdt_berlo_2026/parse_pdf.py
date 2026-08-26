@@ -160,7 +160,7 @@ def normalize_sku(sku, separator):
     return sku.replace("-", separator)
 
 
-def build(pdf_path, vat_rate, sku_separator="_"):
+def build(pdf_path, vat_rate, sku_separator="_", carton_size=None):
     products, prices, specs, allergens = [], [], {}, {}
 
     for cells, section in extract_rows(pdf_path):
@@ -174,6 +174,13 @@ def build(pdf_path, vat_rate, sku_separator="_"):
         sku = normalize_sku(sku, sku_separator)
 
         package_size, package_unit, weight_grams = parse_package(poids, carton)
+        carton_qty = parse_carton(carton)
+        if carton_size:
+            # Ujednolicony karton ustalony z dostawca - nadpisuje kolumne Carton
+            # z PDF (tam 20 / 25 / pce). package_size i cena musza uzywac tej
+            # samej liczby, inaczej cena odnosi sie do innej ilosci.
+            package_size = carton_size
+            carton_qty = carton_size
 
         # Uklad pol jak w eksporcie produktow z panelu (products_export_*.json):
         # to jest format, ktory system rozumie. `is_active` dokladamy obok
@@ -213,7 +220,7 @@ def build(pdf_path, vat_rate, sku_separator="_"):
             "sku": sku,
             "name": name,
             "price_net": parse_price(price),
-            "carton_qty": parse_carton(carton),
+            "carton_qty": carton_qty,
             "section": section,
             "source_poids": poids or None,
         })
@@ -236,13 +243,17 @@ def main():
     ap.add_argument("--vat", default="0.06",
                     help="Stawka VAT jako ulamek dziesietny, np. 0.06 lub 0.23")
     ap.add_argument("--out", default=".")
+    ap.add_argument("--carton-size", type=int, default=None,
+                    help="Wymus te sama liczbe sztuk w kartonie dla wszystkich "
+                         "produktow (nadpisuje kolumne Carton z PDF)")
     ap.add_argument("--sku-separator", default="_",
                     help='Czym zastapic myslnik w SKU: "_" (domyslnie), "" '
                          'albo dowolny inny znak')
     args = ap.parse_args()
 
     out = Path(args.out)
-    products, prices, specs, allergens = build(args.pdf, args.vat, args.sku_separator)
+    products, prices, specs, allergens = build(
+        args.pdf, args.vat, args.sku_separator, args.carton_size)
 
     def dump(filename, payload, count=None):
         path = out / filename

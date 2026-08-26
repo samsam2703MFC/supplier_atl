@@ -32,8 +32,11 @@ Katalog → **„Import produktów"** → „Wybierz plik JSON" → `products_im
   `shelf_life_days`
 - SKUs use `_`, not `-` (`SPOON_N`). `parse_pdf.py --sku-separator` changes it
   across all four files at once; the PDF's own refs are hyphenated
-- `package_size` is the **carton quantity** (the PDF's Carton column: 20, 25,
-  or 1 for the `pce` figures), not the size of one sachet. That is how the
+- `package_size` is the **carton quantity**, currently **10 for every
+  product**, set with `parse_pdf.py --carton-size 10`. This overrides the PDF,
+  which lists 20 for the two SPOON items, 25 for the rest and `pce` for the
+  eight figures — confirm the agreed carton with CDT. Drop the flag to fall
+  back to the printed values. It is not the size of one sachet. That is how the
   panel models it — in its own export a 22 cm tart has `package_size` 8 and the
   same SKU carries `pack_quantity_in_base_unit` 8 in the cennik. The two must
   agree, or the price is read against the wrong quantity
@@ -60,8 +63,14 @@ Save the output as `catalog.json` next to `build_price_list.py`.
 ## 4. Build the price file
 
 ```bash
-python3 build_price_list.py --catalog catalog.json --scope all-shops
+python3 parse_pdf.py --carton-size 10          # products + source prices
+python3 build_price_list.py --pricing carton   # price file, EUR 1040.90
 ```
+
+`--pricing carton` multiplies the PDF's P.U. HTVA by the carton quantity, so
+`price_list_import.carton.json` carries the price of a full carton and
+`pack_quantity_in_base_unit` says how many units that is. Both numbers come
+from the same `--carton-size`, so they cannot drift apart.
 
 Writes `price_list_import.all-shops.json` → `{"prices": [{product_id, price_net}]}`.
 The script prints a warning naming any SKU it could not match — if it does,

@@ -32,6 +32,13 @@ Katalog → **„Import produktów"** → „Wybierz plik JSON" → `products_im
   `shelf_life_days`
 - SKUs use `_`, not `-` (`SPOON_N`). `parse_pdf.py --sku-separator` changes it
   across all four files at once; the PDF's own refs are hyphenated
+- `package_size` is the **carton quantity** (the PDF's Carton column: 20, 25,
+  or 1 for the `pce` figures), not the size of one sachet. That is how the
+  panel models it — in its own export a 22 cm tart has `package_size` 8 and the
+  same SKU carries `pack_quantity_in_base_unit` 8 in the cennik. The two must
+  agree, or the price is read against the wrong quantity
+- `weight_grams` is the weight of **one unit** (70 g for a 2×35 g sachet,
+  100 g, `null` for the figures) — the tart above is 1200 g for one, not eight
 - accepted: `.json` only, max 10 MB
 - the grid reloads on success — confirm you see 25 new items
 

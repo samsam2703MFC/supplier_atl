@@ -74,21 +74,29 @@ def parse_package(poids, carton):
     """
     Zwraca (package_size, package_unit, weight_grams).
 
-    '2x35g'  -> opakowanie = 2 szt., waga laczna 70 g
-    '100g'   -> opakowanie = 100 g,  waga 100 g
-    ''       -> figura sprzedawana na sztuki ('pce'), waga nieznana
+    package_size to liczba sztuk w KARTONIE (kolumna Carton), nie rozmiar
+    pojedynczego opakowania. Tak dziala panel: w eksporcie produktow
+    package_size = 8 dla tarty 22cm, a w cenniku ogolnym ten sam SKU ma
+    pack_quantity_in_base_unit = 8. weight_grams to waga JEDNEJ sztuki
+    (tam 1200 g za tarte, nie za osiem).
+
+    Kolumna Poids sluzy wiec tylko do wagi:
+      '2x35g' -> 70 g (sasiet z dwiema cuillers)
+      '100g'  -> 100 g
+      ''      -> figura na sztuki ('pce'), waga nieznana
     """
     poids = clean(poids)
+    per_carton = parse_carton(carton)
+    package_size = per_carton if per_carton else 1
 
     m = re.fullmatch(r"(\d+)\s*[xX]\s*(\d+)\s*g", poids)
     if m:
         count, grams = int(m.group(1)), int(m.group(2))
-        return count, "pcs", count * grams
+        return package_size, "pcs", count * grams
 
     m = re.fullmatch(r"(\d+)\s*g", poids)
     if m:
-        grams = int(m.group(1))
-        return grams, "g", grams
+        return package_size, "pcs", int(m.group(1))
 
     if not poids and "pce" in clean(carton).lower():
         return 1, "pcs", None

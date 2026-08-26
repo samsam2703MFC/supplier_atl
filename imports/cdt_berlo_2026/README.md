@@ -5,6 +5,9 @@ Zrodlo: `source/listing_produits_2026.pdf`
 
 Ceny w PDF sa **netto (P.U. HTVA)** i podane w **EUR**.
 
+Ustalenia potwierdzone: VAT `0.06`, ceny w EUR bez przeliczania, cennik dla
+**wszystkich sklepow**.
+
 ## Pliki
 
 | Plik | Do czego |
@@ -27,28 +30,23 @@ dlatego **najpierw produkty, potem ceny**.
    fetch('/ajax/catalog/products').then(r => r.json()).then(j => console.log(JSON.stringify(j)))
    ```
    Zapisz wynik jako `catalog.json`.
-3. **Zbuduj cennik**:
+3. **Zbuduj cennik** — ustalony zakres: **wszystkie sklepy**:
    ```bash
-   # dla wszystkich sklepow (date obowiazywania wybiera sie w modalu):
    python3 build_price_list.py --catalog catalog.json --scope all-shops
-
-   # dla jednego klienta (data obowiazywania w pliku):
-   python3 build_price_list.py --catalog catalog.json --scope client --valid-from 2026-10-01
    ```
-4. **Import cennika** — Cennik → „Importuj cennik" (wszystkie sklepy) albo
-   Klienci → Cennik → „Importuj cennik" (jeden klient).
+   (wariant dla jednego klienta: `--scope client --valid-from 2026-10-01`)
+4. **Import cennika** — Cennik → „Importuj cennik". Date obowiazywania wybiera
+   sie w modalu i **musi byc przyszla**.
 
 Sekcje mozna importowac osobno: `--section year_round` / `--section holiday`.
 
 ## Decyzje przy mapowaniu — do weryfikacji
 
-1. **VAT — zgadywany.** PDF podaje wylacznie ceny HTVA, bez stawki.
-   Pliki wygenerowano z `vat_rate: "0.06"` (belgijska stawka na zywnosc, zgodna
-   z rynkiem dostawcy). Jesli obowiazuje inna (np. 0.23 w PL), przegeneruj:
+1. **VAT — `0.06` (potwierdzone).** PDF podaje wylacznie ceny HTVA, bez stawki;
+   przyjeto belgijska stawke na zywnosc, zgodna z rynkiem dostawcy. Zmiana:
    `python3 parse_pdf.py --vat 0.23`.
-2. **Waluta.** Panel nie ma pola waluty — ceny zapisza sie jako liczby.
-   Wartosci z PDF to EUR; jesli panel pracuje w PLN, ceny wymagaja przeliczenia
-   **przed** importem.
+2. **Waluta — EUR bez przeliczania (potwierdzone).** Panel nie ma pola waluty,
+   ceny zapisuja sie jako liczby; wartosci ida do panelu tak jak w PDF.
 3. **`2x35g` (SPOON-N, SPOON-E)** → `package_size: 2`, `package_unit: "pcs"`,
    `weight_grams: 70`. Alternatywa: `70 g` jako rozmiar opakowania.
 4. **Figury na sztuki** (STNIC-*, SAPIN-*) — kolumna Poids pusta, karton `pce`

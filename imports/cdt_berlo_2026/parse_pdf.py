@@ -139,18 +139,20 @@ def build(pdf_path, vat_rate):
 
         package_size, package_unit, weight_grams = parse_package(poids, carton)
 
+        # Uklad pol jak w formularzu "Dodaj produkt" w panelu
+        # (catalog.twig, saveProduct): API oczekuje "is_active", nie "active",
+        # a puste pola ida jako null - klucz zawsze jest obecny.
         product = {
             "sku": sku,
             "name": name,
             "package_size": package_size,
             "package_unit": package_unit,
             "vat_rate": vat_rate,
+            "is_active": 1,
+            "weight_grams": weight_grams,
             "weight_unit": "g",
             "shelf_life_days": parse_shelf_life(dlc),
-            "active": 1,
         }
-        if weight_grams is not None:
-            product["weight_grams"] = weight_grams
         products.append(product)
 
         prices.append({

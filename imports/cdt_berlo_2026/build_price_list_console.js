@@ -41,7 +41,7 @@ const CDT_PRICES = [
 ];
 
 (async () => {
-  const res = await fetch('/ajax/catalog/products', { headers: { 'Accept': 'application/json' } });
+  const res = await fetch('/supplier/ajax/catalog/products', { headers: { 'Accept': 'application/json' } });
   if (!res.ok) throw new Error('Catalog fetch failed: HTTP ' + res.status);
   const raw = await res.json();
 

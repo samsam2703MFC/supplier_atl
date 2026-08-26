@@ -35,7 +35,7 @@ The price import keys on `product_id` (internal catalog ID), **not SKU** — so
 the IDs only exist after step 2. Logged into the panel, browser console:
 
 ```js
-fetch('/ajax/catalog/products').then(r => r.json()).then(j => console.log(JSON.stringify(j)))
+fetch('/supplier/ajax/catalog/products').then(r => r.json()).then(j => console.log(JSON.stringify(j)))
 ```
 
 Save the output as `catalog.json` next to `build_price_list.py`.

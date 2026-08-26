@@ -27,7 +27,7 @@ dlatego **najpierw produkty, potem ceny**.
 1. **Produkty** — Katalog → „Importuj produkty" → `products_import.json`.
 2. **Pobierz ID z katalogu** — zalogowany w panelu, w konsoli przegladarki:
    ```js
-   fetch('/ajax/catalog/products').then(r => r.json()).then(j => console.log(JSON.stringify(j)))
+   fetch('/supplier/ajax/catalog/products').then(r => r.json()).then(j => console.log(JSON.stringify(j)))
    ```
    Zapisz wynik jako `catalog.json`.
 3. **Zbuduj cennik** — ustalony zakres: **wszystkie sklepy**:

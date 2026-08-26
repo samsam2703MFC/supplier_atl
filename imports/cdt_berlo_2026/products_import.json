@@ -5,10 +5,10 @@
     "package_size": 2,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 70,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 70
+    "shelf_life_days": 360
   },
   {
     "sku": "SPOON-E",
@@ -16,10 +16,10 @@
     "package_size": 2,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 70,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 70
+    "shelf_life_days": 360
   },
   {
     "sku": "MATINE-N",
@@ -27,10 +27,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "MATINE-L",
@@ -38,10 +38,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "MASSEP-D",
@@ -49,10 +49,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 240,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 240
   },
   {
     "sku": "GUIMAU-D",
@@ -60,10 +60,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 240,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 240
   },
   {
     "sku": "GRANOL-N",
@@ -71,10 +71,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "GRANOL-L",
@@ -82,10 +82,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "MUESLI-N",
@@ -93,10 +93,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "MUESLI-L",
@@ -104,10 +104,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "SABLE-N",
@@ -115,10 +115,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 240,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 240
   },
   {
     "sku": "BALLS-N-N",
@@ -126,10 +126,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "BALLS-N-L",
@@ -137,10 +137,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "BALLS-A-N",
@@ -148,10 +148,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "BALLS-A-L",
@@ -159,10 +159,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 360
   },
   {
     "sku": "OURSON-N",
@@ -170,10 +170,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 240,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 240
   },
   {
     "sku": "OURSON-L",
@@ -181,10 +181,10 @@
     "package_size": 100,
     "package_unit": "g",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": 100,
     "weight_unit": "g",
-    "shelf_life_days": 240,
-    "active": 1,
-    "weight_grams": 100
+    "shelf_life_days": 240
   },
   {
     "sku": "STNIC-N",
@@ -192,9 +192,10 @@
     "package_size": 1,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": null,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1
+    "shelf_life_days": 360
   },
   {
     "sku": "STNIC-L",
@@ -202,9 +203,10 @@
     "package_size": 1,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": null,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1
+    "shelf_life_days": 360
   },
   {
     "sku": "STNIC-B",
@@ -212,9 +214,10 @@
     "package_size": 1,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": null,
     "weight_unit": "g",
-    "shelf_life_days": 240,
-    "active": 1
+    "shelf_life_days": 240
   },
   {
     "sku": "SAPIN-N",
@@ -222,9 +225,10 @@
     "package_size": 1,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": null,
     "weight_unit": "g",
-    "shelf_life_days": 240,
-    "active": 1
+    "shelf_life_days": 240
   },
   {
     "sku": "SAPIN-L",
@@ -232,9 +236,10 @@
     "package_size": 1,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": null,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1
+    "shelf_life_days": 360
   },
   {
     "sku": "SAPIN-B",
@@ -242,9 +247,10 @@
     "package_size": 1,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": null,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1
+    "shelf_life_days": 360
   },
   {
     "sku": "SAPIN-F-N",
@@ -252,9 +258,10 @@
     "package_size": 1,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": null,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1
+    "shelf_life_days": 360
   },
   {
     "sku": "SAPIN-F-L",
@@ -262,8 +269,9 @@
     "package_size": 1,
     "package_unit": "pcs",
     "vat_rate": "0.06",
+    "is_active": 1,
+    "weight_grams": null,
     "weight_unit": "g",
-    "shelf_life_days": 360,
-    "active": 1
+    "shelf_life_days": 360
   }
 ]

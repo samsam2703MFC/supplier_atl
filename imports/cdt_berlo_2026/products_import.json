@@ -1,0 +1,269 @@
+[
+  {
+    "sku": "SPOON-N",
+    "name": "Cuiller Chocolat chaud Nature",
+    "package_size": 2,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 70
+  },
+  {
+    "sku": "SPOON-E",
+    "name": "Cuiller Chocolat chaud Épices de Nowel",
+    "package_size": 2,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 70
+  },
+  {
+    "sku": "MATINE-N",
+    "name": "Matinettes Chocolat Noir Origine",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "MATINE-L",
+    "name": "Matinettes Chocolat Lait Origine",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "MASSEP-D",
+    "name": "Massepain Duo",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 240,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "GUIMAU-D",
+    "name": "Cubes Guimauve Duo",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 240,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "GRANOL-N",
+    "name": "Granola fruit rouges Chocolat Noir",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "GRANOL-L",
+    "name": "Granola fruit rouges Chocolat Lait",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "MUESLI-N",
+    "name": "Tuiles muesli Chocolat Noir",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "MUESLI-L",
+    "name": "Tuiles muesli Chocolat Lait",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "SABLE-N",
+    "name": "Sablés Chocolat noir",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 240,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "BALLS-N-N",
+    "name": "Noisettes du Piémont IGP – enrobées Choc Noir",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "BALLS-N-L",
+    "name": "Noisettes du Piémont IGP – enrobées Choc Lait",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "BALLS-A-N",
+    "name": "Amandes grillées & salées - enrobées Choc Noir",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "BALLS-A-L",
+    "name": "Amandes grillées & salées - enrobées Choc Lait",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "OURSON-N",
+    "name": "Nounours Guimauve Chocolat Noir",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 240,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "OURSON-L",
+    "name": "Nounours Guimauve Chocolat Lait",
+    "package_size": 100,
+    "package_unit": "g",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 240,
+    "active": 1,
+    "weight_grams": 100
+  },
+  {
+    "sku": "STNIC-N",
+    "name": "St Nicolas 150 mm Chocolat Noir",
+    "package_size": 1,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1
+  },
+  {
+    "sku": "STNIC-L",
+    "name": "St Nicolas 150 mm Chocolat Lait",
+    "package_size": 1,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1
+  },
+  {
+    "sku": "STNIC-B",
+    "name": "St Nicolas 150 mm Chocolat Blanc",
+    "package_size": 1,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 240,
+    "active": 1
+  },
+  {
+    "sku": "SAPIN-N",
+    "name": "Sapin de Noël Plein Chocolat Noir",
+    "package_size": 1,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 240,
+    "active": 1
+  },
+  {
+    "sku": "SAPIN-L",
+    "name": "Sapin de Noël Plein Chocolat Lait",
+    "package_size": 1,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1
+  },
+  {
+    "sku": "SAPIN-B",
+    "name": "Sapin de Noël Plein Chocolat Blanc",
+    "package_size": 1,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1
+  },
+  {
+    "sku": "SAPIN-F-N",
+    "name": "Sapin de Noël Fourré Praliné Noisettes du Piémont IGP - Choc Noir",
+    "package_size": 1,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1
+  },
+  {
+    "sku": "SAPIN-F-L",
+    "name": "Sapin de Noël Fourré Praliné Noisettes du Piémont IGP - Choc Lait",
+    "package_size": 1,
+    "package_unit": "pcs",
+    "vat_rate": "0.06",
+    "weight_unit": "g",
+    "shelf_life_days": 360,
+    "active": 1
+  }
+]

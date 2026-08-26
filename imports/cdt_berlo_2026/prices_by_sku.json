@@ -1,0 +1,202 @@
+[
+  {
+    "sku": "SPOON-N",
+    "name": "Cuiller Chocolat chaud Nature",
+    "price_net": 2.95,
+    "carton_qty": 20,
+    "section": "year_round",
+    "source_poids": "2x35g"
+  },
+  {
+    "sku": "SPOON-E",
+    "name": "Cuiller Chocolat chaud Épices de Nowel",
+    "price_net": 2.95,
+    "carton_qty": 20,
+    "section": "year_round",
+    "source_poids": "2x35g"
+  },
+  {
+    "sku": "MATINE-N",
+    "name": "Matinettes Chocolat Noir Origine",
+    "price_net": 3.36,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "MATINE-L",
+    "name": "Matinettes Chocolat Lait Origine",
+    "price_net": 3.36,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "MASSEP-D",
+    "name": "Massepain Duo",
+    "price_net": 3.68,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "GUIMAU-D",
+    "name": "Cubes Guimauve Duo",
+    "price_net": 3.82,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "GRANOL-N",
+    "name": "Granola fruit rouges Chocolat Noir",
+    "price_net": 3.29,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "GRANOL-L",
+    "name": "Granola fruit rouges Chocolat Lait",
+    "price_net": 3.29,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "MUESLI-N",
+    "name": "Tuiles muesli Chocolat Noir",
+    "price_net": 3.29,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "MUESLI-L",
+    "name": "Tuiles muesli Chocolat Lait",
+    "price_net": 3.29,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "SABLE-N",
+    "name": "Sablés Chocolat noir",
+    "price_net": 4.03,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "BALLS-N-N",
+    "name": "Noisettes du Piémont IGP – enrobées Choc Noir",
+    "price_net": 4.21,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "BALLS-N-L",
+    "name": "Noisettes du Piémont IGP – enrobées Choc Lait",
+    "price_net": 4.21,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "BALLS-A-N",
+    "name": "Amandes grillées & salées - enrobées Choc Noir",
+    "price_net": 4.21,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "BALLS-A-L",
+    "name": "Amandes grillées & salées - enrobées Choc Lait",
+    "price_net": 4.21,
+    "carton_qty": 25,
+    "section": "year_round",
+    "source_poids": "100g"
+  },
+  {
+    "sku": "OURSON-N",
+    "name": "Nounours Guimauve Chocolat Noir",
+    "price_net": 3.82,
+    "carton_qty": 25,
+    "section": "holiday",
+    "source_poids": "100 g"
+  },
+  {
+    "sku": "OURSON-L",
+    "name": "Nounours Guimauve Chocolat Lait",
+    "price_net": 3.82,
+    "carton_qty": 25,
+    "section": "holiday",
+    "source_poids": "100 g"
+  },
+  {
+    "sku": "STNIC-N",
+    "name": "St Nicolas 150 mm Chocolat Noir",
+    "price_net": 5.2,
+    "carton_qty": null,
+    "section": "holiday",
+    "source_poids": null
+  },
+  {
+    "sku": "STNIC-L",
+    "name": "St Nicolas 150 mm Chocolat Lait",
+    "price_net": 5.2,
+    "carton_qty": null,
+    "section": "holiday",
+    "source_poids": null
+  },
+  {
+    "sku": "STNIC-B",
+    "name": "St Nicolas 150 mm Chocolat Blanc",
+    "price_net": 5.2,
+    "carton_qty": null,
+    "section": "holiday",
+    "source_poids": null
+  },
+  {
+    "sku": "SAPIN-N",
+    "name": "Sapin de Noël Plein Chocolat Noir",
+    "price_net": 4.8,
+    "carton_qty": null,
+    "section": "holiday",
+    "source_poids": null
+  },
+  {
+    "sku": "SAPIN-L",
+    "name": "Sapin de Noël Plein Chocolat Lait",
+    "price_net": 4.8,
+    "carton_qty": null,
+    "section": "holiday",
+    "source_poids": null
+  },
+  {
+    "sku": "SAPIN-B",
+    "name": "Sapin de Noël Plein Chocolat Blanc",
+    "price_net": 4.8,
+    "carton_qty": null,
+    "section": "holiday",
+    "source_poids": null
+  },
+  {
+    "sku": "SAPIN-F-N",
+    "name": "Sapin de Noël Fourré Praliné Noisettes du Piémont IGP - Choc Noir",
+    "price_net": 6.15,
+    "carton_qty": null,
+    "section": "holiday",
+    "source_poids": null
+  },
+  {
+    "sku": "SAPIN-F-L",
+    "name": "Sapin de Noël Fourré Praliné Noisettes du Piémont IGP - Choc Lait",
+    "price_net": 6.15,
+    "carton_qty": null,
+    "section": "holiday",
+    "source_poids": null
+  }
+]

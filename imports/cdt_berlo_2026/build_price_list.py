@@ -48,8 +48,20 @@ def load_catalog(path):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--catalog", required=True,
-                    help="JSON z /ajax/catalog/products (albo mapa {sku: id})")
+    ap.add_argument("--catalog",
+                    help="JSON z /ajax/catalog/products (albo mapa {sku: id}); "
+                         "wymagane tylko dla --format prices")
+    ap.add_argument("--format", choices=["export", "prices"], default="export",
+                    help='"export" = {meta, products:[...]} kluczowane po SKU, '
+                         'jak cennik_ogolny_*.json z panelu (domyslne, nie '
+                         'potrzebuje ID); "prices" = {prices:[{product_id,...}]}')
+    ap.add_argument("--pricing", choices=["carton", "unit"], default="carton",
+                    help='"carton" = net_price za caly karton, a '
+                         'pack_quantity_in_base_unit = liczba sztuk w kartonie '
+                         '(tak liczy cennik ogolny); "unit" = cena za jedno '
+                         'opakowanie, ilosc 1')
+    ap.add_argument("--generated-at", default="",
+                    help="znacznik do meta.generated_at")
     ap.add_argument("--prices", default="prices_by_sku.json")
     ap.add_argument("--scope", choices=["all-shops", "client"], default="all-shops")
     ap.add_argument("--valid-from", help="RRRR-MM-DD; wymagane dla --scope client")
@@ -61,10 +73,44 @@ def main():
     if args.scope == "client" and not args.valid_from:
         raise SystemExit("--scope client wymaga --valid-from RRRR-MM-DD")
 
-    catalog = load_catalog(args.catalog)
     rows = json.loads(Path(args.prices).read_text(encoding="utf-8"))
     if args.section:
         rows = [r for r in rows if r["section"] == args.section]
+
+    if args.format == "export":
+        products = []
+        for row in rows:
+            # Karton bez wpisu w PDF (figury sprzedawane na sztuki) -> 1.
+            qty = row.get("carton_qty") or 1
+            if args.pricing == "unit":
+                qty = 1
+            price = round(row["price_net"] * qty, 2)
+            products.append({
+                "sku": row["sku"],
+                "product_name": row["name"],
+                # W cenniku ogolnym gross_price == net_price w kazdym wierszu -
+                # ten cennik nie niesie VAT, wiec nie doliczamy go tutaj.
+                "gross_price": price,
+                "net_price": price,
+                "pack_quantity_in_base_unit": qty,
+                "is_available": 1,
+            })
+        meta = {"currency": "EUR", "products_count": len(products)}
+        if args.generated_at:
+            meta = {"generated_at": args.generated_at, **meta}
+        out = Path(args.out or f"price_list_import.{args.pricing}.json")
+        out.write_text(
+            json.dumps({"meta": meta, "products": products},
+                       ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8")
+        total = sum(p["net_price"] for p in products)
+        print(f"{out}: {len(products)} pozycji, razem {total:.2f} EUR "
+              f"({args.pricing})")
+        return
+
+    if not args.catalog:
+        raise SystemExit("--format prices wymaga --catalog")
+    catalog = load_catalog(args.catalog)
 
     prices, missing = [], []
     for row in rows:

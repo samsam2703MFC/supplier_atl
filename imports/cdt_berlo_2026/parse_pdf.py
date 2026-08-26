@@ -202,16 +202,18 @@ def main():
     out = Path(args.out)
     products, prices, specs, allergens = build(args.pdf, args.vat, args.sku_separator)
 
-    def dump(filename, payload):
+    def dump(filename, payload, count=None):
         path = out / filename
         path.write_text(
             json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
-        print(f"  {path}  ({len(payload)} pozycji)")
+        print(f"  {path}  ({count if count is not None else len(payload)} pozycji)")
 
     print(f"Sparsowano {len(products)} produktow z {args.pdf}")
-    dump("products_import.json", products)
+    # API odrzuca gola tablice bledem INVALID_JSON_STRUCTURE - lista musi byc
+    # opakowana w {"products": [...]}, tak samo jak w eksporcie z panelu.
+    dump("products_import.json", {"products": products}, len(products))
     dump("prices_by_sku.json", prices)
     dump("specifications_by_sku.json", specs)
     dump("allergens_by_sku.json", allergens)

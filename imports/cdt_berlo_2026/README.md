@@ -12,7 +12,7 @@ Ustalenia potwierdzone: VAT `0.06`, ceny w EUR bez przeliczania, cennik dla
 
 | Plik | Do czego |
 |---|---|
-| `products_import.json` | Katalog → **Importuj produkty** (`POST /ajax/catalog/products/import`) |
+| `products_import.json` | Katalog → **Importuj produkty** (`POST /ajax/catalog/products/import`); format `{"products": [...]}` — gola tablica jest odrzucana jako `INVALID_JSON_STRUCTURE` |
 | `prices_by_sku.json` | dane zrodlowe cen (SKU, cena netto, karton, sekcja) |
 | `specifications_by_sku.json` | sklad z PDF (`POST /ajax/catalog/products/{id}/specification`) |
 | `allergens_by_sku.json` | alergeny wykryte w skladzie (do przypisania recznie) |

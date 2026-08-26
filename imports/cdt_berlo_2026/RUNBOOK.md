@@ -22,8 +22,16 @@ CDT before step 2.
 Katalog → **„Import produktów"** → „Wybierz plik JSON" → `products_import.json`
 → „Rozpocznij import".
 
-- 25 products, each with `sku`, `name`, `package_size`, `package_unit`,
-  `vat_rate`, `weight_grams`, `weight_unit`, `shelf_life_days`, `active: 1`
+- the file is `{"products": [ … 25 items … ]}` — a **bare JSON array is
+  rejected** by the API with `INVALID_JSON_STRUCTURE`, even though the panel's
+  import handler sends one (`catalog.twig`, the `Array.isArray` branch). Its
+  own comment records the same problem for the single-item case
+- each item: `sku`, `name`, `package_size`, `package_unit`, `vat_rate`,
+  `is_active` (**not** `active` — see `saveProduct` in `catalog.twig`),
+  `weight_grams` (`null` where the PDF gives no weight), `weight_unit`,
+  `shelf_life_days`
+- SKUs use `_`, not `-` (`SPOON_N`). `parse_pdf.py --sku-separator` changes it
+  across all four files at once; the PDF's own refs are hyphenated
 - accepted: `.json` only, max 10 MB
 - the grid reloads on success — confirm you see 25 new items
 
@@ -201,6 +209,8 @@ python3 parse_pdf.py --vat 0.23
 |---|---|
 | „Nieprawidłowy format pliku" | not `.json` — check the extension |
 | „Nieprawidłowy plik JSON" | file edited by hand and broken; re-run the script |
+| `INVALID_JSON_STRUCTURE` in the response | the payload is a bare array — it must be `{"products": [...]}` |
+| the modal's generic „format" error | it shows that for *every* failure; read the real cause in F12 → Network → the `import` request → Response |
 | date rejected on price import | `valid_from` is before today — pick a future date |
 | script warns about unmatched SKUs | those products are not in the catalog — redo step 2 |
 | prices import but show against wrong products | `catalog.json` is stale — re-pull it (step 3) |

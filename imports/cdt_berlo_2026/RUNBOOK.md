@@ -63,9 +63,15 @@ Save the output as `catalog.json` next to `build_price_list.py`.
 ## 4. Build the price file
 
 ```bash
-python3 parse_pdf.py --carton-size 10          # products + source prices
-python3 build_price_list.py --pricing carton   # price file, EUR 1040.90
+python3 parse_pdf.py --carton-size 10                      # products
+python3 build_price_list.py --pricing carton --markup 10  # prices, EUR 1144.99
 ```
+
+`--markup 10` adds 10% to the PDF's P.U. HTVA. The markup applies to the unit
+price and the rounding happens once, after multiplying by the carton, so the
+carton figures stay exact to the cent. `prices_by_sku.json` keeps the
+supplier's original prices untouched — the markup lives only in the generated
+price file, so changing it is one flag, not a re-transcription.
 
 `--pricing carton` multiplies the PDF's P.U. HTVA by the carton quantity, so
 `price_list_import.carton.json` carries the price of a full carton and

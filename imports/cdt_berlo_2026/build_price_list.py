@@ -60,6 +60,9 @@ def main():
                          'pack_quantity_in_base_unit = liczba sztuk w kartonie '
                          '(tak liczy cennik ogolny); "unit" = cena za jedno '
                          'opakowanie, ilosc 1')
+    ap.add_argument("--markup", type=float, default=0.0,
+                    help="Narzut w procentach doliczany do ceny z PDF, "
+                         "np. 10 = +10%%")
     ap.add_argument("--generated-at", default="",
                     help="znacznik do meta.generated_at")
     ap.add_argument("--prices", default="prices_by_sku.json")
@@ -84,7 +87,10 @@ def main():
             qty = row.get("carton_qty") or 1
             if args.pricing == "unit":
                 qty = 1
-            price = round(row["price_net"] * qty, 2)
+            # Narzut liczony od ceny jednostkowej z PDF, dopiero potem mnozenie
+            # przez karton - zaokraglenie raz, na koncu, zeby suma sie zgadzala.
+            unit = row["price_net"] * (1 + args.markup / 100)
+            price = round(unit * qty, 2)
             products.append({
                 "sku": row["sku"],
                 "product_name": row["name"],
@@ -104,8 +110,9 @@ def main():
                        ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8")
         total = sum(p["net_price"] for p in products)
+        markup = f", narzut +{args.markup:g}%" if args.markup else ""
         print(f"{out}: {len(products)} pozycji, razem {total:.2f} EUR "
-              f"({args.pricing})")
+              f"({args.pricing}{markup})")
         return
 
     if not args.catalog:
